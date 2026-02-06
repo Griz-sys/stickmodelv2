@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // user | admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects    Project[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Project {
+  id           String    @id @default(uuid())
+  name         String
+  tonnage      Int?
+  dateUpload   DateTime  @default(now())
+  dateFinish   DateTime?
+  datePayment  DateTime?
+  cost         Float?
+  downloadLink String?
+  uploadLink   String?
+  // Main project video (admin uploaded)
+  videoUrl     String?
+  uploadedBy   String?
+  status       String    @default("uploaded") // uploaded, finished
+  userId       String?
+
+  // Single user submission (original upload)
+  userFileName String?
+  userFileUrl  String?
+  userFileSize Int?
+  userFileType String?
+
+  // Single admin deliverable file
+  adminFileName String?
+  adminFileUrl  String?
+  adminFileSize Int?
+  adminFileType String?
+  
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([dateUpload])
+  @@map("projects")
+}
