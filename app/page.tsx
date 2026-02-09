@@ -19,9 +19,9 @@ export default function HeroPage() {
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg bg-orange-600 flex items-center justify-center shadow-sm">
               <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
+                width="10"
+                height="10"
+                viewBox="0 0 12 12"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -40,7 +40,7 @@ export default function HeroPage() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-6">
             <Link
               href="/about"
               className="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors"
@@ -59,162 +59,70 @@ export default function HeroPage() {
             >
               Contact
             </Link>
+            <Link
+              href="/login"
+              className="ml-3 inline-flex items-center gap-2 bg-amber-500 text-white px-3 py-1.5 text-sm font-medium rounded-md hover:bg-amber-600 transition-colors"
+            >
+              Order Now
+            </Link>
           </nav>
         </div>
       </header>
-
       {/* Hero Section */}
-      <section className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-slate-50 to-orange-50/30">
-        {/* 3D Model Full Screen */}
-        <div className="absolute inset-0 z-0">
-          <ModelViewer />
-        </div>
+      <section className="relative h-screen w-full bg-gradient-to-br from-slate-50 to-orange-50/30 flex flex-col justify-center px-6 overflow-hidden">
+        {/* Top Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mt-10 font-black tracking-tight text-slate-900 leading-[0.92] max-w-6xl mx-auto text-left"
+          style={{ fontSize: "clamp(2.8rem,7vw,6.3rem)" }}
+        >
+          Drawing to <span className="text-orange-600">Stick Model</span>
+        </motion.h1>
 
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-white/85 via-white/40 to-transparent" />
-
-        {/* Content */}
-        <div className="relative z-20 flex flex-col justify-center h-full px-6 md:px-12 lg:px-20 max-w-6xl">
-          <motion.h1
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: 1,
-              delay: 0.1,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
-            className="font-black text-[clamp(10rem,30vw,32rem)] leading-[0.9] tracking-tight text-slate-900"
+        {/* Compressed Block Below */}
+        <div className="-mt-6 flex flex-col items-center">
+          {/* 3D Model (Smaller + Tighter) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="w-full flex justify-center my-4"
           >
-            Drawing to <span className="text-orange-600">Stick Model</span>
-            <br />
-            in 24 Hours
-          </motion.h1>
+            <div className="w-[75%] max-w-3xl h-[220px] md:h-[260px] lg:h-[300px]">
+              <ModelViewer />
+            </div>
+          </motion.div>
 
-          <motion.p
+          {/* 'in 24 Hours' heading */}
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: -60 }}
             transition={{
-              duration: 1,
+              duration: 0.8,
               delay: 0.3,
               ease: [0.25, 0.1, 0.25, 1],
             }}
-            className="mt-8 text-xl md:text-2xl text-slate-700 font-light tracking-wide max-w-3xl"
+            className="font-black tracking-tight text-slate-900 leading-[0.92] text-center mb-3"
+            style={{ fontSize: "clamp(2.8rem,7vw,6.3rem)" }}
           >
-            Precision. Speed. Craftsmanship.
-          </motion.p>
+            in 24 Hours
+          </motion.h2>
 
-          <motion.div
+          {/* Bottom Heading */}
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: -60 }}
             transition={{
               duration: 1,
               delay: 0.5,
               ease: [0.25, 0.1, 0.25, 1],
             }}
+            className="text-xl md:text-2xl text-slate-700 font-light tracking-wide"
           >
-            <Link
-              href="/login"
-              className="mt-8 inline-flex items-center gap-2 bg-slate-800 text-white px-5 py-2.5 text-sm font-medium w-fit hover:bg-slate-900 transition-colors rounded-md"
-            >
-              Order Now
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
-              How it works
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Three simple steps to transform your structural drawings into
-              precise digital models.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: "01",
-                title: "Upload",
-                description:
-                  "Drop your PDF, DWG, IFC, or DXF files. We support all major structural drawing formats.",
-                icon: Upload,
-              },
-              {
-                step: "02",
-                title: "Process",
-                description:
-                  "Our AI analyzes your drawings and extracts structural elements automatically.",
-                icon: Cpu,
-              },
-              {
-                step: "03",
-                title: "Build",
-                description:
-                  "Get your digital StickModel ready for analysis and integration with your workflow.",
-                icon: Package,
-              },
-            ].map((item, index) => (
-              <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="p-8 rounded-2xl bg-white border border-slate-200 hover:border-orange-600/50 hover:shadow-xl hover:shadow-orange-600/10 transition-all duration-300"
-              >
-                <span className="text-5xl font-black text-orange-600/20">
-                  {item.step}
-                </span>
-                <div className="mt-4 mb-3">
-                  <item.icon className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-slate-600">{item.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="p-12 rounded-3xl bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200"
-          >
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">
-              Ready to get started?
-            </h2>
-            <p className="text-lg text-slate-600 mb-8 max-w-lg mx-auto">
-              Join thousands of engineers who trust StickModel for their
-              structural modeling needs.
-            </p>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-full transition-all duration-200 shadow-lg shadow-orange-600/25"
-            >
-              Start Free Trial
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
+            Define. Detail. Deliver.
+          </motion.p>
         </div>
       </section>
 
