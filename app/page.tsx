@@ -4,6 +4,14 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Upload, Cpu, Package } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Unbounded } from "next/font/google";
+
+const unbounded = Unbounded({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "700"],
+  variable: "--font-unbounded",
+});
 
 // Dynamically import ModelViewer with no SSR
 const ModelViewer = dynamic(() => import("@/components/landing/ModelViewer"), {
@@ -12,9 +20,20 @@ const ModelViewer = dynamic(() => import("@/components/landing/ModelViewer"), {
 
 export default function HeroPage() {
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
+    <div
+      className={`${unbounded.variable} min-h-screen overflow-hidden`}
+      style={{
+        backgroundColor: "#ffffff",
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px)
+        `,
+        backgroundSize: "40px 40px",
+        backgroundPosition: "center center",
+      }}
+    >
       {/* Simple Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-slate-200 bg-white/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg bg-orange-600 flex items-center justify-center shadow-sm">
@@ -69,65 +88,95 @@ export default function HeroPage() {
         </div>
       </header>
       {/* Hero Section */}
-      <section className="relative h-screen w-full bg-gradient-to-br from-slate-50 to-orange-50/30 flex flex-col justify-center px-6 overflow-hidden">
-        {/* Top Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mt-10 font-black tracking-tight text-slate-900 leading-[0.92] max-w-6xl mx-auto text-left"
-          style={{ fontSize: "clamp(2.8rem,7vw,6.3rem)" }}
+      <section className="relative h-screen w-full flex flex-col justify-center overflow-hidden">
+        {/* 3D Model - Full Screen Coverage */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 5,
+          }}
         >
-          Drawing to <span className="text-orange-600">Stick Model</span>
-        </motion.h1>
+          <ModelViewer />
+        </motion.div>
 
-        {/* Compressed Block Below */}
-        <div className="-mt-6 flex flex-col items-center">
-          {/* 3D Model (Smaller + Tighter) */}
+        {/* removed full-screen white overlay per request (keeps model untouched) */}
+
+        <div className="max-w-7xl mx-auto w-full h-full relative z-50">
+          {/* Text Content - Left Side */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="w-full flex justify-center my-4"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: "absolute",
+              left: "0%",
+              top: "12%",
+              zIndex: 80,
+              maxWidth: "950px",
+              width: "90%",
+              padding: "1.5rem",
+            }}
           >
-            <div className="w-[75%] max-w-3xl h-[220px] md:h-[260px] lg:h-[300px]">
-              <ModelViewer />
-            </div>
+            {/* Top Heading */}
+            <h1
+              className="font-black tracking-tight text-slate-900 leading-[0.92] text-left mb-4"
+              style={{
+                fontSize: "clamp(3rem,6.5vw,6.75rem)",
+                fontFamily:
+                  "var(--font-unbounded), 'Helvetica Neue', Arial, sans-serif",
+                textTransform: "uppercase",
+                textShadow: "none",
+              }}
+            >
+              DRAWING TO{" "}
+              <span
+                className="text-orange-600"
+                style={{
+                  fontFamily:
+                    "var(--font-unbounded), 'Instrument Serif', Georgia, 'Times New Roman', serif",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                STICK MODEL
+              </span>
+            </h1>
+
+            {/* 'in 24 Hours' heading */}
+            <h2
+              className="font-black tracking-tight text-slate-900 leading-[0.92] text-left mb-3"
+              style={{
+                fontSize: "clamp(2rem,6vw,5rem)",
+                fontFamily:
+                  "var(--font-unbounded), 'Helvetica Neue', Arial, sans-serif",
+                textTransform: "uppercase",
+                textShadow: "none",
+              }}
+            >
+              IN 24 HOURS
+            </h2>
+
+            {/* Bottom Heading */}
+            <p
+              className="text-lg md:text-xl text-slate-800 font-light tracking-wide"
+              style={{
+                fontSize: "clamp(1.6875rem,2.25vw,2.25rem)",
+                textShadow: "none",
+              }}
+            >
+              Define. Detail. Deliver.
+            </p>
           </motion.div>
-
-          {/* 'in 24 Hours' heading */}
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: -60 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.3,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
-            className="font-black tracking-tight text-slate-900 leading-[0.92] text-center mb-3"
-            style={{ fontSize: "clamp(2.8rem,7vw,6.3rem)" }}
-          >
-            in 24 Hours
-          </motion.h2>
-
-          {/* Bottom Heading */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: -60 }}
-            transition={{
-              duration: 1,
-              delay: 0.5,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
-            className="text-xl md:text-2xl text-slate-700 font-light tracking-wide"
-          >
-            Define. Detail. Deliver.
-          </motion.p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2.5">

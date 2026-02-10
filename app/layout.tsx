@@ -23,7 +23,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={beVietnamPro.variable}>
-      <body className="antialiased bg-[#fafaf8] min-h-screen">
+      <body className="antialiased min-h-screen" style={{ background: 'transparent' }}>
+        {/* Fixed background image behind everything */}
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: -9999,
+            backgroundImage: "url('/bg.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundAttachment: "fixed",
+            backgroundColor: "#fafaf8",
+          }}
+        />
+
         {/* Authenticated Navigation (only shows on protected pages) */}
         <AuthenticatedNav />
 
