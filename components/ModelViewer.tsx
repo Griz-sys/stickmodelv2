@@ -1,7 +1,6 @@
 import { FC, Suspense, useRef, useLayoutEffect, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useLoader, useThree, invalidate } from '@react-three/fiber';
 import { OrbitControls, useGLTF, useFBX, useProgress, Html, Environment, ContactShadows } from '@react-three/drei';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import * as THREE from 'three';
 
 export interface ViewerProps {
@@ -131,7 +130,6 @@ const ModelInner: FC<ModelInnerProps> = ({
   const content = useMemo<THREE.Object3D | null>(() => {
     if (ext === 'glb' || ext === 'gltf') return useGLTF(url).scene.clone();
     if (ext === 'fbx') return useFBX(url).clone();
-    if (ext === 'obj') return useLoader(OBJLoader, url).clone();
     console.error('Unsupported format:', ext);
     return null;
   }, [url, ext]);

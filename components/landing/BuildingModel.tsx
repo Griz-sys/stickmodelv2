@@ -2,9 +2,12 @@
 
 import "@google/model-viewer";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ModelViewerElement = 'model-viewer' as any;
+
 export default function BuildingModel() {
   return (
-    <model-viewer
+    <ModelViewerElement
       src="/model.obj"
       auto-rotate
       camera-controls
