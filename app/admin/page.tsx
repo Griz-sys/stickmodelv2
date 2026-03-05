@@ -306,241 +306,405 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafaf8] pb-12">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* ==================== HEADER ==================== */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-slate-600">
-            Manage users, projects, and submissions
-          </p>
-        </motion.div>
-
-        {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
-        >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Total Projects</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {stats.totalProjects}
-                  </p>
-                </div>
-                <FolderKanban className="w-10 h-10 text-amber-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Active</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {stats.activeProjects}
-                  </p>
-                </div>
-                <Clock className="w-10 h-10 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Finished</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {stats.finishedProjects}
-                  </p>
-                </div>
-                <CheckCircle className="w-10 h-10 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Total Users</p>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {stats.totalUsers}
-                  </p>
-                </div>
-                <Users className="w-10 h-10 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6"
-        >
-          <div className="border-b border-slate-200">
-            <div className="flex gap-8">
-              <button
-                onClick={() => setActiveTab("projects")}
-                className={`pb-4 px-1 border-b-2 transition-colors ${
-                  activeTab === "projects"
-                    ? "border-amber-500 text-slate-900 font-semibold"
-                    : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Projects
-              </button>
-              <button
-                onClick={() => setActiveTab("users")}
-                className={`pb-4 px-1 border-b-2 transition-colors ${
-                  activeTab === "users"
-                    ? "border-amber-500 text-slate-900 font-semibold"
-                    : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Users
-              </button>
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 tracking-tight">
+                Admin Dashboard
+              </h1>
+              <p className="text-base text-slate-500 mt-2 font-medium">
+                Manage all projects, users, and submissions in one place
+              </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Search and Actions */}
+        {/* ==================== STATS CARDS ==================== */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex gap-4 mb-6"
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10"
         >
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <Input
-              type="text"
-              placeholder={`Search ${activeTab}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          {/* Total Projects */}
+          <div className="group relative overflow-hidden rounded-xl bg-white border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-start justify-between mb-4 relative z-10">
+              <div className="flex-1">
+                <p className="text-sm text-slate-600 font-medium tracking-wide">
+                  Total Projects
+                </p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {stats.totalProjects}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
+                <FolderKanban className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mt-4 relative z-10">
+              <div className="w-2 h-2 bg-orange-500 rounded-full" />
+              <span>All time</span>
+            </div>
           </div>
-          <Button onClick={fetchData} variant="secondary" className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </Button>
+
+          {/* Active Projects */}
+          <div className="group relative overflow-hidden rounded-xl bg-white border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-start justify-between mb-4 relative z-10">
+              <div className="flex-1">
+                <p className="text-sm text-slate-600 font-medium tracking-wide">
+                  Active
+                </p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {stats.activeProjects}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                <Clock className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mt-4 relative z-10">
+              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+              <span>In progress</span>
+            </div>
+          </div>
+
+          {/* Finished Projects */}
+          <div className="group relative overflow-hidden rounded-xl bg-white border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-start justify-between mb-4 relative z-10">
+              <div className="flex-1">
+                <p className="text-sm text-slate-600 font-medium tracking-wide">
+                  Finished
+                </p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {stats.finishedProjects}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mt-4 relative z-10">
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <span>Completed</span>
+            </div>
+          </div>
+
+          {/* Total Users */}
+          <div className="group relative overflow-hidden rounded-xl bg-white border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="flex items-start justify-between mb-4 relative z-10">
+              <div className="flex-1">
+                <p className="text-sm text-slate-600 font-medium tracking-wide">
+                  Total Users
+                </p>
+                <p className="text-3xl font-bold text-slate-900 mt-2">
+                  {stats.totalUsers}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                <Users className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 mt-4 relative z-10">
+              <div className="w-2 h-2 bg-purple-500 rounded-full" />
+              <span>Registered</span>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Content */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+        {/* ==================== TABS & CONTROLS ==================== */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-xl border border-slate-200 p-6 mb-8"
+        >
+          {/* Tabs */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-1 border-b border-slate-200 w-full">
+              <button
+                onClick={() => setActiveTab("projects")}
+                className={`px-4 py-3 text-sm font-semibold transition-all duration-300 relative ${
+                  activeTab === "projects"
+                    ? "text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <FolderKanban className="w-4 h-4" />
+                  Projects
+                </span>
+                {activeTab === "projects" && (
+                  <motion.div
+                    layoutId="underline"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("users")}
+                className={`px-4 py-3 text-sm font-semibold transition-all duration-300 relative ${
+                  activeTab === "users"
+                    ? "text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Users
+                </span>
+                {activeTab === "users" && (
+                  <motion.div
+                    layoutId="underline"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Search & Actions */}
+          <div className="flex gap-3 items-center">
+            <div className="flex-1 relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+              <Input
+                type="text"
+                placeholder={`Search ${activeTab === "projects" ? "projects by name" : "users by name or email"}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all text-sm"
+              />
+            </div>
+            <Button
+              onClick={fetchData}
+              variant="secondary"
+              className="gap-2 px-4 py-2.5 h-auto border-slate-200 hover:bg-slate-100 text-slate-700"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* ==================== CONTENT ==================== */}
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center justify-center py-24"
+          >
+            <div className="text-center">
+              <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+              <p className="text-slate-600 font-medium">Loading data...</p>
+            </div>
+          </motion.div>
         ) : activeTab === "projects" ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
             className="space-y-3"
           >
-            {filteredProjects.map((project) => (
-              <Card
-                key={project.id}
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => handleProjectClick(project)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-slate-900">
-                          {project.name}
-                        </h3>
-                        <StatusBadge status={project.status as any} />
+            {filteredProjects.length > 0 ? (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-200">
+                {filteredProjects.map((project, idx) => (
+                  <motion.div
+                    key={project.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => handleProjectClick(project)}
+                    className="p-6 hover:bg-slate-50 cursor-pointer transition-colors group"
+                  >
+                    <div className="flex items-start justify-between gap-6">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-base font-semibold text-slate-900 truncate group-hover:text-orange-600 transition-colors">
+                            {project.name}
+                          </h3>
+                          <StatusBadge status={project.status as any} />
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-xs">
+                          <div>
+                            <p className="text-slate-500 font-medium mb-1">
+                              Client
+                            </p>
+                            <p className="text-slate-900 font-medium">
+                              {project.user?.name || "Unassigned"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500 font-medium mb-1">
+                              Scope
+                            </p>
+                            <p className="text-slate-900 font-medium">
+                              {project.tonnage === null ? (
+                                "N/A"
+                              ) : project.tonnage === 0 ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                                  BOM
+                                </span>
+                              ) : (
+                                `${project.tonnage} tons`
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500 font-medium mb-1">
+                              Cost
+                            </p>
+                            <p className="text-slate-900 font-medium">
+                              {project.cost
+                                ? `$${project.cost.toLocaleString()}`
+                                : "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500 font-medium mb-1">
+                              Uploaded
+                            </p>
+                            <p className="text-slate-900 font-medium">
+                              {new Date(project.dateUpload).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-6 text-sm text-slate-600">
-                        <span>User: {project.user?.name || "Unassigned"}</span>
-                        {project.tonnage === 0 ? (
-                          <span>Bill of Materials requested</span>
-                        ) : (
-                          project.tonnage && <span>{project.tonnage} tons</span>
-                        )}
-                        {project.cost && (
-                          <span>${project.cost.toLocaleString()}</span>
-                        )}
-                        <span>
-                          Uploaded:{" "}
-                          {new Date(project.dateUpload).toLocaleDateString()}
-                        </span>
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="sm"
+                          className="gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4"
+                        >
+                          Open
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 7l5 5m0 0l-5 5m5-5H6"
+                            />
+                          </svg>
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {filteredProjects.length === 0 && (
-              <div className="text-center py-12 text-slate-500">
-                No projects found
+                  </motion.div>
+                ))}
               </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200 border-dashed"
+              >
+                <FolderKanban className="w-12 h-12 text-slate-300 mb-3" />
+                <p className="text-slate-600 font-medium">
+                  {searchQuery
+                    ? "No projects found"
+                    : "No projects yet"}
+                </p>
+              </motion.div>
             )}
           </motion.div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-3"
+            transition={{ delay: 0.3 }}
           >
-            {filteredUsers.map((user) => (
-              <Card key={user.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-1">
-                        {user.name}
-                      </h3>
-                      <p className="text-sm text-slate-600 mb-2">
-                        {user.email}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-md ${
-                            user.role === "admin"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                        <span className="text-slate-600">
-                          {user._count.projects} projects
-                        </span>
-                        <span className="text-slate-500">
-                          Joined {new Date(user.createdAt).toLocaleDateString()}
-                        </span>
+            {filteredUsers.length > 0 ? (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-200">
+                {filteredUsers.map((user, idx) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="p-6 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="mb-3">
+                          <h3 className="text-base font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
+                            {user.name}
+                          </h3>
+                          <p className="text-sm text-slate-500 mt-1">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <div className="inline-flex items-center gap-2">
+                            <div
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                                user.role === "admin"
+                                  ? "bg-purple-100 text-purple-700"
+                                  : "bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {user.role === "admin" ? "👑 Admin" : "User"}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-slate-600">
+                            <FolderKanban className="w-4 h-4 text-slate-400" />
+                            <span>
+                              {user._count.projects}{" "}
+                              {user._count.projects === 1
+                                ? "project"
+                                : "projects"}
+                            </span>
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            Joined{" "}
+                            {new Date(user.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {filteredUsers.length === 0 && (
-              <div className="text-center py-12 text-slate-500">
-                No users found
+                  </motion.div>
+                ))}
               </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200 border-dashed"
+              >
+                <Users className="w-12 h-12 text-slate-300 mb-3" />
+                <p className="text-slate-600 font-medium">
+                  {searchQuery ? "No users found" : "No users yet"}
+                </p>
+              </motion.div>
             )}
           </motion.div>
         )}

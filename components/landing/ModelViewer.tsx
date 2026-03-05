@@ -69,7 +69,7 @@ function FallbackModel() {
   return (
     <mesh>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#ea580c" />
+      <meshStandardMaterial color="#d83004" />
     </mesh>
   );
 }

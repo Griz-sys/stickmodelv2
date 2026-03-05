@@ -1,56 +1,49 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
+}
+
+export function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
+}
+
+export function formatRelativeTime(date: Date): string {
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (seconds < 60) return 'just now'
+  
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  
+  const weeks = Math.floor(days / 7)
+  if (weeks < 4) return `${weeks}w ago`
+  
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months}mo ago`
+  
+  const years = Math.floor(months / 12)
+  return `${years}y ago`
 }
 
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-}
-
-export function formatDate(date: Date | string): string {
-  const d = new Date(date);
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-export function formatRelativeTime(date: Date | string): string {
-  const d = new Date(date);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return formatDate(d);
-}
-
-export function generateProjectNumber(): string {
-  const prefix = "STK";
-  const number = Math.floor(1000 + Math.random() * 9000);
-  return `${prefix}-${number}`;
-}
-
-export function getFileExtension(filename: string): string {
-  return filename.split(".").pop()?.toUpperCase() || "";
-}
-
-export function getFileIcon(filename: string): "pdf" | "ifc" | "csv" | "file" {
-  const ext = filename.split(".").pop()?.toLowerCase();
-  if (ext === "pdf") return "pdf";
-  if (ext === "ifc") return "ifc";
-  if (ext === "csv") return "csv";
-  return "file";
+  if (bytes === 0) return '0 B'
+  
+  const units = ['B', 'KB', 'MB', 'GB']
+  const index = Math.floor(Math.log(bytes) / Math.log(1024))
+  const size = (bytes / Math.pow(1024, index)).toFixed(2)
+  
+  return `${size} ${units[index]}`
 }
