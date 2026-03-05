@@ -3,7 +3,7 @@
 import "@google/model-viewer";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ModelViewerElement = 'model-viewer' as any;
+const ModelViewerElement = "model-viewer" as any;
 
 export default function BuildingModel() {
   return (

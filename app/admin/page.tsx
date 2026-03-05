@@ -623,9 +623,7 @@ export default function AdminPage() {
               >
                 <FolderKanban className="w-12 h-12 text-slate-300 mb-3" />
                 <p className="text-slate-600 font-medium">
-                  {searchQuery
-                    ? "No projects found"
-                    : "No projects yet"}
+                  {searchQuery ? "No projects found" : "No projects yet"}
                 </p>
               </motion.div>
             )}

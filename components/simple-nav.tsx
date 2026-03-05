@@ -37,7 +37,7 @@ export function SimpleNav() {
         {/* Navigation Links */}
         <div className="flex items-center gap-8">
           <Link
-            href="/about"
+            href="/#about"
             className="text-sm text-slate-600 hover:text-orange-600 transition-colors"
           >
             About
