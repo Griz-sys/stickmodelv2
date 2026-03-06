@@ -26,8 +26,9 @@ import {
   ChevronLeft,
   ExternalLink,
   Loader2,
+  LogOut,
 } from "lucide-react";
-import { upload } from "@vercel/blob/client";
+import { motion } from "framer-motion";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -297,24 +298,30 @@ export default function HomePage() {
 
       const { project } = await projectResponse.json();
 
-      // Step 2: Upload file directly to Vercel Blob using project-based pathname
-      const blob = await upload(uploadedFile.file.name, uploadedFile.file, {
-        access: "public",
-        handleUploadUrl: "/api/blob/upload",
-        clientPayload: JSON.stringify({
-          projectId: project.id,
-          isAdminResponse: false,
-          fileName: uploadedFile.file.name,
-        }),
+      // Step 2: Get presigned URL from server
+      const tokenRes = await fetch("/api/blob/upload", {
+        method: "POST",
+        body: (() => {
+          const formData = new FormData();
+          formData.append('file', uploadedFile.file);
+          formData.append('projectId', project.id);
+          formData.append('isAdminResponse', 'false');
+          return formData;
+        })(),
       });
 
-      // Step 3: Patch the project with single user-file metadata
+      if (!tokenRes.ok) {
+        const err = await tokenRes.json();
+        throw new Error(err.error || "Failed to upload file");
+      }
+
+      const { url: publicUrl } = await tokenRes.json();
       const updateResponse = await fetch(`/api/projects/${project.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userFileName: uploadedFile.file.name,
-          userFileUrl: blob.url,
+          userFileUrl: publicUrl,
           userFileSize: uploadedFile.file.size,
           userFileType: uploadedFile.file.type || "application/pdf",
         }),
@@ -333,7 +340,7 @@ export default function HomePage() {
       router.push(`/requests/${project.id}`);
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Failed to create project. Please try again.");
+      alert(error instanceof Error ? error.message : "Failed to create project. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -345,6 +352,16 @@ export default function HomePage() {
     setViewAllSearch("");
     setViewAllStatusFilter("all");
     setShowViewAllModal(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const sortOptions: { value: SortOption; label: string }[] = [
@@ -366,7 +383,50 @@ export default function HomePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* ==================== TOP NAVBAR ==================== */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <span className="font-semibold text-slate-900">StickModel</span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-600">User Dashboard</span>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors text-sm font-medium"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </motion.button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Left Column - Requests List */}
         <Card className="animate-fade-in flex flex-col">
@@ -721,23 +781,23 @@ export default function HomePage() {
         isOpen={showModal}
         onClose={handleCloseModal}
         title="Create New Project"
-        className="max-w-md"
+        className="max-w-2xl"
       >
-        <div className="p-6 space-y-5">
+        <div className="p-8 space-y-6">
           {uploadedFile && (
-            <div className="p-4 bg-slate-50 rounded-lg">
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-charcoal truncate">
+                  <p className="text-sm font-semibold text-slate-900 truncate">
                     {uploadedFile.file.name}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 mt-1">
                     {formatFileSize(uploadedFile.file.size)}
                   </p>
                 </div>
                 <button
                   onClick={handleReplaceFile}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-charcoal hover:bg-slate-100 rounded-md transition-colors"
+                  className="flex items-center gap-1.5 ml-4 px-3 py-2 text-xs font-medium text-amber-700 bg-white hover:bg-amber-50 rounded-md border border-amber-200 transition-colors whitespace-nowrap"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Replace
@@ -746,7 +806,7 @@ export default function HomePage() {
             </div>
           )}
 
-          <div>
+          <div className="space-y-2">
             <Input
               label="Project Name"
               placeholder="e.g., Tower Block A - Phase 1"
@@ -754,9 +814,10 @@ export default function HomePage() {
               onChange={(e) => setProjectName(e.target.value)}
               required
             />
+            <p className="text-xs text-slate-500">Give your project a descriptive name for easy identification</p>
           </div>
 
-          <div className="p-4 bg-slate-50 rounded-lg">
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
             <Checkbox
               checked={includeBOM}
               onChange={(e) => setIncludeBOM(e.target.checked)}
@@ -765,60 +826,65 @@ export default function HomePage() {
             />
           </div>
 
-          <Textarea
-            label="Additional Notes (optional)"
-            placeholder="Any specific requirements or details about this project..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
-
-          <div className="space-y-3">
-            <Checkbox
-              checked={confirmFiles}
-              onChange={(e) => setConfirmFiles(e.target.checked)}
-              label="I confirm that I have verified the files being uploaded, and I have the authority to use and share these files."
+          <div className="space-y-2">
+            <Textarea
+              label="Additional Notes (optional)"
+              placeholder="Any specific requirements or details about this project..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
             />
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={confirmTerms}
-                  onChange={(e) => setConfirmTerms(e.target.checked)}
-                  className="peer sr-only"
-                />
-                <div className="w-5 h-5 border-2 border-slate-300 rounded transition-all duration-200 group-hover:border-amber-400 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500/20 peer-focus-visible:border-amber-500 peer-checked:bg-amber-500 peer-checked:border-amber-500" />
-                <svg
-                  className="absolute top-0.5 left-0.5 w-4 h-4 text-white transition-all duration-200 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <span className="text-sm text-charcoal">
-                I confirm that I have read the{" "}
-                <a
-                  href="/terms"
-                  className="text-amber-600 hover:text-amber-700 underline underline-offset-2"
-                >
-                  terms of use
-                </a>
-                .
-              </span>
-            </label>
+            <p className="text-xs text-slate-500">Help us understand your project better with any additional details</p>
           </div>
 
-          <div className="pt-4 border-t border-slate-200">
+          <div className="border-t border-slate-200 pt-6 space-y-4">
+            <div className="space-y-3">
+              <Checkbox
+                checked={confirmFiles}
+                onChange={(e) => setConfirmFiles(e.target.checked)}
+                label="I confirm that I have verified the files being uploaded, and I have the authority to use and share these files."
+              />
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex-shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={confirmTerms}
+                    onChange={(e) => setConfirmTerms(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-5 h-5 border-2 border-slate-300 rounded transition-all duration-200 group-hover:border-amber-400 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500/20 peer-focus-visible:border-amber-500 peer-checked:bg-amber-500 peer-checked:border-amber-500" />
+                  <svg
+                    className="absolute top-0.5 left-0.5 w-4 h-4 text-white transition-all duration-200 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm text-charcoal">
+                  I confirm that I have read the{" "}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-600 hover:text-amber-700 underline underline-offset-2 font-medium"
+                  >
+                    terms of use
+                  </a>
+                  .
+                </span>
+              </label>
+            </div>
+
             <Button
               size="lg"
-              className="w-full"
+              className="w-full mt-6"
               onClick={handleSubmit}
               isLoading={isSubmitting}
               disabled={!canSubmit}
@@ -829,6 +895,7 @@ export default function HomePage() {
           </div>
         </div>
       </Modal>
+    </div>
     </div>
   );
 }

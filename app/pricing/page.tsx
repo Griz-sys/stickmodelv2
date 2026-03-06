@@ -97,8 +97,12 @@ export default function PricingPage() {
 
               <div className="mb-8">
                 <div className="flex items-end gap-1">
-                  <span className="text-5xl font-bold text-slate-900">$999</span>
-                  <span className="text-slate-400 mb-1.5 text-sm">/ project</span>
+                  <span className="text-5xl font-bold text-slate-900">
+                    $999
+                  </span>
+                  <span className="text-slate-400 mb-1.5 text-sm">
+                    / project
+                  </span>
                 </div>
               </div>
 
@@ -154,8 +158,12 @@ export default function PricingPage() {
 
               <div className="mb-8">
                 <div className="flex items-end gap-1">
-                  <span className="text-5xl font-bold text-slate-900">$1199</span>
-                  <span className="text-slate-400 mb-1.5 text-sm">/ project</span>
+                  <span className="text-5xl font-bold text-slate-900">
+                    $1199
+                  </span>
+                  <span className="text-slate-400 mb-1.5 text-sm">
+                    / project
+                  </span>
                 </div>
               </div>
 
@@ -194,7 +202,8 @@ export default function PricingPage() {
           transition={{ delay: 0.3 }}
           className="text-center text-sm text-slate-400 mt-8"
         >
-          Pay only after you approve the preview &mdash; zero risk, no upfront payment.
+          Pay only after you approve the preview &mdash; zero risk, no upfront
+          payment.
         </motion.p>
       </section>
 
@@ -210,7 +219,9 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
         >
-          <p className="text-xs tracking-widest text-slate-400 uppercase mb-4">FAQ</p>
+          <p className="text-xs tracking-widest text-slate-400 uppercase mb-4">
+            FAQ
+          </p>
           <h2 className="text-3xl font-semibold text-slate-900 mb-12">
             Common questions
           </h2>
@@ -266,7 +277,17 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
@@ -275,9 +296,24 @@ export default function PricingPage() {
             <span className="font-semibold text-slate-900">StickModel</span>
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
-            <Link href="/#about" className="hover:text-orange-600 transition-colors">About</Link>
-            <Link href="/pricing" className="hover:text-orange-600 transition-colors">Pricing</Link>
-            <Link href="/contact" className="hover:text-orange-600 transition-colors">Contact</Link>
+            <Link
+              href="/#about"
+              className="hover:text-orange-600 transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/pricing"
+              className="hover:text-orange-600 transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/contact"
+              className="hover:text-orange-600 transition-colors"
+            >
+              Contact
+            </Link>
           </div>
         </div>
       </footer>

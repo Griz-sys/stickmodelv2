@@ -120,7 +120,7 @@ export default function HeroPage() {
               href="/login"
               className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
             >
-              Order Now
+              Get Yours !
             </Link>
           </div>
         </div>

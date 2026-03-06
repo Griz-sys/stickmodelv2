@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +20,7 @@ import {
   RefreshCw,
   FileText,
   Loader2,
+  LogOut,
 } from "lucide-react";
 
 interface User {
@@ -70,27 +73,14 @@ interface Submission {
 type Tab = "projects" | "users";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Project modal state
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [showProjectModal, setShowProjectModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Upload modal state
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadDescription, setUploadDescription] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Video upload state
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -115,176 +105,16 @@ export default function AdminPage() {
     }
   };
 
-  const handleProjectClick = async (project: Project) => {
-    setSelectedProject(project);
-    setShowProjectModal(true);
-  };
-
-  const handleUpdateStatus = async (status: string) => {
-    if (!selectedProject) return;
-
-    // Validate that files and video are uploaded before marking as finished
-    if (status === "finished") {
-      if (!selectedProject.adminFileUrl) {
-        alert(
-          "Please upload the admin deliverable file before marking as finished.",
-        );
-        return;
-      }
-      if (!selectedProject.videoUrl) {
-        alert("Please upload the project video before marking as finished.");
-        return;
-      }
-    }
-
-    setIsUpdating(true);
+  const handleLogout = async () => {
     try {
-      const response = await fetch(`/api/projects/${selectedProject.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status,
-          dateFinish:
-            status === "finished" ? new Date().toISOString() : undefined,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedProject(data.project);
-        fetchData(); // Refresh the list
-      }
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
     } catch (error) {
-      console.error("Failed to update status:", error);
-      alert("Failed to update status. Please try again.");
-    } finally {
-      setIsUpdating(false);
+      console.error("Logout failed:", error);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadFile(e.target.files[0]);
-    }
-  };
 
-  const handleUploadSubmission = async () => {
-    if (!selectedProject || !uploadFile) return;
-
-    setIsUploading(true);
-    try {
-      // Upload admin deliverable file to Vercel Blob using project-based path
-      const { upload } = await import("@vercel/blob/client");
-
-      const blob = await upload(uploadFile.name, uploadFile, {
-        access: "public",
-        handleUploadUrl: "/api/blob/upload",
-        clientPayload: JSON.stringify({
-          projectId: selectedProject.id,
-          isAdminResponse: true,
-          fileName: uploadFile.name,
-        }),
-      });
-
-      // Patch project with admin file metadata + URL
-      const updateResponse = await fetch(
-        `/api/projects/${selectedProject.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            adminFileName: uploadFile.name,
-            adminFileUrl: blob.url,
-            adminFileSize: uploadFile.size,
-            adminFileType: uploadFile.type || "application/pdf",
-          }),
-        },
-      );
-
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        throw new Error(
-          errorData.error || "Failed to update project with admin file",
-        );
-      }
-
-      const projectData = await updateResponse.json();
-      setSelectedProject(projectData.project);
-      fetchData();
-
-      // Reset form
-      setUploadFile(null);
-      setUploadDescription("");
-      setShowUploadModal(false);
-      alert("File uploaded successfully!");
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert(error instanceof Error ? error.message : "Upload failed");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleDownload = async (submissionId: string, fileName: string) => {
-    try {
-      const response = await fetch(`/api/submissions/${submissionId}/download`);
-      const data = await response.json();
-
-      if (response.ok && data.downloadUrl) {
-        window.open(data.downloadUrl, "_blank");
-      }
-    } catch (error) {
-      console.error("Download failed:", error);
-      alert("Failed to download file");
-    }
-  };
-
-  const handleVideoUpload = async () => {
-    if (!selectedProject || !videoFile) return;
-
-    setIsUploadingVideo(true);
-    try {
-      // Upload video to Vercel Blob
-      const { upload } = await import("@vercel/blob/client");
-
-      const blob = await upload(videoFile.name, videoFile, {
-        access: "public",
-        handleUploadUrl: "/api/blob/upload",
-        clientPayload: JSON.stringify({
-          projectId: selectedProject.id,
-          isAdminResponse: true,
-          fileName: videoFile.name,
-        }),
-      });
-
-      // Update project with video URL
-      await fetch(`/api/projects/${selectedProject.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          videoUrl: blob.url,
-        }),
-      });
-
-      // Refresh project data
-      const projectResponse = await fetch(
-        `/api/projects/${selectedProject.id}`,
-      );
-      const projectData = await projectResponse.json();
-      setSelectedProject(projectData.project);
-
-      // Reset form
-      setVideoFile(null);
-      setShowVideoModal(false);
-      fetchData(); // Refresh the list
-      alert("Video uploaded successfully!");
-    } catch (error) {
-      console.error("Video upload failed:", error);
-      alert("Failed to upload video");
-    } finally {
-      setIsUploadingVideo(false);
-    }
-  };
 
   const filteredProjects = projects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -307,6 +137,48 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* ==================== TOP NAVBAR ==================== */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <span className="font-semibold text-slate-900">StickModel</span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-600">Admin Dashboard</span>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors text-sm font-medium"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </motion.button>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* ==================== HEADER ==================== */}
         <motion.div
@@ -422,83 +294,59 @@ export default function AdminPage() {
           </div>
         </motion.div>
 
-        {/* ==================== TABS & CONTROLS ==================== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl border border-slate-200 p-6 mb-8"
-        >
+        {/* ==================== TABS & SEARCH ==================== */}
+        <div className="flex items-center justify-between mb-10 pb-4 border-b border-slate-200">
           {/* Tabs */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex gap-1 border-b border-slate-200 w-full">
-              <button
-                onClick={() => setActiveTab("projects")}
-                className={`px-4 py-3 text-sm font-semibold transition-all duration-300 relative ${
-                  activeTab === "projects"
-                    ? "text-slate-900"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <FolderKanban className="w-4 h-4" />
-                  Projects
-                </span>
-                {activeTab === "projects" && (
-                  <motion.div
-                    layoutId="underline"
-                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab("users")}
-                className={`px-4 py-3 text-sm font-semibold transition-all duration-300 relative ${
-                  activeTab === "users"
-                    ? "text-slate-900"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Users
-                </span>
-                {activeTab === "users" && (
-                  <motion.div
-                    layoutId="underline"
-                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("projects")}
+              className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                activeTab === "projects"
+                  ? "bg-orange-100 text-orange-700"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <FolderKanban className="w-4 h-4" />
+                Projects
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("users")}
+              className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                activeTab === "users"
+                  ? "bg-orange-100 text-orange-700"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Users
+              </span>
+            </button>
           </div>
 
-          {/* Search & Actions */}
+          {/* Search & Refresh */}
           <div className="flex gap-3 items-center">
-            <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+            <div className="relative group w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
               <Input
                 type="text"
-                placeholder={`Search ${activeTab === "projects" ? "projects by name" : "users by name or email"}...`}
+                placeholder={`Search ${activeTab === "projects" ? "projects" : "users"}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all text-sm"
+                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all text-sm"
               />
             </div>
             <Button
               onClick={fetchData}
               variant="secondary"
-              className="gap-2 px-4 py-2.5 h-auto border-slate-200 hover:bg-slate-100 text-slate-700"
+              className="gap-2 px-3 py-2 h-auto border-slate-200 hover:bg-slate-100 text-slate-700"
             >
               <RefreshCw className="w-4 h-4" />
-              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* ==================== CONTENT ==================== */}
         {isLoading ? (
@@ -527,8 +375,7 @@ export default function AdminPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    onClick={() => handleProjectClick(project)}
-                    className="p-6 hover:bg-slate-50 cursor-pointer transition-colors group"
+                    className="p-6 hover:bg-slate-50 transition-colors group"
                   >
                     <div className="flex items-start justify-between gap-6">
                       <div className="flex-1 min-w-0">
@@ -591,25 +438,27 @@ export default function AdminPage() {
                         </div>
                       </div>
                       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="sm"
-                          className="gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4"
-                        >
-                          Open
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        <Link href={`/requests/${project.id}`}>
+                          <Button
+                            size="sm"
+                            className="gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 7l5 5m0 0l-5 5m5-5H6"
-                            />
-                          </svg>
-                        </Button>
+                            Open
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"
+                              />
+                            </svg>
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
@@ -708,464 +557,7 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Project Detail Modal */}
-      {selectedProject && (
-        <Modal
-          isOpen={showProjectModal}
-          onClose={() => {
-            setShowProjectModal(false);
-            setSelectedProject(null);
-          }}
-          title={selectedProject.name}
-        >
-          <div className="space-y-8">
-            {/* Status & Meta Section */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">
-                    Status
-                  </p>
-                  <div className="inline-flex">
-                    <StatusBadge status={selectedProject.status as any} />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">
-                    User
-                  </p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {selectedProject.user?.name || "Unassigned"}
-                  </p>
-                </div>
-              </div>
 
-              {(selectedProject.tonnage !== null || selectedProject.cost) && (
-                <div className="grid grid-cols-2 gap-6">
-                  {selectedProject.tonnage !== null && (
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">
-                        Scope
-                      </p>
-                      <p className="text-base font-semibold text-slate-900">
-                        {selectedProject.tonnage === 0
-                          ? "Bill of Materials requested"
-                          : `${selectedProject.tonnage} tons`}
-                      </p>
-                    </div>
-                  )}
-                  {selectedProject.cost && (
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">
-                        Cost
-                      </p>
-                      <p className="text-base font-semibold text-slate-900">
-                        ${selectedProject.cost.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {selectedProject.notes && (
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">
-                    User Notes
-                  </p>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                    {selectedProject.notes}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-slate-200"></div>
-
-            {/* Status Dropdown */}
-            <div>
-              <label className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-3 block">
-                Project Status
-              </label>
-              <select
-                value={selectedProject.status}
-                onChange={(e) => handleUpdateStatus(e.target.value)}
-                disabled={isUpdating}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-slate-100 disabled:cursor-not-allowed transition-all"
-              >
-                <option value="in queue">In Queue</option>
-                <option value="in_progress">In Progress</option>
-                <option value="issue">Issue</option>
-                <option
-                  value="finished"
-                  disabled={
-                    !selectedProject.adminFileUrl || !selectedProject.videoUrl
-                  }
-                >
-                  Finished{" "}
-                  {!selectedProject.adminFileUrl || !selectedProject.videoUrl
-                    ? "(Upload files & video first)"
-                    : ""}
-                </option>
-              </select>
-              {selectedProject.status !== "finished" &&
-                (!selectedProject.adminFileUrl ||
-                  !selectedProject.videoUrl) && (
-                  <div className="mt-3 flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
-                    <svg
-                      className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <p className="text-xs text-yellow-800">
-                      Upload admin file and video before marking as finished
-                    </p>
-                  </div>
-                )}
-            </div>
-
-            <div className="border-t border-slate-200"></div>
-
-            {/* Video Upload Section */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                    Project Video
-                  </p>
-                  {selectedProject.videoUrl && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                      <CheckCircle className="w-3 h-3" />
-                      Uploaded
-                    </span>
-                  )}
-                </div>
-                <Button
-                  onClick={() => setShowVideoModal(true)}
-                  size="sm"
-                  className="gap-2 bg-purple-600 hover:bg-purple-700 shadow-sm"
-                >
-                  <Upload className="w-4 h-4" />
-                  {selectedProject.videoUrl ? "Replace" : "Upload"}
-                </Button>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                {selectedProject.videoUrl ? (
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-900 mb-1">
-                        Video uploaded successfully
-                      </p>
-                      <a
-                        href={selectedProject.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-amber-600 hover:text-amber-700 font-medium inline-flex items-center gap-1 hover:underline transition-all"
-                      >
-                        View Video
-                        <Download className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-yellow-100 rounded-lg">
-                      <svg
-                        className="w-5 h-5 text-yellow-600"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 mb-0.5">
-                        No video uploaded
-                      </p>
-                      <p className="text-xs text-slate-600">
-                        Required to mark project as finished
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="border-t border-slate-200"></div>
-
-            {/* Files (User upload + Admin deliverable) */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                    Project Files
-                  </p>
-                  {selectedProject.adminFileUrl && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                      <CheckCircle className="w-3 h-3" />
-                      Deliverable Ready
-                    </span>
-                  )}
-                </div>
-                <Button
-                  onClick={() => setShowUploadModal(true)}
-                  size="sm"
-                  className="gap-2 shadow-sm"
-                >
-                  <Upload className="w-4 h-4" />
-                  {selectedProject.adminFileUrl
-                    ? "Replace"
-                    : "Upload Admin File"}
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {selectedProject.userFileName &&
-                  selectedProject.userFileUrl && (
-                    <div className="group p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 bg-white rounded-lg shadow-sm">
-                            <FileText className="w-5 h-5 text-slate-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 mb-0.5 truncate">
-                              {selectedProject.userFileName}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              User upload
-                            </p>
-                          </div>
-                        </div>
-                        <a
-                          href={selectedProject.userFileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center w-9 h-9 rounded-lg bg-white hover:bg-slate-200 border border-slate-300 transition-all"
-                        >
-                          <Download className="w-4 h-4 text-slate-600" />
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                {selectedProject.adminFileName &&
-                  selectedProject.adminFileUrl && (
-                    <div className="group p-4 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 transition-all">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 bg-white rounded-lg shadow-sm">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 mb-0.5 truncate">
-                              {selectedProject.adminFileName}
-                            </p>
-                            <p className="text-xs text-green-700 font-medium">
-                              Admin deliverable - Ready for client
-                            </p>
-                          </div>
-                        </div>
-                        <a
-                          href={selectedProject.adminFileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-600 hover:bg-amber-700 transition-all shadow-sm"
-                        >
-                          <Download className="w-4 h-4 text-white" />
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                {!selectedProject.adminFileName && (
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-yellow-100 rounded-lg">
-                        <svg
-                          className="w-5 h-5 text-yellow-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 mb-0.5">
-                          No admin deliverable uploaded
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          Admin file is required to mark project as finished
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* Upload Modal */}
-      <Modal
-        isOpen={showUploadModal}
-        onClose={() => {
-          setShowUploadModal(false);
-          setUploadFile(null);
-          setUploadDescription("");
-        }}
-        title="Upload File to Project"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              Select File
-            </label>
-            <input
-              type="file"
-              onChange={handleFileSelect}
-              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
-            />
-            {uploadFile && (
-              <p className="mt-2 text-sm text-slate-600">
-                {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)}{" "}
-                MB)
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-slate-900 mb-2"
-            >
-              Description (Optional)
-            </label>
-            <Input
-              id="description"
-              type="text"
-              value={uploadDescription}
-              onChange={(e) => setUploadDescription(e.target.value)}
-              placeholder="Add a note about this file..."
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={() => {
-                setShowUploadModal(false);
-                setUploadFile(null);
-                setUploadDescription("");
-              }}
-              variant="secondary"
-              className="flex-1"
-              disabled={isUploading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUploadSubmission}
-              disabled={!uploadFile || isUploading}
-              className="flex-1 gap-2"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  Upload
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Video Upload Modal */}
-      <Modal
-        isOpen={showVideoModal}
-        onClose={() => {
-          setShowVideoModal(false);
-          setVideoFile(null);
-        }}
-        title="Upload Project Video"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              Select Video File
-            </label>
-            <input
-              type="file"
-              accept="video/*"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setVideoFile(e.target.files[0]);
-                }
-              }}
-              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-            />
-            {videoFile && (
-              <p className="mt-2 text-sm text-slate-600">
-                {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(2)}{" "}
-                MB)
-              </p>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={() => {
-                setShowVideoModal(false);
-                setVideoFile(null);
-              }}
-              variant="secondary"
-              className="flex-1"
-              disabled={isUploadingVideo}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleVideoUpload}
-              disabled={!videoFile || isUploadingVideo}
-              className="flex-1 gap-2 bg-purple-600 hover:bg-purple-700"
-            >
-              {isUploadingVideo ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  Upload Video
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

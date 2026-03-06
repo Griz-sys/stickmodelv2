@@ -139,7 +139,7 @@ export default function ContactPage() {
           <div className="font-semibold text-lg">StickModel</div>
 
           <div className="flex gap-8 text-sm text-slate-500">
-            <Link href="/about">About</Link>
+            <Link href="/#about">About</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/contact">Contact</Link>
           </div>

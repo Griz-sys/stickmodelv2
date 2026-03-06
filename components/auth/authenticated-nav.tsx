@@ -43,9 +43,9 @@ export function AuthenticatedNav() {
     }
   };
 
-  // Don't show nav on public pages
-  const publicPages = ["/", "/login"];
-  if (publicPages.includes(pathname)) {
+  // Don't show nav on public pages or pages with their own navbar
+  const pagesWithoutNav = ["/", "/login", "/admin", "/home"];
+  if (pagesWithoutNav.includes(pathname) || pathname.startsWith("/requests/")) {
     return null;
   }
 
