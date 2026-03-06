@@ -278,10 +278,12 @@ export default function HeroPage() {
               </p>
             </div>
             <div className="rounded-xl h-[340px] overflow-hidden bg-slate-100">
-              <img
-                src="/model.gif"
-                alt="Model Visualization"
+              <video
+                src="/Blueprint_to_D_Wireframe_Model.mp4"
                 className="w-full h-full object-cover"
+                autoPlay
+                loop
+                muted
               />
             </div>
           </motion.div>
@@ -307,7 +309,7 @@ export default function HeroPage() {
             className="rounded-xl h-[380px] overflow-hidden bg-slate-100"
           >
             <img
-              src="/BSGS1.png"
+              src="/abt.png"
               alt="Workflow Illustration"
               className="w-full h-full object-cover"
             />
@@ -418,9 +420,11 @@ export default function HeroPage() {
             transition={{ duration: 0.6 }}
             className="rounded-xl h-[400px] overflow-hidden bg-slate-100"
           >
-            <img
-              src="/cupbg1.png"
-              alt="Our Work Showcase"
+            <video
+              src="/main .mp4"
+              autoPlay
+              loop
+              muted
               className="w-full h-full object-cover"
             />
           </motion.div>

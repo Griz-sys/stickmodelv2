@@ -44,6 +44,6 @@ export const config = {
      * - models directory (3D model assets)
      * - static file extensions (images, fonts, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|models|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|otf|glb|gltf)).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|models|.*\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|otf|glb|gltf|mp4|webm|ogg|mov|mkv)).*)',
   ],
 };
