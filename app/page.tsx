@@ -45,11 +45,11 @@ export default function HeroPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 4000);
+    const timer = setTimeout(() => setIsLoaded(true), 3900);
     // Handle hash on load (e.g. navigating from another page via /#about)
     if (window.location.hash) {
       const id = window.location.hash.replace("#", "");
-      setTimeout(() => scrollToSection(id), 4000);
+      setTimeout(() => scrollToSection(id), 3900);
     }
     return () => clearTimeout(timer);
   }, []);
