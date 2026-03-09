@@ -6,7 +6,16 @@ import { Unbounded } from "next/font/google";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Users, Zap, Shield, Upload, Cpu, Eye, Download } from "lucide-react";
+import {
+  CheckCircle2,
+  Users,
+  Zap,
+  Shield,
+  Upload,
+  Cpu,
+  Eye,
+  Download,
+} from "lucide-react";
 
 const unbounded = Unbounded({
   subsets: ["latin"],
@@ -36,11 +45,11 @@ export default function HeroPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 3600);
+    const timer = setTimeout(() => setIsLoaded(true), 3850);
     // Handle hash on load (e.g. navigating from another page via /#about)
     if (window.location.hash) {
       const id = window.location.hash.replace("#", "");
-      setTimeout(() => scrollToSection(id), 3600);
+      setTimeout(() => scrollToSection(id), 3850);
     }
     return () => clearTimeout(timer);
   }, []);
@@ -327,62 +336,62 @@ export default function HeroPage() {
         {/* FEATURES */}
         <section className="bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100 py-24 border-y border-orange-200">
           <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="mb-14"
-          >
-            <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
-              Why StickModel
-            </p>
-            <h2 className="text-3xl font-semibold">
-              Designed for Structural Professionals
-            </h2>
-          </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: <Zap />,
-                title: "Fast Turnaround",
-                description:
-                  "Receive accurate stick models in as little as 4 hours.",
-              },
-              {
-                icon: <CheckCircle2 />,
-                title: "Precision Modeling",
-                description:
-                  "Industry-standard models compatible with your workflows.",
-              },
-              {
-                icon: <Shield />,
-                title: "Secure Files",
-                description:
-                  "All drawings are stored and transferred securely.",
-              },
-              {
-                icon: <Users />,
-                title: "Expert Support",
-                description:
-                  "Our team assists you through every stage of modeling.",
-              },
-            ].map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-              >
-                <Feature
-                  icon={f.icon}
-                  title={f.title}
-                  description={f.description}
-                />
-              </motion.div>
-            ))}
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="mb-14"
+            >
+              <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
+                Why StickModel
+              </p>
+              <h2 className="text-3xl font-semibold">
+                Designed for Structural Professionals
+              </h2>
+            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: <Zap />,
+                  title: "Fast Turnaround",
+                  description:
+                    "Receive accurate stick models in as little as 4 hours.",
+                },
+                {
+                  icon: <CheckCircle2 />,
+                  title: "Precision Modeling",
+                  description:
+                    "Industry-standard models compatible with your workflows.",
+                },
+                {
+                  icon: <Shield />,
+                  title: "Secure Files",
+                  description:
+                    "All drawings are stored and transferred securely.",
+                },
+                {
+                  icon: <Users />,
+                  title: "Expert Support",
+                  description:
+                    "Our team assists you through every stage of modeling.",
+                },
+              ].map((f, i) => (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                >
+                  <Feature
+                    icon={f.icon}
+                    title={f.title}
+                    description={f.description}
+                  />
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -530,7 +539,7 @@ function Step({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <motion.div 
+    <motion.div
       className="group h-full"
       whileHover={{ y: -8, transition: { duration: 0.3 } }}
     >
@@ -544,23 +553,21 @@ function Step({
             </div>
           </div>
         )}
-        
+
         {/* Content Container */}
         <div className="flex-1 flex flex-col gap-3 p-5">
           {/* Step Number Badge */}
           <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold text-sm">
             {number}
           </div>
-          
+
           {/* Title */}
           <h3 className="font-semibold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors">
             {title}
           </h3>
-          
+
           {/* Description */}
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {desc}
-          </p>
+          <p className="text-sm text-slate-600 leading-relaxed">{desc}</p>
         </div>
       </div>
     </motion.div>
