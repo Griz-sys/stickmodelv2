@@ -52,7 +52,7 @@ const navItems: CardNavItem[] = [
 export function NavBar() {
   return (
     <CardNav
-      logo="/stickmodel-logo.svg"
+      logo="/logo.svg"
       logoAlt="StickModel"
       items={navItems}
       baseColor="#ffffff"

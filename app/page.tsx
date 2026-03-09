@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Unbounded } from "next/font/google";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Users, Zap, Shield } from "lucide-react";
+import { CheckCircle2, Users, Zap, Shield, Upload, Cpu, Eye, Download } from "lucide-react";
 
 const unbounded = Unbounded({
   subsets: ["latin"],
@@ -27,13 +27,20 @@ function scrollToSection(id: string) {
 
 export default function HeroPage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 2000);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 1.8;
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 3600);
     // Handle hash on load (e.g. navigating from another page via /#about)
     if (window.location.hash) {
       const id = window.location.hash.replace("#", "");
-      setTimeout(() => scrollToSection(id), 2200);
+      setTimeout(() => scrollToSection(id), 3600);
     }
     return () => clearTimeout(timer);
   }, []);
@@ -45,23 +52,17 @@ export default function HeroPage() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="fixed inset-0 z-[999] bg-white flex flex-col items-center justify-center"
+          transition={{ duration: 2.6 }}
+          className="fixed inset-0 z-[999] bg-black flex items-center justify-center"
         >
-          <div className="relative w-16 h-16 mb-6">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-full h-full rounded-full border-4 border-slate-200 border-t-orange-600"
-            />
-          </div>
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-slate-600 font-medium"
-          >
-            Loading StickModel...
-          </motion.p>
+          <video
+            ref={videoRef}
+            src="/loading1.mp4"
+            autoPlay
+            loop
+            muted
+            className="w-full h-full object-cover"
+          />
         </motion.div>
       )}
 
@@ -75,23 +76,7 @@ export default function HeroPage() {
             onClick={() => scrollToSection("hero")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-7 h-7 rounded-md bg-orange-600 flex items-center justify-center">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <img src="/logo.svg" alt="StickModel" className="h-9 w-auto" />
             <span className="font-semibold text-slate-900 text-sm">
               StickModel
             </span>
@@ -120,7 +105,7 @@ export default function HeroPage() {
               href="/login"
               className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
             >
-              Get Yours !
+              Get Your Stick Model
             </Link>
           </div>
         </div>
@@ -290,7 +275,7 @@ export default function HeroPage() {
         </section>
 
         {/* STATS */}
-        <section className="border-y border-slate-200">
+        <section className="border-y border-orange-200 bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100">
           <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
             <Stat number="250+" label="Models Delivered" />
             <Stat number="20+" label="Happy Clients" />
@@ -340,7 +325,8 @@ export default function HeroPage() {
         </section>
 
         {/* FEATURES */}
-        <section className="max-w-7xl mx-auto px-6 pb-24">
+        <section className="bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100 py-24 border-y border-orange-200">
+          <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -397,6 +383,7 @@ export default function HeroPage() {
               </motion.div>
             ))}
           </div>
+          </div>
         </section>
 
         {/* GALLERY */}
@@ -437,34 +424,39 @@ export default function HeroPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
-            className="max-w-5xl mx-auto px-6 text-center mb-16"
+            className="max-w-6xl mx-auto px-6 text-center mb-10"
           >
             <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
               Process
             </p>
-            <h2 className="text-3xl font-semibold">How StickModel Works</h2>
+            <h2 className="text-4xl font-bold">How StickModel Works</h2>
           </motion.div>
-          <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-10">
+
+          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               {
                 number: "01",
                 title: "Upload Your Drawing",
                 desc: "Upload your structural PDF or drawings securely.",
+                icon: Upload,
               },
               {
                 number: "02",
                 title: "Model Generation",
                 desc: "Our experts convert drawings into IFC stick models.",
+                icon: Cpu,
               },
               {
                 number: "03",
                 title: "Preview Model",
                 desc: "Watch a preview video of your generated model.",
+                icon: Eye,
               },
               {
                 number: "04",
                 title: "Download IFC",
                 desc: "Approve and download your production-ready model.",
+                icon: Download,
               },
             ].map((s, i) => (
               <motion.div
@@ -474,7 +466,12 @@ export default function HeroPage() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
               >
-                <Step number={s.number} title={s.title} desc={s.desc} />
+                <Step
+                  number={s.number}
+                  title={s.title}
+                  desc={s.desc}
+                  icon={s.icon}
+                />
               </motion.div>
             ))}
           </div>
@@ -484,47 +481,14 @@ export default function HeroPage() {
       {/* ==================== FOOTER ==================== */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col items-center gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-white"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
+              <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
               <span className="font-semibold text-slate-900">StickModel</span>
             </div>
-            <div className="flex gap-8 text-sm text-slate-600">
-              <button
-                onClick={() => scrollToSection("about")}
-                className="hover:text-orange-600 transition-colors"
-              >
-                About
-              </button>
-              <Link
-                href="/pricing"
-                className="hover:text-orange-600 transition-colors"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/contact"
-                className="hover:text-orange-600 transition-colors"
-              >
-                Contact
-              </Link>
-            </div>
+            <p className="text-sm text-slate-600">
+              © {new Date().getFullYear()} StickModel. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
@@ -558,27 +522,56 @@ function Step({
   number,
   title,
   desc,
+  icon: Icon,
 }: {
   number: string;
   title: string;
   desc: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex gap-4 items-start">
-      <div className="text-2xl font-semibold text-orange-600">{number}</div>
-      <div>
-        <h3 className="font-medium mb-1">{title}</h3>
-        <p className="text-sm text-slate-600">{desc}</p>
+    <motion.div 
+      className="group h-full"
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+    >
+      <div className="flex flex-col gap-4 h-full bg-white rounded-xl border border-slate-200 shadow-sm group-hover:shadow-lg group-hover:border-orange-300 transition-all duration-300">
+        {/* Icon Container */}
+        {Icon && (
+          <div className="relative h-[200px] bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center group-hover:from-orange-100 group-hover:to-orange-200 transition-colors duration-300">
+            <div className="relative">
+              <div className="absolute inset-0 bg-orange-400 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <Icon className="w-20 h-20 text-orange-600 relative z-10" />
+            </div>
+          </div>
+        )}
+        
+        {/* Content Container */}
+        <div className="flex-1 flex flex-col gap-3 p-5">
+          {/* Step Number Badge */}
+          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold text-sm">
+            {number}
+          </div>
+          
+          {/* Title */}
+          <h3 className="font-semibold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors">
+            {title}
+          </h3>
+          
+          {/* Description */}
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {desc}
+          </p>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function Stat({ number, label }: { number: string; label: string }) {
   return (
     <div>
-      <div className="text-3xl font-semibold mb-1">{number}</div>
-      <div className="text-sm text-slate-500">{label}</div>
+      <div className="text-5xl font-semibold mb-2 text-slate-900">{number}</div>
+      <div className="text-base text-slate-600">{label}</div>
     </div>
   );
 }

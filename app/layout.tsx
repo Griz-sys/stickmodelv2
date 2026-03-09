@@ -14,6 +14,21 @@ export const metadata: Metadata = {
   title: "StickModel - Structural Drawings to Stick Models",
   description:
     "Transform your structural drawings into professional stick models. Fast, accurate, and affordable.",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-touch-icon.png",
+    other: [
+      {
+        rel: "android-chrome",
+        url: "/android-chrome-192x192.png",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

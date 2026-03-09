@@ -80,8 +80,6 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-
-
   useEffect(() => {
     fetchData();
   }, [activeTab]);
@@ -114,8 +112,6 @@ export default function AdminPage() {
     }
   };
 
-
-
   const filteredProjects = projects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -144,23 +140,7 @@ export default function AdminPage() {
             href="/"
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
             <span className="font-semibold text-slate-900">StickModel</span>
           </Link>
 
@@ -556,8 +536,6 @@ export default function AdminPage() {
           </motion.div>
         )}
       </div>
-
-
     </div>
   );
 }

@@ -303,9 +303,9 @@ export default function HomePage() {
         method: "POST",
         body: (() => {
           const formData = new FormData();
-          formData.append('file', uploadedFile.file);
-          formData.append('projectId', project.id);
-          formData.append('isAdminResponse', 'false');
+          formData.append("file", uploadedFile.file);
+          formData.append("projectId", project.id);
+          formData.append("isAdminResponse", "false");
           return formData;
         })(),
       });
@@ -340,7 +340,11 @@ export default function HomePage() {
       router.push(`/requests/${project.id}`);
     } catch (error) {
       console.error("Upload error:", error);
-      alert(error instanceof Error ? error.message : "Failed to create project. Please try again.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to create project. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -391,23 +395,7 @@ export default function HomePage() {
             href="/"
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
             <span className="font-semibold text-slate-900">StickModel</span>
           </Link>
 
@@ -427,93 +415,278 @@ export default function HomePage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Left Column - Requests List */}
-        <Card className="animate-fade-in flex flex-col">
-          {/* Tabs with View All */}
-          <div className="border-b border-slate-200">
-            <div className="flex items-center justify-between">
-              <div className="flex">
-                <button
-                  onClick={() => setActiveTab("active")}
-                  className={cn(
-                    "tab-button flex items-center gap-2",
-                    activeTab === "active" && "active",
-                  )}
-                >
-                  <FileStack className="w-4 h-4" />
-                  Active
-                  <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
-                    {activeRequests.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("past")}
-                  className={cn(
-                    "tab-button flex items-center gap-2",
-                    activeTab === "past" && "active",
-                  )}
-                >
-                  <History className="w-4 h-4" />
-                  Past
-                  <span className="px-1.5 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">
-                    {pastRequests.length}
-                  </span>
-                </button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {/* Left Column - Requests List */}
+          <Card className="animate-fade-in flex flex-col">
+            {/* Tabs with View All */}
+            <div className="border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex">
+                  <button
+                    onClick={() => setActiveTab("active")}
+                    className={cn(
+                      "tab-button flex items-center gap-2",
+                      activeTab === "active" && "active",
+                    )}
+                  >
+                    <FileStack className="w-4 h-4" />
+                    Active
+                    <span className="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
+                      {activeRequests.length}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("past")}
+                    className={cn(
+                      "tab-button flex items-center gap-2",
+                      activeTab === "past" && "active",
+                    )}
+                  >
+                    <History className="w-4 h-4" />
+                    Past
+                    <span className="px-1.5 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">
+                      {pastRequests.length}
+                    </span>
+                  </button>
+                </div>
+                {(activeRequests.length > 0 || pastRequests.length > 0) && (
+                  <button
+                    onClick={() => handleOpenViewAll(activeTab)}
+                    className="mr-3 text-xs font-medium text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                  >
+                    View all
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                )}
               </div>
-              {(activeRequests.length > 0 || pastRequests.length > 0) && (
-                <button
-                  onClick={() => handleOpenViewAll(activeTab)}
-                  className="mr-3 text-xs font-medium text-amber-600 hover:text-amber-700 flex items-center gap-1"
-                >
-                  View all
-                  <ExternalLink className="w-3 h-3" />
-                </button>
+            </div>
+
+            {/* Search and Sort */}
+            {(activeRequests.length > 0 || pastRequests.length > 0) && (
+              <div className="p-3 border-b border-slate-100 flex gap-2">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-charcoal placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSortMenu(!showSortMenu)}
+                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-colors"
+                  >
+                    <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    <span className="hidden sm:inline">Sort</span>
+                    <ChevronDown className="w-3 h-3 text-slate-500" />
+                  </button>
+
+                  {showSortMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowSortMenu(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
+                        {sortOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setSortBy(option.value);
+                              setShowSortMenu(false);
+                            }}
+                            className={cn(
+                              "w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors",
+                              sortBy === option.value
+                                ? "text-amber-600 bg-amber-50"
+                                : "text-slate-700",
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Request List */}
+            <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
+              {filteredAndSortedRequests.length === 0 ? (
+                searchQuery ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-slate-500">
+                      No projects match &quot;{searchQuery}&quot;
+                    </p>
+                  </div>
+                ) : (
+                  <EmptyState
+                    isNewUser={isNewUser && activeTab === "active"}
+                    type={activeTab}
+                  />
+                )
+              ) : (
+                filteredAndSortedRequests
+                  .slice(0, 5)
+                  .map((project, index) => (
+                    <RequestItem
+                      key={project.id}
+                      project={project}
+                      index={index}
+                    />
+                  ))
               )}
             </div>
-          </div>
 
-          {/* Search and Sort */}
-          {(activeRequests.length > 0 || pastRequests.length > 0) && (
-            <div className="p-3 border-b border-slate-100 flex gap-2">
+            {/* Show more indicator */}
+            {filteredAndSortedRequests.length > 5 && (
+              <div className="p-3 border-t border-slate-100 text-center">
+                <button
+                  onClick={() => handleOpenViewAll(activeTab)}
+                  className="text-sm font-medium text-amber-600 hover:text-amber-700"
+                >
+                  +{filteredAndSortedRequests.length - 5} more projects
+                </button>
+              </div>
+            )}
+          </Card>
+
+          {/* Right Column - Upload Section */}
+          <Card
+            className="animate-fade-in flex flex-col"
+            style={{ animationDelay: "100ms" }}
+          >
+            <CardContent className="p-6 flex flex-col flex-1">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-charcoal mb-1">
+                  Need a new Stickmodel?
+                </h2>
+                <p className="text-slate-500">Upload your structural drawing</p>
+              </div>
+
+              <div className="flex-1 flex flex-col justify-center">
+                <Dropzone onFilesAdded={handleFileAdded} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* View All Modal */}
+        <Modal
+          isOpen={showViewAllModal}
+          onClose={() => setShowViewAllModal(false)}
+          title={
+            viewAllTab === "active"
+              ? "All Active Projects"
+              : "All Past Projects"
+          }
+          className="max-w-2xl"
+        >
+          <div className="p-4">
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => {
+                  setViewAllTab("active");
+                  setViewAllPage(1);
+                  setViewAllStatusFilter("all");
+                }}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  viewAllTab === "active"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                )}
+              >
+                Active ({activeRequests.length})
+              </button>
+              <button
+                onClick={() => {
+                  setViewAllTab("past");
+                  setViewAllPage(1);
+                  setViewAllStatusFilter("all");
+                }}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  viewAllTab === "past"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                )}
+              >
+                Past ({pastRequests.length})
+              </button>
+            </div>
+
+            {/* Status Filter Pills */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {STATUS_FILTERS.map((filter) => (
+                <button
+                  key={filter.value}
+                  onClick={() => {
+                    setViewAllStatusFilter(filter.value);
+                    setViewAllPage(1);
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
+                    viewAllStatusFilter === filter.value
+                      ? "bg-charcoal text-white border-charcoal"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
+                  )}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search and Sort */}
+            <div className="flex gap-2 mb-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={viewAllSearch}
+                  onChange={(e) => {
+                    setViewAllSearch(e.target.value);
+                    setViewAllPage(1);
+                  }}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-charcoal placeholder:text-slate-400"
                 />
               </div>
 
               <div className="relative">
                 <button
-                  onClick={() => setShowSortMenu(!showSortMenu)}
+                  onClick={() => setViewAllShowSortMenu(!viewAllShowSortMenu)}
                   className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-colors"
                 >
                   <ArrowUpDown className="w-4 h-4 text-slate-500" />
-                  <span className="hidden sm:inline">Sort</span>
+                  Sort
                   <ChevronDown className="w-3 h-3 text-slate-500" />
                 </button>
 
-                {showSortMenu && (
+                {viewAllShowSortMenu && (
                   <>
                     <div
                       className="fixed inset-0 z-10"
-                      onClick={() => setShowSortMenu(false)}
+                      onClick={() => setViewAllShowSortMenu(false)}
                     />
                     <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
                           onClick={() => {
-                            setSortBy(option.value);
-                            setShowSortMenu(false);
+                            setViewAllSort(option.value);
+                            setViewAllShowSortMenu(false);
                           }}
                           className={cn(
                             "w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors",
-                            sortBy === option.value
+                            viewAllSort === option.value
                               ? "text-amber-600 bg-amber-50"
                               : "text-slate-700",
                           )}
@@ -526,376 +699,198 @@ export default function HomePage() {
                 )}
               </div>
             </div>
-          )}
 
-          {/* Request List */}
-          <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
-            {filteredAndSortedRequests.length === 0 ? (
-              searchQuery ? (
+            {/* Results count */}
+            <p className="text-xs text-slate-500 mb-3">
+              Showing {paginatedRequests.length} of{" "}
+              {viewAllFilteredRequests.length} projects
+            </p>
+
+            {/* Project List */}
+            <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+              {paginatedRequests.length === 0 ? (
                 <div className="p-8 text-center">
-                  <p className="text-sm text-slate-500">
-                    No projects match &quot;{searchQuery}&quot;
-                  </p>
+                  <p className="text-sm text-slate-500">No projects found</p>
                 </div>
               ) : (
-                <EmptyState
-                  isNewUser={isNewUser && activeTab === "active"}
-                  type={activeTab}
-                />
-              )
-            ) : (
-              filteredAndSortedRequests
-                .slice(0, 5)
-                .map((project, index) => (
-                  <RequestItem
+                paginatedRequests.map((project) => (
+                  <Link
                     key={project.id}
-                    project={project}
-                    index={index}
-                  />
-                ))
-            )}
-          </div>
-
-          {/* Show more indicator */}
-          {filteredAndSortedRequests.length > 5 && (
-            <div className="p-3 border-t border-slate-100 text-center">
-              <button
-                onClick={() => handleOpenViewAll(activeTab)}
-                className="text-sm font-medium text-amber-600 hover:text-amber-700"
-              >
-                +{filteredAndSortedRequests.length - 5} more projects
-              </button>
-            </div>
-          )}
-        </Card>
-
-        {/* Right Column - Upload Section */}
-        <Card
-          className="animate-fade-in flex flex-col"
-          style={{ animationDelay: "100ms" }}
-        >
-          <CardContent className="p-6 flex flex-col flex-1">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-charcoal mb-1">
-                Need a new Stickmodel?
-              </h2>
-              <p className="text-slate-500">Upload your structural drawing</p>
-            </div>
-
-            <div className="flex-1 flex flex-col justify-center">
-              <Dropzone onFilesAdded={handleFileAdded} />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* View All Modal */}
-      <Modal
-        isOpen={showViewAllModal}
-        onClose={() => setShowViewAllModal(false)}
-        title={
-          viewAllTab === "active" ? "All Active Projects" : "All Past Projects"
-        }
-        className="max-w-2xl"
-      >
-        <div className="p-4">
-          {/* Tabs */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => {
-                setViewAllTab("active");
-                setViewAllPage(1);
-                setViewAllStatusFilter("all");
-              }}
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                viewAllTab === "active"
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-              )}
-            >
-              Active ({activeRequests.length})
-            </button>
-            <button
-              onClick={() => {
-                setViewAllTab("past");
-                setViewAllPage(1);
-                setViewAllStatusFilter("all");
-              }}
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                viewAllTab === "past"
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-              )}
-            >
-              Past ({pastRequests.length})
-            </button>
-          </div>
-
-          {/* Status Filter Pills */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {STATUS_FILTERS.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => {
-                  setViewAllStatusFilter(filter.value);
-                  setViewAllPage(1);
-                }}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
-                  viewAllStatusFilter === filter.value
-                    ? "bg-charcoal text-white border-charcoal"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
-                )}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search and Sort */}
-          <div className="flex gap-2 mb-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={viewAllSearch}
-                onChange={(e) => {
-                  setViewAllSearch(e.target.value);
-                  setViewAllPage(1);
-                }}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-charcoal placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="relative">
-              <button
-                onClick={() => setViewAllShowSortMenu(!viewAllShowSortMenu)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-colors"
-              >
-                <ArrowUpDown className="w-4 h-4 text-slate-500" />
-                Sort
-                <ChevronDown className="w-3 h-3 text-slate-500" />
-              </button>
-
-              {viewAllShowSortMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setViewAllShowSortMenu(false)}
-                  />
-                  <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setViewAllSort(option.value);
-                          setViewAllShowSortMenu(false);
-                        }}
-                        className={cn(
-                          "w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors",
-                          viewAllSort === option.value
-                            ? "text-amber-600 bg-amber-50"
-                            : "text-slate-700",
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Results count */}
-          <p className="text-xs text-slate-500 mb-3">
-            Showing {paginatedRequests.length} of{" "}
-            {viewAllFilteredRequests.length} projects
-          </p>
-
-          {/* Project List */}
-          <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
-            {paginatedRequests.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-sm text-slate-500">No projects found</p>
-              </div>
-            ) : (
-              paginatedRequests.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/requests/${project.id}`}
-                  onClick={() => setShowViewAllModal(false)}
-                  className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-charcoal truncate group-hover:text-amber-600 transition-colors">
-                      {project.name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span>
-                        {formatRelativeTime(new Date(project.dateUpload))}
-                      </span>
+                    href={`/requests/${project.id}`}
+                    onClick={() => setShowViewAllModal(false)}
+                    className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-charcoal truncate group-hover:text-amber-600 transition-colors">
+                        {project.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>
+                          {formatRelativeTime(new Date(project.dateUpload))}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <StatusBadge status={project.status} />
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-500" />
-                </Link>
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <button
-                onClick={() => setViewAllPage((p) => Math.max(1, p - 1))}
-                disabled={viewAllPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-charcoal disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-              <span className="text-sm text-slate-600">
-                Page {viewAllPage} of {totalPages}
-              </span>
-              <button
-                onClick={() =>
-                  setViewAllPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={viewAllPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-charcoal disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                    <StatusBadge status={project.status} />
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-500" />
+                  </Link>
+                ))
+              )}
             </div>
-          )}
-        </div>
-      </Modal>
 
-      {/* Project Details Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        title="Create New Project"
-        className="max-w-2xl"
-      >
-        <div className="p-8 space-y-6">
-          {uploadedFile && (
-            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {uploadedFile.file.name}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {formatFileSize(uploadedFile.file.size)}
-                  </p>
-                </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
                 <button
-                  onClick={handleReplaceFile}
-                  className="flex items-center gap-1.5 ml-4 px-3 py-2 text-xs font-medium text-amber-700 bg-white hover:bg-amber-50 rounded-md border border-amber-200 transition-colors whitespace-nowrap"
+                  onClick={() => setViewAllPage((p) => Math.max(1, p - 1))}
+                  disabled={viewAllPage === 1}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-charcoal disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Replace
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <span className="text-sm text-slate-600">
+                  Page {viewAllPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setViewAllPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={viewAllPage === totalPages}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-charcoal disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Input
-              label="Project Name"
-              placeholder="e.g., Tower Block A - Phase 1"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              required
-            />
-            <p className="text-xs text-slate-500">Give your project a descriptive name for easy identification</p>
+            )}
           </div>
+        </Modal>
 
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <Checkbox
-              checked={includeBOM}
-              onChange={(e) => setIncludeBOM(e.target.checked)}
-              label="Include Bill of Materials"
-              description="Request a detailed materials list with your project"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Textarea
-              label="Additional Notes (optional)"
-              placeholder="Any specific requirements or details about this project..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-            />
-            <p className="text-xs text-slate-500">Help us understand your project better with any additional details</p>
-          </div>
-
-          <div className="border-t border-slate-200 pt-6 space-y-4">
-            <div className="space-y-3">
-              <Checkbox
-                checked={confirmFiles}
-                onChange={(e) => setConfirmFiles(e.target.checked)}
-                label="I confirm that I have verified the files being uploaded, and I have the authority to use and share these files."
-              />
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative flex-shrink-0 mt-0.5">
-                  <input
-                    type="checkbox"
-                    checked={confirmTerms}
-                    onChange={(e) => setConfirmTerms(e.target.checked)}
-                    className="peer sr-only"
-                  />
-                  <div className="w-5 h-5 border-2 border-slate-300 rounded transition-all duration-200 group-hover:border-amber-400 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500/20 peer-focus-visible:border-amber-500 peer-checked:bg-amber-500 peer-checked:border-amber-500" />
-                  <svg
-                    className="absolute top-0.5 left-0.5 w-4 h-4 text-white transition-all duration-200 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
+        {/* Project Details Modal */}
+        <Modal
+          isOpen={showModal}
+          onClose={handleCloseModal}
+          title="Create New Project"
+          className="max-w-2xl"
+        >
+          <div className="p-8 space-y-6">
+            {uploadedFile && (
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {uploadedFile.file.name}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {formatFileSize(uploadedFile.file.size)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleReplaceFile}
+                    className="flex items-center gap-1.5 ml-4 px-3 py-2 text-xs font-medium text-amber-700 bg-white hover:bg-amber-50 rounded-md border border-amber-200 transition-colors whitespace-nowrap"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Replace
+                  </button>
                 </div>
-                <span className="text-sm text-charcoal">
-                  I confirm that I have read the{" "}
-                  <a
-                    href="/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-600 hover:text-amber-700 underline underline-offset-2 font-medium"
-                  >
-                    terms of use
-                  </a>
-                  .
-                </span>
-              </label>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Input
+                label="Project Name"
+                placeholder="e.g., Tower Block A - Phase 1"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                required
+              />
+              <p className="text-xs text-slate-500">
+                Give your project a descriptive name for easy identification
+              </p>
             </div>
 
-            <Button
-              size="lg"
-              className="w-full mt-6"
-              onClick={handleSubmit}
-              isLoading={isSubmitting}
-              disabled={!canSubmit}
-            >
-              {isSubmitting ? "Creating Project..." : "Create Project"}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <Checkbox
+                checked={includeBOM}
+                onChange={(e) => setIncludeBOM(e.target.checked)}
+                label="Include Bill of Materials"
+                description="Request a detailed materials list with your project"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Textarea
+                label="Additional Notes (optional)"
+                placeholder="Any specific requirements or details about this project..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-slate-500">
+                Help us understand your project better with any additional
+                details
+              </p>
+            </div>
+
+            <div className="border-t border-slate-200 pt-6 space-y-4">
+              <div className="space-y-3">
+                <Checkbox
+                  checked={confirmFiles}
+                  onChange={(e) => setConfirmFiles(e.target.checked)}
+                  label="I confirm that I have verified the files being uploaded, and I have the authority to use and share these files."
+                />
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={confirmTerms}
+                      onChange={(e) => setConfirmTerms(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-5 h-5 border-2 border-slate-300 rounded transition-all duration-200 group-hover:border-amber-400 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500/20 peer-focus-visible:border-amber-500 peer-checked:bg-amber-500 peer-checked:border-amber-500" />
+                    <svg
+                      className="absolute top-0.5 left-0.5 w-4 h-4 text-white transition-all duration-200 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-charcoal">
+                    I confirm that I have read the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-600 hover:text-amber-700 underline underline-offset-2 font-medium"
+                    >
+                      terms of use
+                    </a>
+                    .
+                  </span>
+                </label>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full mt-6"
+                onClick={handleSubmit}
+                isLoading={isSubmitting}
+                disabled={!canSubmit}
+              >
+                {isSubmitting ? "Creating Project..." : "Create Project"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
-    </div>
+        </Modal>
+      </div>
     </div>
   );
 }

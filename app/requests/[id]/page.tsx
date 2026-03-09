@@ -70,10 +70,26 @@ interface Project {
 }
 
 const STATUS_OPTIONS = [
-  { value: "uploaded", label: "Uploaded", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { value: "in_progress", label: "In Progress", color: "bg-orange-100 text-orange-700 border-orange-200" },
-  { value: "issue", label: "Issue", color: "bg-red-100 text-red-700 border-red-200" },
-  { value: "finished", label: "Finished", color: "bg-green-100 text-green-700 border-green-200" },
+  {
+    value: "uploaded",
+    label: "Uploaded",
+    color: "bg-blue-100 text-blue-700 border-blue-200",
+  },
+  {
+    value: "in_progress",
+    label: "In Progress",
+    color: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  {
+    value: "issue",
+    label: "Issue",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
+  {
+    value: "finished",
+    label: "Finished",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
 ];
 
 export default function RequestDetailPage({ params }: PageProps) {
@@ -163,7 +179,8 @@ export default function RequestDetailPage({ params }: PageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: newStatus,
-          dateFinish: newStatus === "finished" ? new Date().toISOString() : undefined,
+          dateFinish:
+            newStatus === "finished" ? new Date().toISOString() : undefined,
         }),
       });
       if (response.ok) {
@@ -213,9 +230,9 @@ export default function RequestDetailPage({ params }: PageProps) {
         method: "POST",
         body: (() => {
           const formData = new FormData();
-          formData.append('file', uploadFile);
-          formData.append('projectId', project.id);
-          formData.append('isAdminResponse', 'true');
+          formData.append("file", uploadFile);
+          formData.append("projectId", project.id);
+          formData.append("isAdminResponse", "true");
           return formData;
         })(),
       });
@@ -264,9 +281,9 @@ export default function RequestDetailPage({ params }: PageProps) {
         method: "POST",
         body: (() => {
           const formData = new FormData();
-          formData.append('file', videoFile);
-          formData.append('projectId', project.id);
-          formData.append('isAdminResponse', 'true');
+          formData.append("file", videoFile);
+          formData.append("projectId", project.id);
+          formData.append("isAdminResponse", "true");
           return formData;
         })(),
       });
@@ -313,7 +330,9 @@ export default function RequestDetailPage({ params }: PageProps) {
     }
   };
 
-  const currentStatusOption = STATUS_OPTIONS.find((s) => s.value === project?.status);
+  const currentStatusOption = STATUS_OPTIONS.find(
+    (s) => s.value === project?.status,
+  );
 
   if (isLoading) {
     return (
@@ -331,8 +350,12 @@ export default function RequestDetailPage({ params }: PageProps) {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Project Not Found</h2>
-          <p className="text-slate-600 mb-6">This project does not exist or you don't have access.</p>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">
+            Project Not Found
+          </h2>
+          <p className="text-slate-600 mb-6">
+            This project does not exist or you don't have access.
+          </p>
           <Link href={backUrl}>
             <Button>Return {isAdmin ? "to Admin" : "to Home"}</Button>
           </Link>
@@ -356,13 +379,7 @@ export default function RequestDetailPage({ params }: PageProps) {
               href="/"
               className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             >
-              <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
+              <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
               <span className="font-semibold text-slate-900">StickModel</span>
             </Link>
             <span className="text-slate-300 text-lg">/</span>
@@ -413,7 +430,8 @@ export default function RequestDetailPage({ params }: PageProps) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
             <span className="flex items-center gap-1.5">
               <User className="w-4 h-4" />
-              {project.user?.name || "Unknown User"} {project.user?.email ? `· ${project.user.email}` : ""}
+              {project.user?.name || "Unknown User"}{" "}
+              {project.user?.email ? `· ${project.user.email}` : ""}
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
@@ -429,13 +447,15 @@ export default function RequestDetailPage({ params }: PageProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
           {/* ======== LEFT / MAIN COLUMN ======== */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* ---- Admin Controls ---- */}
             {isAdmin && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+              >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -444,7 +464,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                     </h2>
                   </div>
                   <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
-
                     {/* Status Dropdown */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
@@ -472,7 +491,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                         </div>
                       </div>
                       {currentStatusOption && (
-                        <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${currentStatusOption.color}`}>
+                        <div
+                          className={`mt-2 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${currentStatusOption.color}`}
+                        >
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
                           Currently: {currentStatusOption.label}
                         </div>
@@ -518,7 +539,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                         </p>
                       )}
                     </div>
-
                   </div>
                 </div>
               </motion.div>
@@ -526,15 +546,26 @@ export default function RequestDetailPage({ params }: PageProps) {
 
             {/* ---- Status info (users) ---- */}
             {!isAdmin && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+              >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-6">
-                  <h2 className="text-base font-semibold text-slate-900 mb-4">Project Status</h2>
+                  <h2 className="text-base font-semibold text-slate-900 mb-4">
+                    Project Status
+                  </h2>
                   {isUploaded && (
                     <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                       <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-blue-900 mb-0.5">Project received</p>
-                        <p className="text-sm text-blue-700">We'll start processing soon. You'll be notified when it's ready.</p>
+                        <p className="font-semibold text-blue-900 mb-0.5">
+                          Project received
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          We'll start processing soon. You'll be notified when
+                          it's ready.
+                        </p>
                       </div>
                     </div>
                   )}
@@ -542,8 +573,13 @@ export default function RequestDetailPage({ params }: PageProps) {
                     <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
                       <Loader2 className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5 animate-spin" />
                       <div>
-                        <p className="font-semibold text-orange-900 mb-0.5">Work in progress</p>
-                        <p className="text-sm text-orange-700">Your project is currently being processed. Check back soon.</p>
+                        <p className="font-semibold text-orange-900 mb-0.5">
+                          Work in progress
+                        </p>
+                        <p className="text-sm text-orange-700">
+                          Your project is currently being processed. Check back
+                          soon.
+                        </p>
                       </div>
                     </div>
                   )}
@@ -551,8 +587,12 @@ export default function RequestDetailPage({ params }: PageProps) {
                     <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
                       <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-green-900 mb-0.5">Project ready!</p>
-                        <p className="text-sm text-green-700">Download your files below.</p>
+                        <p className="font-semibold text-green-900 mb-0.5">
+                          Project ready!
+                        </p>
+                        <p className="text-sm text-green-700">
+                          Download your files below.
+                        </p>
                       </div>
                     </div>
                   )}
@@ -561,7 +601,11 @@ export default function RequestDetailPage({ params }: PageProps) {
             )}
 
             {/* ---- User Uploaded Files ---- */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -580,9 +624,13 @@ export default function RequestDetailPage({ params }: PageProps) {
                           <FileText className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{project.userFileName}</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {project.userFileName}
+                          </p>
                           {project.userFileSize && (
-                            <p className="text-xs text-slate-500 mt-0.5">{formatFileSize(project.userFileSize)}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {formatFileSize(project.userFileSize)}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -599,7 +647,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <FolderOpen className="w-10 h-10 text-slate-200 mb-3" />
-                      <p className="text-sm text-slate-500 font-medium">No files uploaded yet</p>
+                      <p className="text-sm text-slate-500 font-medium">
+                        No files uploaded yet
+                      </p>
                     </div>
                   )}
                 </div>
@@ -607,12 +657,18 @@ export default function RequestDetailPage({ params }: PageProps) {
             </motion.div>
 
             {/* ---- Admin Deliverables ---- */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-green-500 rounded-full inline-block" />
-                    {isAdmin ? "Deliverables (Admin Uploads)" : "Final Deliverables"}
+                    {isAdmin
+                      ? "Deliverables (Admin Uploads)"
+                      : "Final Deliverables"}
                   </h2>
                   <span className="text-xs text-slate-500 bg-white border border-slate-200 rounded-full px-2.5 py-0.5 font-medium">
                     {project.adminFileName ? "1 file" : "0 files"}
@@ -626,9 +682,13 @@ export default function RequestDetailPage({ params }: PageProps) {
                           <CheckCircle className="w-5 h-5 text-green-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{project.adminFileName}</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {project.adminFileName}
+                          </p>
                           {project.adminFileSize && (
-                            <p className="text-xs text-slate-500 mt-0.5">{formatFileSize(project.adminFileSize)}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {formatFileSize(project.adminFileSize)}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -645,7 +705,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <Upload className="w-10 h-10 text-slate-200 mb-3" />
-                      <p className="text-sm text-slate-500 font-medium">No deliverables uploaded yet</p>
+                      <p className="text-sm text-slate-500 font-medium">
+                        No deliverables uploaded yet
+                      </p>
                       {isAdmin && (
                         <button
                           onClick={() => setShowUploadModal(true)}
@@ -661,7 +723,11 @@ export default function RequestDetailPage({ params }: PageProps) {
             </motion.div>
 
             {/* ---- Video ---- */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
                   <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -672,14 +738,20 @@ export default function RequestDetailPage({ params }: PageProps) {
                 <div className="p-6">
                   {project.videoUrl ? (
                     <div className="rounded-xl overflow-hidden bg-slate-900">
-                      <video controls className="w-full aspect-video" src={project.videoUrl}>
+                      <video
+                        controls
+                        className="w-full aspect-video"
+                        src={project.videoUrl}
+                      >
                         Your browser does not support the video tag.
                       </video>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-14 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
                       <Video className="w-10 h-10 text-slate-300 mb-3" />
-                      <p className="text-sm text-slate-500 font-medium">No video uploaded yet</p>
+                      <p className="text-sm text-slate-500 font-medium">
+                        No video uploaded yet
+                      </p>
                       {isAdmin && (
                         <button
                           onClick={() => setShowVideoModal(true)}
@@ -696,7 +768,11 @@ export default function RequestDetailPage({ params }: PageProps) {
 
             {/* ---- Notes ---- */}
             {project.notes && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -705,7 +781,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                     </h2>
                   </div>
                   <div className="p-6">
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{project.notes}</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {project.notes}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -714,12 +792,17 @@ export default function RequestDetailPage({ params }: PageProps) {
 
           {/* ======== RIGHT / SIDEBAR ======== */}
           <div className="space-y-5">
-
             {/* ---- Project Details ---- */}
-            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+            <motion.div
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
-                  <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Project Details</h2>
+                  <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+                    Project Details
+                  </h2>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="flex items-start gap-3">
@@ -727,8 +810,12 @@ export default function RequestDetailPage({ params }: PageProps) {
                       <Hash className="w-4 h-4 text-slate-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 font-medium mb-0.5">Project ID</p>
-                      <p className="text-xs font-mono text-slate-800 break-all">{project.id}</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">
+                        Project ID
+                      </p>
+                      <p className="text-xs font-mono text-slate-800 break-all">
+                        {project.id}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -736,9 +823,15 @@ export default function RequestDetailPage({ params }: PageProps) {
                       <User className="w-4 h-4 text-slate-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 font-medium mb-0.5">Client</p>
-                      <p className="text-sm font-semibold text-slate-900">{project.user?.name || "—"}</p>
-                      <p className="text-xs text-slate-500">{project.user?.email || ""}</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">
+                        Client
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {project.user?.name || "—"}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {project.user?.email || ""}
+                      </p>
                     </div>
                   </div>
                   {project.tonnage !== null && (
@@ -748,10 +841,14 @@ export default function RequestDetailPage({ params }: PageProps) {
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 font-medium mb-0.5">
-                          {project.tonnage === 0 ? "Bill of Materials" : "Tonnage"}
+                          {project.tonnage === 0
+                            ? "Bill of Materials"
+                            : "Tonnage"}
                         </p>
                         <p className="text-sm font-semibold text-slate-900">
-                          {project.tonnage === 0 ? "Requested" : `${project.tonnage} tons`}
+                          {project.tonnage === 0
+                            ? "Requested"
+                            : `${project.tonnage} tons`}
                         </p>
                       </div>
                     </div>
@@ -761,7 +858,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                       <Calendar className="w-4 h-4 text-slate-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 font-medium mb-0.5">Uploaded</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">
+                        Uploaded
+                      </p>
                       <p className="text-sm font-semibold text-slate-900">
                         {formatDate(new Date(project.dateUpload))}
                       </p>
@@ -773,7 +872,11 @@ export default function RequestDetailPage({ params }: PageProps) {
 
             {/* ---- Set Price (Admin) ---- */}
             {isAdmin && (
-              <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
                     <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
@@ -784,12 +887,18 @@ export default function RequestDetailPage({ params }: PageProps) {
                   <div className="p-5">
                     {project.cost !== null && (
                       <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-center">
-                        <p className="text-xs text-green-700 font-medium mb-0.5">Current Price</p>
-                        <p className="text-2xl font-bold text-green-800">${project.cost.toLocaleString()}</p>
+                        <p className="text-xs text-green-700 font-medium mb-0.5">
+                          Current Price
+                        </p>
+                        <p className="text-2xl font-bold text-green-800">
+                          ${project.cost.toLocaleString()}
+                        </p>
                       </div>
                     )}
                     <div className="relative mb-3">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">
+                        $
+                      </span>
                       <input
                         type="number"
                         min="0"
@@ -824,20 +933,32 @@ export default function RequestDetailPage({ params }: PageProps) {
 
             {/* ---- Payment (User view, if finished) ---- */}
             {!isAdmin && isFinished && (
-              <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                   <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
-                    <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Payment</h2>
+                    <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+                      Payment
+                    </h2>
                   </div>
                   <div className="p-5">
                     {project.cost ? (
                       <div className="mb-5 text-center">
-                        <p className="text-xs text-slate-500 mb-1">Total Amount Due</p>
-                        <p className="text-4xl font-bold text-slate-900">${project.cost.toLocaleString()}</p>
+                        <p className="text-xs text-slate-500 mb-1">
+                          Total Amount Due
+                        </p>
+                        <p className="text-4xl font-bold text-slate-900">
+                          ${project.cost.toLocaleString()}
+                        </p>
                       </div>
                     ) : (
                       <div className="mb-5 p-3 bg-slate-50 rounded-xl text-center">
-                        <p className="text-sm text-slate-500">Cost to be determined</p>
+                        <p className="text-sm text-slate-500">
+                          Cost to be determined
+                        </p>
                       </div>
                     )}
                     <button
@@ -857,32 +978,49 @@ export default function RequestDetailPage({ params }: PageProps) {
                         </>
                       )}
                     </button>
-                    <p className="text-xs text-slate-400 mt-3 text-center">Payment processing not yet implemented</p>
+                    <p className="text-xs text-slate-400 mt-3 text-center">
+                      Payment processing not yet implemented
+                    </p>
                   </div>
                 </div>
               </motion.div>
             )}
 
             {/* ---- Summary Stats ---- */}
-            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+            <motion.div
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-slate-900">{project.userFileName ? 1 : 0}</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Client Files</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {project.userFileName ? 1 : 0}
+                  </p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Client Files
+                  </p>
                 </div>
                 <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-slate-900">{project.adminFileName ? 1 : 0}</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Deliverables</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {project.adminFileName ? 1 : 0}
+                  </p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Deliverables
+                  </p>
                 </div>
                 <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm col-span-2">
-                  <p className={`text-2xl font-bold ${project.videoUrl ? "text-green-600" : "text-slate-300"}`}>
+                  <p
+                    className={`text-2xl font-bold ${project.videoUrl ? "text-green-600" : "text-slate-300"}`}
+                  >
                     {project.videoUrl ? "✓" : "—"}
                   </p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Video</p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Video
+                  </p>
                 </div>
               </div>
             </motion.div>
-
           </div>
         </div>
       </div>
@@ -891,26 +1029,38 @@ export default function RequestDetailPage({ params }: PageProps) {
       {isAdmin && (
         <Modal
           isOpen={showUploadModal}
-          onClose={() => { setShowUploadModal(false); setUploadFile(null); setUploadDescription(""); }}
+          onClose={() => {
+            setShowUploadModal(false);
+            setUploadFile(null);
+            setUploadDescription("");
+          }}
           title="Upload Deliverable File"
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">Select File</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Select File
+              </label>
               <input
                 type="file"
-                onChange={(e) => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) setUploadFile(e.target.files[0]);
+                }}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
               />
               {uploadFile && (
                 <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-slate-400" />
-                  {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
+                  {uploadFile.name} (
+                  {(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Note (Optional)
               </label>
               <Input
@@ -923,15 +1073,33 @@ export default function RequestDetailPage({ params }: PageProps) {
             </div>
             <div className="flex gap-3 pt-2">
               <Button
-                onClick={() => { setShowUploadModal(false); setUploadFile(null); setUploadDescription(""); }}
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setUploadFile(null);
+                  setUploadDescription("");
+                }}
                 variant="secondary"
                 className="flex-1"
                 disabled={isUploading}
               >
                 Cancel
               </Button>
-              <Button onClick={handleFileUpload} disabled={!uploadFile || isUploading} className="flex-1 gap-2">
-                {isUploading ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</> : <><Upload className="w-4 h-4" />Upload</>}
+              <Button
+                onClick={handleFileUpload}
+                disabled={!uploadFile || isUploading}
+                className="flex-1 gap-2"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Upload
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -942,28 +1110,39 @@ export default function RequestDetailPage({ params }: PageProps) {
       {isAdmin && (
         <Modal
           isOpen={showVideoModal}
-          onClose={() => { setShowVideoModal(false); setVideoFile(null); }}
+          onClose={() => {
+            setShowVideoModal(false);
+            setVideoFile(null);
+          }}
           title="Upload Project Video"
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">Select Video File</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Select Video File
+              </label>
               <input
                 type="file"
                 accept="video/*"
-                onChange={(e) => { if (e.target.files?.[0]) setVideoFile(e.target.files[0]); }}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) setVideoFile(e.target.files[0]);
+                }}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
               />
               {videoFile && (
                 <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
                   <Video className="w-4 h-4 text-slate-400" />
-                  {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(2)} MB)
+                  {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(2)}{" "}
+                  MB)
                 </p>
               )}
             </div>
             <div className="flex gap-3 pt-2">
               <Button
-                onClick={() => { setShowVideoModal(false); setVideoFile(null); }}
+                onClick={() => {
+                  setShowVideoModal(false);
+                  setVideoFile(null);
+                }}
                 variant="secondary"
                 className="flex-1"
                 disabled={isUploadingVideo}
@@ -975,7 +1154,17 @@ export default function RequestDetailPage({ params }: PageProps) {
                 disabled={!videoFile || isUploadingVideo}
                 className="flex-1 gap-2 bg-purple-600 hover:bg-purple-700"
               >
-                {isUploadingVideo ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</> : <><Video className="w-4 h-4" />Upload Video</>}
+                {isUploadingVideo ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Video className="w-4 h-4" />
+                    Upload Video
+                  </>
+                )}
               </Button>
             </div>
           </div>
