@@ -53,7 +53,7 @@ export function NavBar() {
   return (
     <CardNav
       logo="/logo.svg"
-      logoAlt="StickModel"
+      logoAlt="stickmodel.com"
       items={navItems}
       baseColor="#ffffff"
       menuColor="#1e293b"

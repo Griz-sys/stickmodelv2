@@ -15,18 +15,9 @@ export const metadata: Metadata = {
   description:
     "Transform your structural drawings into professional stick models. Fast, accurate, and affordable.",
   icons: {
-    icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
-    other: [
-      {
-        rel: "android-chrome",
-        url: "/android-chrome-192x192.png",
-      },
-    ],
   },
   manifest: "/site.webmanifest",
 };

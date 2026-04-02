@@ -85,9 +85,9 @@ export default function HeroPage() {
             onClick={() => scrollToSection("hero")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <img src="/logo.svg" alt="StickModel" className="h-9 w-auto" />
-            <span className="font-semibold text-slate-900 text-sm">
-              StickModel
+            <img src="/logo.svg" alt="stickmodel.com" className="h-9 w-auto" />
+            <span className="font-semibold text-slate-600 text-lg">
+              stickmodel.com
             </span>
           </button>
 
@@ -396,7 +396,7 @@ export default function HeroPage() {
         </section>
 
         {/* GALLERY */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
+        <section className="max-w-7xl mx-auto px-3 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -404,20 +404,19 @@ export default function HeroPage() {
             transition={{ duration: 0.5 }}
             className="mb-14"
           >
-            <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
+            <p className="text-md tracking-widest text-slate-400 uppercase mb-3">
               Showcase
             </p>
-            <h2 className="text-3xl font-semibold">Our Work</h2>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="rounded-xl h-[400px] overflow-hidden bg-slate-100"
+            className="rounded-xl aspect-video overflow-hidden bg-slate-100"
           >
             <video
-              src="/main .mp4"
+              src="/Stickmodel_Final_Video.mp4"
               autoPlay
               loop
               muted

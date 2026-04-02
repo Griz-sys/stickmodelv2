@@ -30,7 +30,7 @@ export function SimpleNav() {
             </svg>
           </div>
           <span className="font-semibold text-slate-900 text-sm">
-            StickModel
+            stickmodel.com
           </span>
         </Link>
 

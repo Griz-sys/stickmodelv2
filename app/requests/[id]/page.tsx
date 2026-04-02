@@ -655,8 +655,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </motion.div>
-
-            {/* ---- Admin Deliverables ---- */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -692,7 +690,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                           )}
                         </div>
                       </div>
-                      {(isAdmin || isFinished) && (
+                      {isAdmin && (
                         <button
                           onClick={() => handleDownload(project.adminFileUrl!)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium transition-all shadow-sm"
@@ -765,8 +763,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </motion.div>
-
-            {/* ---- Notes ---- */}
             {project.notes && (
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -987,40 +983,6 @@ export default function RequestDetailPage({ params }: PageProps) {
             )}
 
             {/* ---- Summary Stats ---- */}
-            <motion.div
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {project.userFileName ? 1 : 0}
-                  </p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Client Files
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {project.adminFileName ? 1 : 0}
-                  </p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Deliverables
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm col-span-2">
-                  <p
-                    className={`text-2xl font-bold ${project.videoUrl ? "text-green-600" : "text-slate-300"}`}
-                  >
-                    {project.videoUrl ? "✓" : "—"}
-                  </p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Video
-                  </p>
-                </div>
-              </div>
-            </motion.div>
           </div>
         </div>
       </div>

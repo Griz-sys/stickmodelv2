@@ -80,6 +80,14 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Create user modal state
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [createUserError, setCreateUserError] = useState("");
+
   useEffect(() => {
     fetchData();
   }, [activeTab]);
@@ -109,6 +117,58 @@ export default function AdminPage() {
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    setCreateUserError("");
+
+    if (
+      !newUserName.trim() ||
+      !newUserEmail.trim() ||
+      !newUserPassword.trim()
+    ) {
+      setCreateUserError("All fields are required");
+      return;
+    }
+
+    if (newUserPassword.length < 6) {
+      setCreateUserError("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          password: newUserPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setCreateUserError(data.error || "Failed to create user");
+        return;
+      }
+
+      // Add new user to the list
+      setUsers([data.user, ...users]);
+
+      // Reset form
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setShowCreateUserModal(false);
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      setCreateUserError("Failed to create user");
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -318,6 +378,21 @@ export default function AdminPage() {
                 className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all text-sm"
               />
             </div>
+            {activeTab === "users" && (
+              <Button
+                onClick={() => {
+                  setNewUserName("");
+                  setNewUserEmail("");
+                  setNewUserPassword("");
+                  setCreateUserError("");
+                  setShowCreateUserModal(true);
+                }}
+                className="gap-2 px-4 py-2 h-auto bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Users className="w-4 h-4" />
+                Create User
+              </Button>
+            )}
             <Button
               onClick={fetchData}
               variant="secondary"
@@ -535,6 +610,99 @@ export default function AdminPage() {
             )}
           </motion.div>
         )}
+
+        {/* Create User Modal */}
+        <Modal
+          isOpen={showCreateUserModal}
+          onClose={() => {
+            setShowCreateUserModal(false);
+            setCreateUserError("");
+          }}
+          title="Create New User"
+        >
+          <div className="space-y-4">
+            {createUserError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">{createUserError}</p>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Full Name
+              </label>
+              <Input
+                type="text"
+                placeholder="John Doe"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+                disabled={isCreatingUser}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Email
+              </label>
+              <Input
+                type="email"
+                placeholder="user@example.com"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                disabled={isCreatingUser}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Password
+              </label>
+              <Input
+                type="password"
+                placeholder="At least 6 characters"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                disabled={isCreatingUser}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={() => {
+                  setShowCreateUserModal(false);
+                  setCreateUserError("");
+                }}
+                variant="secondary"
+                className="flex-1"
+                disabled={isCreatingUser}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateUser}
+                disabled={
+                  isCreatingUser ||
+                  !newUserName ||
+                  !newUserEmail ||
+                  !newUserPassword
+                }
+                className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+              >
+                {isCreatingUser ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Users className="w-4 h-4" />
+                    Create User
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

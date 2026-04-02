@@ -499,55 +499,6 @@ export default function RequestDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* Uploaded Files (by user) */}
-          {userSubmissions.length > 0 && (
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                  {isAdmin ? "User's Uploaded Files" : "Your Uploaded Files"}
-                </h2>
-                <div className="space-y-3">
-                  {userSubmissions.map((submission) => (
-                    <div
-                      key={submission.id}
-                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-slate-900 truncate">
-                            {submission.fileName}
-                          </p>
-                          <p className="text-xs text-slate-600">
-                            {formatFileSize(submission.fileSize)} •{" "}
-                            {formatRelativeTime(new Date(submission.createdAt))}
-                          </p>
-                        </div>
-                      </div>
-                      {submission.s3Url && (isAdmin || isFinished) ? (
-                        <Button
-                          onClick={() =>
-                            handleDownload(submission.id, submission.fileName)
-                          }
-                          variant="secondary"
-                          size="sm"
-                          className="gap-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-slate-500 px-3">
-                          Processing...
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Final Deliverables (from admin) */}
           {adminSubmissions.length > 0 && (
             <Card>
@@ -578,7 +529,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                           )}
                         </div>
                       </div>
-                      {submission.s3Url && (isAdmin || isFinished) ? (
+                      {submission.s3Url && isAdmin ? (
                         <Button
                           onClick={() =>
                             handleDownload(submission.id, submission.fileName)
@@ -693,12 +644,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                   <p className="text-sm text-slate-900">
                     {project.submissions?.length || 0} file
                     {(project.submissions?.length || 0) !== 1 ? "s" : ""}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-600 mb-1">Video</p>
-                  <p className="text-sm text-slate-900">
-                    {project.videoUrl ? "Uploaded" : "Not uploaded"}
                   </p>
                 </div>
               </div>

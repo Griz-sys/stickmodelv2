@@ -70,7 +70,7 @@ export function AuthenticatedNav() {
         >
           <img src="/logo.svg" alt="StickModel" className="h-11 w-auto" />
           <span className="font-semibold text-lg text-slate-900">
-            StickModel
+            stickmodel.com
           </span>
         </button>
 
