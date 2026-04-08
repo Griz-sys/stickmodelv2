@@ -1,571 +1,721 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Unbounded } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  CheckCircle2,
-  Users,
-  Zap,
-  Shield,
-  Upload,
-  Cpu,
-  Eye,
-  Download,
-} from "lucide-react";
 
-const unbounded = Unbounded({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "700"],
-  variable: "--font-unbounded",
+  weight: ["400", "500", "700"],
+  variable: "--font-space-grotesk",
 });
 
-// Original custom ModelViewer â€” works well with our model
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "700"],
+  variable: "--font-inter",
+});
+
 const ModelViewer = dynamic(() => import("@/components/landing/ModelViewer"), {
   ssr: false,
 });
-// Loading animation component
 const LoadingAnimation = dynamic(
   () => import("@/components/landing/LoadingAnimation"),
   { ssr: false },
 );
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth" });
-}
 
-export default function HeroPage() {
+export default function LandingPage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 1000);
-    // Handle hash on load (e.g. navigating from another page via /#about)
-    if (window.location.hash) {
-      const id = window.location.hash.replace("#", "");
-      setTimeout(() => scrollToSection(id), 1000);
-    }
+    const timer = setTimeout(() => setIsLoaded(true), 1200);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className={`${unbounded.variable} min-h-screen`}>
-      {/* ==================== LOADING OVERLAY ==================== */}
-      {!isLoaded && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="fixed inset-0 z-[999] flex items-center justify-center"
-        >
-          <LoadingAnimation />
-        </motion.div>
-      )}
-
-      {/* ==================== NAV ==================== */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-slate-200"
-        style={{ height: "60px" }}
-      >
-        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-          <button
-            onClick={() => scrollToSection("hero")}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+    <div
+      className={`${spaceGrotesk.variable} ${inter.variable} min-h-screen`}
+      style={{ fontFamily: "var(--font-inter), system-ui, sans-serif" }}
+    >
+      <AnimatePresence>
+        {!isLoaded && (
+          <motion.div
+            key="loader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-white"
           >
-            <img src="/logo.svg" alt="stickmodel.com" className="h-9 w-auto" />
-            <span className="font-semibold text-slate-600 text-lg">
-              stickmodel.com
-            </span>
-          </button>
+            <LoadingAnimation />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="flex items-center gap-8">
-            <button
-              onClick={() => scrollToSection("about")}
-              className="text-sm text-slate-600 hover:text-orange-600 transition-colors"
-            >
-              About
-            </button>
+      <header className="bg-white sticky top-0 z-[100] border-b border-stone-100 shadow-sm">
+        <nav className="max-w-[1440px] mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center shrink-0">
+            <img
+              src="/horizontal.svg"
+              alt="StickModel"
+              className="h-8 w-auto"
+            />
+          </Link>
+          <div className="hidden md:flex items-center gap-10">
             <Link
               href="/pricing"
-              className="text-sm text-slate-600 hover:text-orange-600 transition-colors"
+              className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
             >
               Pricing
             </Link>
             <Link
               href="/contact"
-              className="text-sm text-slate-600 hover:text-orange-600 transition-colors"
+              className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
             >
               Contact
             </Link>
             <Link
               href="/login"
-              className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 transition-colors"
+              className="bg-[#E67E00] text-white px-6 py-2.5 font-bold text-[13px] tracking-widest uppercase hover:bg-[#904D00] transition-colors"
             >
-              Get Your Stick Model
+              Get Started
             </Link>
           </div>
-        </div>
-      </nav>
+          <button
+            className="md:hidden flex flex-col gap-1.5 p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span
+              className={`block w-6 h-0.5 bg-stone-800 transition-transform duration-200 ${mobileMenuOpen ? "rotate-45 translate-y-2" : ""}`}
+            />
+            <span
+              className={`block w-6 h-0.5 bg-stone-800 transition-opacity duration-200 ${mobileMenuOpen ? "opacity-0" : ""}`}
+            />
+            <span
+              className={`block w-6 h-0.5 bg-stone-800 transition-transform duration-200 ${mobileMenuOpen ? "-rotate-45 -translate-y-2" : ""}`}
+            />
+          </button>
+        </nav>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden bg-white border-t border-stone-100 overflow-hidden"
+            >
+              <div className="flex flex-col px-6 py-4 gap-4">
+                <Link
+                  href="/pricing"
+                  className="text-stone-600 font-medium text-sm uppercase tracking-widest py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+                <Link
+                  href="/contact"
+                  className="text-stone-600 font-medium text-sm uppercase tracking-widest py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-[#E67E00] text-white px-6 py-3 font-bold text-[13px] tracking-widest uppercase text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-      {/* ==================== HERO SECTION ==================== */}
-      <section
-        id="hero"
-        className="relative h-screen w-full flex flex-col justify-center overflow-hidden"
-        style={{
-          backgroundColor: "#ffffff",
-          backgroundImage: `
-            linear-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
-          paddingTop: "60px",
-        }}
-      >
-        {/* 3D Model */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+      <main>
+        {/* HERO */}
+        <section
+          className="relative overflow-hidden bg-[#fcf9f8]"
           style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 5,
+            minHeight: "calc(100svh - 64px)",
+            backgroundImage:
+              "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
           }}
         >
-          <ModelViewer />
-        </motion.div>
-
-        <div className="max-w-7xl mx-auto w-full h-full relative z-50">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            style={{
-              position: "absolute",
-              left: "0%",
-              top: "calc(12% - 28px)",
-              zIndex: 80,
-              maxWidth: "950px",
-              width: "90%",
-              padding: "1.5rem",
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isLoaded ? 1 : 0 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="absolute inset-0 w-full h-full"
+            style={{ zIndex: 5 }}
           >
-            <h1
-              className="font-black tracking-tight text-slate-900 leading-[0.92] text-left mb-4"
-              style={{
-                fontSize: "clamp(3rem,6.7vw,6.75rem)",
-                fontFamily:
-                  "var(--font-unbounded), 'Helvetica Neue', Arial, sans-serif",
-                textTransform: "uppercase",
-              }}
-            >
-              DRAWING TO{" "}
-              <span
-                className="text-orange-600"
-                style={{
-                  fontFamily:
-                    "var(--font-unbounded), 'Instrument Serif', Georgia, serif",
-                  whiteSpace: "nowrap",
-                  position: "relative",
-                  top: "-9px",
-                }}
-              >
-                STICK MODEL
-              </span>
-            </h1>
-
-            <h2
-              className="font-black tracking-tight text-slate-900 leading-[0.92] text-left mb-3"
-              style={{
-                fontSize: "clamp(3rem,6.7vw,6.75rem)",
-                fontFamily:
-                  "var(--font-unbounded), 'Helvetica Neue', Arial, sans-serif",
-                textTransform: "uppercase",
-                position: "relative",
-                top: "-33px",
-              }}
-            >
-              IN 24 HOURS
-            </h2>
-
-            <p
-              className="text-slate-800 font-light tracking-wide"
-              style={{
-                fontSize: "clamp(3rem,2.25vw,2.25rem)",
-                position: "relative",
-                top: "-47px",
-              }}
+            <ModelViewer />
+          </motion.div>
+          <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-8 flex flex-col justify-center min-h-[calc(100svh-64px)] py-20 -mt-[45px]">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-[#904D00] italic text-lg md:text-xl mb-5"
             >
               Define. Detail. Deliver.
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Scroll hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.5, duration: 0.8 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 cursor-pointer"
-          onClick={() => scrollToSection("about")}
-        >
-          <span className="text-xs text-slate-400 tracking-widest uppercase">
-            Scroll
-          </span>
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-5 h-5 text-slate-400"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 30 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="font-bold uppercase tracking-tight leading-[0.9] text-stone-900 mb-6 max-w-4xl"
+              style={{
+                fontFamily: "var(--font-space-grotesk), sans-serif",
+                fontSize: "clamp(2.6rem, 7vw, 6.5rem)",
+              }}
             >
-              <path d="M12 5v14M5 12l7 7 7-7" />
-            </svg>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ==================== ABOUT SECTION ==================== */}
-      <div id="about" className="bg-white text-slate-900">
-        {/* ABOUT HERO */}
-        <section className="max-w-7xl mx-auto px-6 pt-28 pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="grid lg:grid-cols-2 gap-16 items-center"
-          >
-            <div>
-              <p className="text-xs tracking-widest text-slate-400 mb-4 uppercase">
-                About StickModel
-              </p>
-              <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-6">
-                Transforming Structural Drawings Into
-                <span className="text-orange-600"> Accurate Stick Models</span>
-              </h1>
-              <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
-                StickModel helps structural detailers convert 2D drawings into
-                precise IFC stick models quickly and reliably, reducing manual
-                effort and eliminating costly detailing errors.
-              </p>
-            </div>
-            <div className="rounded-xl h-[340px] overflow-hidden bg-slate-100">
-              <video
-                src="/Blueprint_to_D_Wireframe_Model.mp4"
-                className="w-full h-full object-cover"
-                loop
-                muted
-              />
-            </div>
-          </motion.div>
-        </section>
-
-        {/* STATS */}
-        <section className="border-y border-orange-200 bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100">
-          <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-            <Stat number="250+" label="Models Delivered" />
-            <Stat number="20+" label="Happy Clients" />
-            <Stat number="24hrs" label="Fastest Delivery" />
-            <Stat number="100%" label="Accuracy Rate" />
-          </div>
-        </section>
-
-        {/* MISSION */}
-        <section className="max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="rounded-xl h-[380px] overflow-hidden bg-slate-100"
-          >
-            <img
-              src="/abt.png"
-              alt="Workflow Illustration"
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-xs tracking-widest text-slate-400 mb-4 uppercase">
-              Our Mission
-            </p>
-            <h2 className="text-3xl font-semibold mb-6">
-              Simplifying Structural Detailing Workflows
-            </h2>
-            <p className="text-slate-600 leading-relaxed mb-6">
-              Structural detailers spend countless hours manually converting
-              drawings into models. StickModel removes this bottleneck by
-              providing fast, reliable stick model generation from your
-              structural drawings.
-            </p>
-            <p className="text-slate-600 leading-relaxed">
-              Our goal is simple: reduce manual work, improve model accuracy,
-              and allow engineers to focus on higher-value design decisions.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* FEATURES */}
-        <section className="bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100 py-24 border-y border-orange-200">
-          <div className="max-w-7xl mx-auto px-6">
+              DRAWING TO STICK MODEL IN 24 HOURS
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              className="text-stone-600 text-lg md:text-[1.35rem] leading-relaxed italic mb-10 max-w-2xl"
+            >
+              Convert your structural drawings into constructible, Tekla-ready
+              wireframes with 100% accuracy and a 24-hour turnaround.
+            </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5 }}
-              className="mb-14"
+              animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              className="flex flex-col sm:flex-row gap-4"
             >
-              <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
-                Why StickModel
-              </p>
-              <h2 className="text-3xl font-semibold">
-                Designed for Structural Professionals
-              </h2>
+              <Link
+                href="/login"
+                className="bg-[#E67E00] text-white px-8 py-4 font-bold uppercase text-sm tracking-widest hover:bg-[#904D00] transition-colors text-center"
+              >
+                Upload Now
+              </Link>
+              <Link
+                href="/contact"
+                className="bg-stone-900 text-white px-8 py-4 font-bold uppercase text-sm tracking-widest hover:bg-stone-800 transition-colors text-center"
+              >
+                Contact Us
+              </Link>
             </motion.div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  icon: <Zap />,
-                  title: "Fast Turnaround",
-                  description:
-                    "Receive accurate stick models in as little as 4 hours.",
-                },
-                {
-                  icon: <CheckCircle2 />,
-                  title: "Precision Modeling",
-                  description:
-                    "Industry-standard models compatible with your workflows.",
-                },
-                {
-                  icon: <Shield />,
-                  title: "Secure Files",
-                  description:
-                    "All drawings are stored and transferred securely.",
-                },
-                {
-                  icon: <Users />,
-                  title: "Expert Support",
-                  description:
-                    "Our team assists you through every stage of modeling.",
-                },
-              ].map((f, i) => (
-                <motion.div
-                  key={f.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
+          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isLoaded ? 1 : 0 }}
+            transition={{ delay: 2.0, duration: 0.8 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+          >
+            <span className="text-[10px] text-stone-400 tracking-widest uppercase">
+              Scroll
+            </span>
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{
+                duration: 1.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="w-5 h-5 text-stone-400"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12l7 7 7-7" />
+              </svg>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* VIDEO */}
+        <section className="bg-zinc-950">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 pt-12 md:pt-16">
+            <div className="border border-zinc-700 overflow-hidden">
+              <video
+                src="/Stickmodel_Final_Video.mp4"
+                className="w-full aspect-video object-cover block"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            </div>
+          </div>
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8 py-5">
+            <p className="text-zinc-500 font-medium text-xs uppercase tracking-[0.2em] text-center italic">
+              &lt; watch workflow demo &gt;
+            </p>
+          </div>
+        </section>
+
+        {/* WHAT YOU GET */}
+        <section className="bg-white py-20 md:py-28">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-16">
+              <div className="md:col-span-4 border-l-4 border-[#E67E00] pl-6">
+                <span className="text-[#904D00] font-bold uppercase tracking-[0.2em] text-xs">
+                  The Toolkit
+                </span>
+                <h2
+                  className="font-bold text-3xl md:text-4xl mt-3 leading-tight"
+                  style={{ fontFamily: "var(--font-space-grotesk)" }}
                 >
-                  <Feature
-                    icon={f.icon}
-                    title={f.title}
-                    description={f.description}
-                  />
-                </motion.div>
-              ))}
+                  What You Get
+                </h2>
+              </div>
+              <div className="md:col-span-8">
+                <p className="text-stone-500 text-lg md:text-xl italic leading-relaxed mb-10">
+                  Every delivery provides a complete digital framework of your
+                  project, ready for immediate use in your detailing workflow.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                  {[
+                    {
+                      icon: "◆",
+                      title: "Constructible 3D Wireframes",
+                      desc: "Full 3D geometric representations of every structural member with node-perfect accuracy.",
+                    },
+                    {
+                      icon: "⊞",
+                      title: "Automated Grid Systems",
+                      desc: "Precise coordinate mapping and grid alignment based directly on your project documentation.",
+                    },
+                    {
+                      icon: "≡",
+                      title: "Levels & Elevations",
+                      desc: "Correct vertical positioning for every floor and support structure, eliminating manual input errors.",
+                    },
+                    {
+                      icon: "#",
+                      title: "Member Identification",
+                      desc: "Intelligent labeling of beams, columns, and braces for seamless downstream detailing.",
+                    },
+                    {
+                      icon: "✦",
+                      title: "Ready for Tekla",
+                      desc: "Native formats and IFC exports optimized specifically for immediate Tekla Structures import.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="space-y-3">
+                      <div className="text-[#904D00] text-2xl font-bold">
+                        {item.icon}
+                      </div>
+                      <h3
+                        className="font-bold text-lg"
+                        style={{ fontFamily: "var(--font-space-grotesk)" }}
+                      >
+                        {item.title}
+                      </h3>
+                      <p className="text-stone-500 text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="overflow-hidden pt-12 md:pt-16">
+              <video
+                src="/Blueprint_to_D_Wireframe_Model.mp4"
+                className="w-full h-[280px] md:h-[420px] object-cover grayscale brightness-75 contrast-125"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
             </div>
           </div>
         </section>
 
-        {/* GALLERY */}
-        <section className="max-w-7xl mx-auto px-3 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="mb-14"
-          >
-            <p className="text-md tracking-widest text-slate-400 uppercase mb-3">
-              Showcase
-            </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="rounded-xl aspect-video overflow-hidden bg-slate-100"
-          >
-            <video
-              src="/Stickmodel_Final_Video.mp4"
-              loop
-              muted
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
+        {/* EFFICIENCY TABLE */}
+        <section className="bg-zinc-950 text-white py-24 md:py-32">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8">
+            <div className="mb-14 grid grid-cols-1 lg:grid-cols-2 gap-6 items-end">
+              <div>
+                <span className="text-[#E67E00] font-bold uppercase tracking-[0.2em] text-xs">
+                  Benchmarking Performance
+                </span>
+                <h2
+                  className="font-bold mt-3"
+                  style={{
+                    fontFamily: "var(--font-space-grotesk)",
+                    color: "#ffffff",
+                    fontSize: "clamp(1.5rem, 4.5vw, 5.5rem)",
+                    lineHeight: "1.1",
+                  }}
+                >
+                  Proven Efficiency Gains
+                </h2>
+              </div>
+              <p className="text-zinc-400 italic text-base md:text-lg lg:text-right">
+                Our technology facilitates faster delivery across all project
+                scales, allowing you to move to fabrication sooner.
+              </p>
+            </div>
+            <div className="overflow-x-auto -mx-6 md:mx-0 px-6 md:px-0">
+              <table className="w-full border-collapse min-w-[520px]">
+                <thead>
+                  <tr className="border-b-2 border-zinc-800">
+                    {[
+                      { label: "Project Size", hi: false },
+                      { label: "Manual Process", hi: false },
+                      { label: "StickModel Delivery", hi: true },
+                      { label: "Time Saved", hi: false },
+                    ].map((col) => (
+                      <th
+                        key={col.label}
+                        className={`text-left py-5 px-4 uppercase tracking-widest text-xs ${col.hi ? "text-[#E67E00]" : "text-zinc-500"}`}
+                        style={{ fontFamily: "var(--font-space-grotesk)" }}
+                      >
+                        {col.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Small (~500 MT)", "7 Days", "2.5 Days", "4.5 Days"],
+                    ["Medium (~1000 MT)", "14 Days", "5 Days", "9 Days"],
+                    ["Large (~2000 MT)", "28 Days", "10 Days", "18 Days"],
+                  ].map((row) => (
+                    <tr
+                      key={row[0]}
+                      className="border-b border-zinc-800 hover:bg-zinc-900 transition-colors"
+                    >
+                      <td className="py-7 px-4 font-bold">{row[0]}</td>
+                      <td className="py-7 px-4 text-zinc-400">{row[1]}</td>
+                      <td className="py-7 px-4 font-bold text-[#E67E00]">
+                        {row[2]}
+                      </td>
+                      <td className="py-7 px-4 text-zinc-300">{row[3]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-10 flex items-start gap-3 text-[#E67E00]">
+              <svg
+                className="w-5 h-5 shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+              <p
+                className="font-bold text-base md:text-lg uppercase tracking-wider"
+                style={{ fontFamily: "var(--font-space-grotesk)" }}
+              >
+                Our in-house systems enable 3.0x faster delivery for core
+                wireframe modeling tasks.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* WHY SPEED MATTERS */}
+        <section className="bg-[#fcf9f8] py-24 md:py-32">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8">
+            <div className="flex flex-col md:flex-row items-start gap-12 md:gap-16">
+              <div className="hidden md:flex w-full md:w-1/2 shrink-0">
+                <div className="w-full overflow-hidden">
+                  <img
+                    src="/abt.png"
+                    alt="Engineering blueprints"
+                    className="w-full h-[420px] object-cover block"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 space-y-10">
+                <div>
+                  <span className="text-[#904D00] font-bold uppercase tracking-[0.2em] text-xs">
+                    The 60% Advantage
+                  </span>
+                  <h2
+                    className="font-bold text-4xl md:text-5xl mt-3 leading-tight"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    Why Speed Matters
+                  </h2>
+                  <p className="text-stone-500 mt-5 text-base md:text-lg italic">
+                    Manual wireframe modeling is a bottleneck that delays
+                    fabrication and increases labor costs. Our system eliminates
+                    this delay.
+                  </p>
+                </div>
+                <div className="space-y-10">
+                  {[
+                    {
+                      icon: (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                          />
+                        </svg>
+                      ),
+                      title: "Unmatched Turnaround",
+                      desc: "From project receipt to full delivery in just 24 hours, regardless of project complexity.",
+                    },
+                    {
+                      icon: (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      ),
+                      title: "Cost Efficiency",
+                      desc: "Reduce up-front modeling costs by 60%, allowing budget reallocation to critical detailing tasks.",
+                    },
+                    {
+                      icon: (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      ),
+                      title: "Human-Level Precision",
+                      desc: "Automated QA checks combined with expert oversight ensure error-free structural geometry.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-5">
+                      <div className="shrink-0 w-11 h-11 bg-[#E67E00] text-white flex items-center justify-center">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <h4
+                          className="font-bold text-lg mb-1.5"
+                          style={{ fontFamily: "var(--font-space-grotesk)" }}
+                        >
+                          {item.title}
+                        </h4>
+                        <p className="text-stone-500 italic text-sm leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/login"
+                  className="block sm:inline-block bg-zinc-900 text-white px-10 py-4 font-bold uppercase text-sm tracking-widest hover:bg-black transition-colors text-center"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="bg-slate-50 py-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="max-w-6xl mx-auto px-6 text-center mb-10"
-          >
-            <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
-              Process
-            </p>
-            <h2 className="text-4xl font-bold">How StickModel Works</h2>
-          </motion.div>
-
-          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                number: "01",
-                title: "Upload Your Drawing",
-                desc: "Upload your structural PDF or drawings securely.",
-                icon: Upload,
-              },
-              {
-                number: "02",
-                title: "Model Generation",
-                desc: "Our experts convert drawings into IFC stick models.",
-                icon: Cpu,
-              },
-              {
-                number: "03",
-                title: "Preview Model",
-                desc: "Watch a preview video of your generated model.",
-                icon: Eye,
-              },
-              {
-                number: "04",
-                title: "Download IFC",
-                desc: "Approve and download your production-ready model.",
-                icon: Download,
-              },
-            ].map((s, i) => (
-              <motion.div
-                key={s.number}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
+        <section className="bg-stone-100 py-24 md:py-32">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8">
+            <div className="text-center mb-16 max-w-3xl mx-auto">
+              <span className="text-[#904D00] font-bold uppercase tracking-[0.2em] text-xs">
+                Simple &amp; Secure
+              </span>
+              <h2
+                className="font-bold text-4xl md:text-5xl mt-3 mb-5 uppercase"
+                style={{ fontFamily: "var(--font-space-grotesk)" }}
               >
-                <Step
-                  number={s.number}
-                  title={s.title}
-                  desc={s.desc}
-                  icon={s.icon}
-                />
-              </motion.div>
-            ))}
+                How It Works
+              </h2>
+              <p className="text-stone-500 text-lg italic">
+                {
+                  "We've streamlined the process so you can focus on engineering while we handle the foundation."
+                }
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+              {[
+                {
+                  num: "01",
+                  title: "Upload Your Drawing",
+                  desc: "Securely upload your 2D PDF or CAD structural plans via our encrypted portal.",
+                },
+                {
+                  num: "02",
+                  title: "Proprietary Modeling",
+                  desc: "Our automated systems generate the core 3D wireframe based on your exact specs.",
+                },
+                {
+                  num: "03",
+                  title: "Quality Validation",
+                  desc: "Every model undergoes a rigorous geometric audit against your original documentation.",
+                },
+                {
+                  num: "04",
+                  title: "24-Hour Delivery",
+                  desc: "Receive your constructible wireframe package ready for import into your detailing software.",
+                },
+              ].map((step) => (
+                <div key={step.num} className="flex flex-col items-center text-center sm:items-start sm:text-left space-y-4">
+                  <div
+                    className="w-14 h-14 flex items-center justify-center bg-[#E67E00] text-white font-bold text-xl shrink-0"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {step.num}
+                  </div>
+                  <h3
+                    className="font-bold text-lg"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {step.title}
+                  </h3>
+                  <p className="text-stone-500 text-sm leading-relaxed">
+                    {step.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center mt-16">
+              <Link
+                href="/login"
+                className="w-full sm:w-auto text-center bg-[#E67E00] text-white px-12 py-5 font-bold uppercase text-sm tracking-[0.2em] hover:bg-[#904D00] transition-colors"
+              >
+                Start Project
+              </Link>
+            </div>
           </div>
         </section>
-      </div>
 
-      {/* ==================== FOOTER ==================== */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex items-center gap-2.5">
-              <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
-              <span className="font-semibold text-slate-900">StickModel</span>
-            </div>
-            <p className="text-sm text-slate-600">
-              © {new Date().getFullYear()} StickModel. All rights reserved.
+        {/* CTA */}
+        <section className="bg-[#E67E00] py-20 md:py-28">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-8 text-center text-white">
+            <h2
+              className="font-bold mb-6 tracking-tighter uppercase"
+              style={{
+                fontFamily: "var(--font-space-grotesk)",
+                fontSize: "clamp(3.5rem, 6vw, 9rem)",
+                lineHeight: "0.92",
+                color: "#ffffff",
+              }}
+            >
+              Construct Your Future
+            </h2>
+            <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto italic opacity-90">
+              Ready to transform your structural workflow? Start your first
+              precision model project today.
             </p>
+            <Link
+              href="/login"
+              className="inline-block w-full sm:w-auto bg-zinc-900 text-white px-12 py-5 font-bold uppercase text-sm tracking-[0.2em] hover:bg-black hover:-translate-y-0.5 transition-all text-center"
+            >
+              Request Access
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-zinc-900 border-t border-zinc-800">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-8 py-12 flex flex-col md:flex-row gap-10 md:gap-16 justify-between items-center md:items-start">
+          <div className="space-y-5 flex flex-col items-center md:items-start">
+            <Link href="/">
+              <img
+                src="/logo.svg"
+                alt="StickModel"
+                className="h-8 w-auto brightness-0 invert"
+              />
+            </Link>
+            <p className="text-zinc-500 text-[11px] uppercase tracking-[0.2em] text-center md:text-left">
+              © {new Date().getFullYear()} StickModel. Precision Engineered.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-10 text-center md:text-left">
+            <div className="flex flex-col space-y-3">
+              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
+                Company
+              </span>
+              <Link
+                href="/about"
+                className="text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                About
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                Pricing
+              </Link>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
+                Resources
+              </span>
+              <Link
+                href="/terms"
+                className="text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/contact"
+                className="text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                Contact
+              </Link>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
+                Connect
+              </span>
+              <Link
+                href="/login"
+                className="text-[#E67E00] italic transition-colors text-sm"
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function Feature({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Card className="border-slate-200 hover:shadow-lg transition">
-      <CardContent className="p-6">
-        <div className="w-10 h-10 flex items-center justify-center bg-orange-100 text-orange-600 rounded-md mb-4">
-          {icon}
-        </div>
-        <h3 className="font-semibold mb-2">{title}</h3>
-        <p className="text-sm text-slate-600">{description}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Step({
-  number,
-  title,
-  desc,
-  icon: Icon,
-}: {
-  number: string;
-  title: string;
-  desc: string;
-  icon?: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <motion.div
-      className="group h-full"
-      whileHover={{ y: -8, transition: { duration: 0.3 } }}
-    >
-      <div className="flex flex-col gap-4 h-full bg-white rounded-xl border border-slate-200 shadow-sm group-hover:shadow-lg group-hover:border-orange-300 transition-all duration-300">
-        {/* Icon Container */}
-        {Icon && (
-          <div className="relative h-[200px] bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center group-hover:from-orange-100 group-hover:to-orange-200 transition-colors duration-300">
-            <div className="relative">
-              <div className="absolute inset-0 bg-orange-400 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <Icon className="w-20 h-20 text-orange-600 relative z-10" />
-            </div>
-          </div>
-        )}
-
-        {/* Content Container */}
-        <div className="flex-1 flex flex-col gap-3 p-5">
-          {/* Step Number Badge */}
-          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold text-sm">
-            {number}
-          </div>
-
-          {/* Title */}
-          <h3 className="font-semibold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors">
-            {title}
-          </h3>
-
-          {/* Description */}
-          <p className="text-sm text-slate-600 leading-relaxed">{desc}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function Stat({ number, label }: { number: string; label: string }) {
-  return (
-    <div>
-      <div className="text-5xl font-semibold mb-2 text-slate-900">{number}</div>
-      <div className="text-base text-slate-600">{label}</div>
     </div>
   );
 }
