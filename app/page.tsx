@@ -595,7 +595,10 @@ export default function LandingPage() {
                   desc: "Receive your constructible wireframe package ready for import into your detailing software.",
                 },
               ].map((step) => (
-                <div key={step.num} className="flex flex-col items-center text-center sm:items-start sm:text-left space-y-4">
+                <div
+                  key={step.num}
+                  className="flex flex-col items-center text-center sm:items-start sm:text-left space-y-4"
+                >
                   <div
                     className="w-14 h-14 flex items-center justify-center bg-[#E67E00] text-white font-bold text-xl shrink-0"
                     style={{ fontFamily: "var(--font-space-grotesk)" }}
