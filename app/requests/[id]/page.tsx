@@ -29,6 +29,8 @@ import {
   Weight,
   StickyNote,
   LogOut,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -41,6 +43,25 @@ interface User {
   name: string;
   email: string;
   role: string;
+}
+
+interface ProjectStep {
+  id: string;
+  projectId: string;
+  order: number;
+  userLabel: string;
+  userFileName: string | null;
+  userFileUrl: string | null;
+  userFileSize: number | null;
+  userFileType: string | null;
+  adminFileName: string | null;
+  adminFileUrl: string | null;
+  adminFileSize: number | null;
+  adminFileType: string | null;
+  cost: number | null;
+  isPaid: boolean;
+  datePayment: string | null;
+  createdAt: string;
 }
 
 interface Project {
@@ -67,6 +88,7 @@ interface Project {
     name: string;
     email: string;
   } | null;
+  steps: ProjectStep[];
 }
 
 const STATUS_OPTIONS = [
@@ -101,13 +123,7 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
 
-  // Admin upload states
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadDescription, setUploadDescription] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Admin video upload states
+  // Video upload modal
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -115,9 +131,37 @@ export default function RequestDetailPage({ params }: PageProps) {
   // Admin status update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  // Price setting
+  // Project-level price (initial submission)
   const [priceInput, setPriceInput] = useState("");
   const [isSavingPrice, setIsSavingPrice] = useState(false);
+
+  // Unified deliverable upload modal (initial submission OR a step)
+  const [deliverableTarget, setDeliverableTarget] = useState<
+    { type: "project" } | { type: "step"; stepId: string } | null
+  >(null);
+  const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
+  const [isUploadingDeliverable, setIsUploadingDeliverable] = useState(false);
+
+  // Remove initial-submission deliverable
+  const [isRemovingProjectDeliverable, setIsRemovingProjectDeliverable] =
+    useState(false);
+
+  // Add-step modal
+  const [showAddStepModal, setShowAddStepModal] = useState(false);
+  const [newStepLabel, setNewStepLabel] = useState("");
+  const [newStepFile, setNewStepFile] = useState<File | null>(null);
+  const [isCreatingStep, setIsCreatingStep] = useState(false);
+
+  // Per-step price inputs
+  const [stepPriceInputs, setStepPriceInputs] = useState<
+    Record<string, string>
+  >({});
+  const [savingStepPrice, setSavingStepPrice] = useState<string | null>(null);
+
+  // Remove step deliverable
+  const [removingStepDeliverable, setRemovingStepDeliverable] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -128,7 +172,14 @@ export default function RequestDetailPage({ params }: PageProps) {
     if (project?.cost !== undefined && project.cost !== null) {
       setPriceInput(String(project.cost));
     }
-  }, [project?.cost]);
+    if (project?.steps) {
+      const prices: Record<string, string> = {};
+      for (const s of project.steps) {
+        if (s.cost !== null) prices[s.id] = String(s.cost);
+      }
+      setStepPriceInputs(prices);
+    }
+  }, [project?.cost, project?.steps]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -157,10 +208,6 @@ export default function RequestDetailPage({ params }: PageProps) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDownload = (url: string) => {
-    window.open(url, "_blank");
   };
 
   const handlePay = async () => {
@@ -221,54 +268,191 @@ export default function RequestDetailPage({ params }: PageProps) {
     }
   };
 
-  const handleFileUpload = async () => {
-    if (!project || !uploadFile) return;
-    setIsUploading(true);
+  // Shared deliverable upload handler (project-level OR a step)
+  const handleUploadDeliverable = async () => {
+    if (!project || !deliverableFile || !deliverableTarget) return;
+    setIsUploadingDeliverable(true);
     try {
-      // Step 1: Upload file to server (which uploads to DigitalOcean Spaces)
+      const formData = new FormData();
+      formData.append("file", deliverableFile);
+      formData.append("projectId", project.id);
+      formData.append("isAdminResponse", "true");
       const uploadRes = await fetch("/api/blob/upload", {
         method: "POST",
-        body: (() => {
-          const formData = new FormData();
-          formData.append("file", uploadFile);
-          formData.append("projectId", project.id);
-          formData.append("isAdminResponse", "true");
-          return formData;
-        })(),
+        body: formData,
       });
-
       if (!uploadRes.ok) {
         const err = await uploadRes.json();
-        throw new Error(err.error || "Failed to upload file");
+        throw new Error(err.error || "Upload failed");
       }
+      const { url } = await uploadRes.json();
 
-      const { url: publicUrl } = await uploadRes.json();
+      if (deliverableTarget.type === "project") {
+        const patchRes = await fetch(`/api/projects/${project.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            adminFileName: deliverableFile.name,
+            adminFileUrl: url,
+            adminFileSize: deliverableFile.size,
+            adminFileType: deliverableFile.type,
+          }),
+        });
+        if (!patchRes.ok) throw new Error("Failed to save file info");
+        const data = await patchRes.json();
+        setProject(data.project);
+      } else {
+        const patchRes = await fetch(
+          `/api/projects/${project.id}/steps/${deliverableTarget.stepId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              adminFileName: deliverableFile.name,
+              adminFileUrl: url,
+              adminFileSize: deliverableFile.size,
+              adminFileType: deliverableFile.type,
+            }),
+          }
+        );
+        if (!patchRes.ok) throw new Error("Failed to save step file info");
+        await fetchProject();
+      }
+      setDeliverableFile(null);
+      setDeliverableTarget(null);
+    } catch (error) {
+      console.error("Deliverable upload failed:", error);
+      alert(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setIsUploadingDeliverable(false);
+    }
+  };
 
-      // Step 2: Save file info on the project record
-      const patchRes = await fetch(`/api/projects/${project.id}`, {
+  const handleRemoveProjectDeliverable = async () => {
+    if (!project) return;
+    setIsRemovingProjectDeliverable(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          adminFileName: uploadFile.name,
-          adminFileUrl: publicUrl,
-          adminFileSize: uploadFile.size,
-          adminFileType: uploadFile.type,
+          adminFileName: null,
+          adminFileUrl: null,
+          adminFileSize: null,
+          adminFileType: null,
         }),
       });
-      if (!patchRes.ok) {
-        const err = await patchRes.json();
-        throw new Error(err.error || "Failed to save file info");
+      if (res.ok) {
+        const data = await res.json();
+        setProject(data.project);
+      }
+    } catch (error) {
+      console.error("Remove project deliverable failed:", error);
+    } finally {
+      setIsRemovingProjectDeliverable(false);
+    }
+  };
+
+  const handleRemoveStepDeliverable = async (stepId: string) => {
+    if (!project) return;
+    setRemovingStepDeliverable(stepId);
+    try {
+      const res = await fetch(
+        `/api/projects/${project.id}/steps/${stepId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Failed to remove deliverable");
+      await fetchProject();
+    } catch (error) {
+      console.error("Remove step deliverable failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to remove deliverable");
+    } finally {
+      setRemovingStepDeliverable(null);
+    }
+  };
+
+  const handleSetStepPrice = async (stepId: string) => {
+    if (!project) return;
+    const val = stepPriceInputs[stepId];
+    if (!val) return;
+    const parsed = parseFloat(val);
+    if (isNaN(parsed) || parsed < 0) {
+      alert("Please enter a valid price.");
+      return;
+    }
+    setSavingStepPrice(stepId);
+    try {
+      const res = await fetch(
+        `/api/projects/${project.id}/steps/${stepId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cost: parsed }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to save price");
+      await fetchProject();
+    } catch (error) {
+      console.error("Set step price failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to save price");
+    } finally {
+      setSavingStepPrice(null);
+    }
+  };
+
+  const handleAddStep = async () => {
+    if (!project || !newStepLabel.trim()) return;
+    setIsCreatingStep(true);
+    try {
+      // 1. Create the step record
+      const createRes = await fetch(`/api/projects/${project.id}/steps`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userLabel: newStepLabel.trim() }),
+      });
+      if (!createRes.ok) {
+        const err = await createRes.json();
+        throw new Error(err.error || "Failed to create step");
+      }
+      const { step } = await createRes.json();
+
+      // 2. Upload file if selected
+      if (newStepFile) {
+        const formData = new FormData();
+        formData.append("file", newStepFile);
+        formData.append("projectId", project.id);
+        formData.append("isAdminResponse", "false");
+        const uploadRes = await fetch("/api/blob/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json();
+          throw new Error(err.error || "Failed to upload file");
+        }
+        const { url } = await uploadRes.json();
+
+        await fetch(`/api/projects/${project.id}/steps/${step.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userFileName: newStepFile.name,
+            userFileUrl: url,
+            userFileSize: newStepFile.size,
+            userFileType: newStepFile.type,
+          }),
+        });
       }
 
       await fetchProject();
-      setUploadFile(null);
-      setUploadDescription("");
-      setShowUploadModal(false);
+      setNewStepLabel("");
+      setNewStepFile(null);
+      setShowAddStepModal(false);
     } catch (error) {
-      console.error("Upload failed:", error);
-      alert(error instanceof Error ? error.message : "Upload failed");
+      console.error("Add step failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to add step");
     } finally {
-      setIsUploading(false);
+      setIsCreatingStep(false);
     }
   };
 
@@ -276,23 +460,18 @@ export default function RequestDetailPage({ params }: PageProps) {
     if (!project || !videoFile) return;
     setIsUploadingVideo(true);
     try {
-      // Step 1: Upload video to server (which uploads to DigitalOcean Spaces)
+      const formData = new FormData();
+      formData.append("file", videoFile);
+      formData.append("projectId", project.id);
+      formData.append("isAdminResponse", "true");
       const uploadRes = await fetch("/api/blob/upload", {
         method: "POST",
-        body: (() => {
-          const formData = new FormData();
-          formData.append("file", videoFile);
-          formData.append("projectId", project.id);
-          formData.append("isAdminResponse", "true");
-          return formData;
-        })(),
+        body: formData,
       });
-
       if (!uploadRes.ok) {
         const err = await uploadRes.json();
         throw new Error(err.error || "Failed to upload video");
       }
-
       const { url: publicUrl } = await uploadRes.json();
 
       // Step 2: Save video URL on the project record
@@ -463,7 +642,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                       Admin Controls
                     </h2>
                   </div>
-                  <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Status Dropdown */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
@@ -497,26 +676,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
                           Currently: {currentStatusOption.label}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Upload Finished File */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                        Deliverable File
-                      </label>
-                      <button
-                        onClick={() => setShowUploadModal(true)}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-600 hover:text-orange-600 transition-all"
-                      >
-                        <Upload className="w-4 h-4" />
-                        {project.adminFileName ? "Replace File" : "Upload File"}
-                      </button>
-                      {project.adminFileName && (
-                        <p className="mt-1.5 text-xs text-green-700 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          {project.adminFileName}
-                        </p>
                       )}
                     </div>
 
@@ -600,7 +759,7 @@ export default function RequestDetailPage({ params }: PageProps) {
               </motion.div>
             )}
 
-            {/* ---- User Uploaded Files ---- */}
+            {/* ---- Steps Section ---- */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -609,113 +768,354 @@ export default function RequestDetailPage({ params }: PageProps) {
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-blue-500 rounded-full inline-block" />
-                    {isAdmin ? "Client Uploaded Files" : "Your Uploaded Files"}
+                    <span className="w-1.5 h-4 bg-orange-500 rounded-full inline-block" />
+                    {isAdmin ? "Project Steps" : "Your Steps"}
                   </h2>
                   <span className="text-xs text-slate-500 bg-white border border-slate-200 rounded-full px-2.5 py-0.5 font-medium">
-                    {project.userFileName ? "1 file" : "0 files"}
+                    {1 + (project.steps?.length ?? 0)} step
+                    {1 + (project.steps?.length ?? 0) !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <div className="p-4 space-y-2">
-                  {project.userFileName && project.userFileUrl ? (
-                    <div className="flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all group">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900 truncate">
-                            {project.userFileName}
+
+                <div className="p-4 space-y-4">
+                  {/* ── Initial Submission (project-level fields) ── */}
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                        Initial Submission
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        {formatDate(new Date(project.dateUpload))}
+                      </span>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {/* User file */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                          Uploaded File
+                        </p>
+                        {project.userFileName && project.userFileUrl ? (
+                          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <span className="text-sm font-medium text-slate-800 truncate">
+                                {project.userFileName}
+                              </span>
+                              {project.userFileSize && (
+                                <span className="text-xs text-slate-400 flex-shrink-0">
+                                  {formatFileSize(project.userFileSize)}
+                                </span>
+                              )}
+                            </div>
+                            <a
+                              href={project.userFileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-blue-400 hover:bg-blue-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition-all flex-shrink-0 ml-2"
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-400">
+                            No file uploaded
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Admin deliverable */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                          Deliverable
+                        </p>
+                        {project.adminFileName && project.adminFileUrl ? (
+                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                              <span className="text-sm font-medium text-slate-800 truncate">
+                                {project.adminFileName}
+                              </span>
+                              {project.adminFileSize && (
+                                <span className="text-xs text-slate-400 flex-shrink-0">
+                                  {formatFileSize(project.adminFileSize)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <a
+                                href={project.adminFileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all"
+                              >
+                                <Download className="w-3 h-3" />
+                                Download
+                              </a>
+                              {isAdmin && (
+                                <button
+                                  onClick={handleRemoveProjectDeliverable}
+                                  disabled={isRemovingProjectDeliverable}
+                                  title="Remove deliverable"
+                                  className="p-1.5 rounded-lg border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-400 transition-all"
+                                >
+                                  {isRemovingProjectDeliverable ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <span className="text-sm text-slate-400">
+                              No deliverable yet
+                            </span>
+                            {isAdmin && (
+                              <button
+                                onClick={() =>
+                                  setDeliverableTarget({ type: "project" })
+                                }
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium transition-all"
+                              >
+                                <Upload className="w-3 h-3" />
+                                Upload
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {isAdmin && project.adminFileName && (
+                          <button
+                            onClick={() =>
+                              setDeliverableTarget({ type: "project" })
+                            }
+                            className="mt-1.5 text-xs text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                          >
+                            Replace deliverable
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Additional Steps ── */}
+                  {project.steps?.map((step) => (
+                    <div
+                      key={step.id}
+                      className="rounded-xl border border-slate-200 overflow-hidden"
+                    >
+                      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                          Step {step.order} ·{" "}
+                          <span className="text-orange-600 normal-case">
+                            {step.userLabel}
+                          </span>
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {formatRelativeTime(new Date(step.createdAt))}
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {/* User file */}
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                            Uploaded File
                           </p>
-                          {project.userFileSize && (
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {formatFileSize(project.userFileSize)}
-                            </p>
+                          {step.userFileName && step.userFileUrl ? (
+                            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-slate-800 truncate">
+                                  {step.userFileName}
+                                </span>
+                                {step.userFileSize && (
+                                  <span className="text-xs text-slate-400 flex-shrink-0">
+                                    {formatFileSize(step.userFileSize)}
+                                  </span>
+                                )}
+                              </div>
+                              <a
+                                href={step.userFileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-blue-400 hover:bg-blue-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition-all flex-shrink-0 ml-2"
+                              >
+                                <Download className="w-3 h-3" />
+                                Download
+                              </a>
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-400">
+                              No file uploaded
+                            </div>
                           )}
                         </div>
-                      </div>
-                      <a
-                        href={project.userFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-blue-400 hover:bg-blue-50 text-sm font-medium text-slate-700 hover:text-blue-600 transition-all"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Download
-                      </a>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <FolderOpen className="w-10 h-10 text-slate-200 mb-3" />
-                      <p className="text-sm text-slate-500 font-medium">
-                        No files uploaded yet
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-green-500 rounded-full inline-block" />
-                    {isAdmin
-                      ? "Deliverables (Admin Uploads)"
-                      : "Final Deliverables"}
-                  </h2>
-                  <span className="text-xs text-slate-500 bg-white border border-slate-200 rounded-full px-2.5 py-0.5 font-medium">
-                    {project.adminFileName ? "1 file" : "0 files"}
-                  </span>
-                </div>
-                <div className="p-4 space-y-2">
-                  {project.adminFileName && project.adminFileUrl ? (
-                    <div className="flex items-center justify-between p-4 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 transition-all group">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900 truncate">
-                            {project.adminFileName}
+
+                        {/* Admin deliverable */}
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                            Deliverable
                           </p>
-                          {project.adminFileSize && (
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {formatFileSize(project.adminFileSize)}
-                            </p>
+                          {step.adminFileName && step.adminFileUrl ? (
+                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-slate-800 truncate">
+                                  {step.adminFileName}
+                                </span>
+                                {step.adminFileSize && (
+                                  <span className="text-xs text-slate-400 flex-shrink-0">
+                                    {formatFileSize(step.adminFileSize)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                <a
+                                  href={step.adminFileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  Download
+                                </a>
+                                {isAdmin && (
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveStepDeliverable(step.id)
+                                    }
+                                    disabled={
+                                      removingStepDeliverable === step.id
+                                    }
+                                    title="Remove deliverable"
+                                    className="p-1.5 rounded-lg border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-400 transition-all"
+                                  >
+                                    {removingStepDeliverable === step.id ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                              <span className="text-sm text-slate-400">
+                                No deliverable yet
+                              </span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() =>
+                                    setDeliverableTarget({
+                                      type: "step",
+                                      stepId: step.id,
+                                    })
+                                  }
+                                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium transition-all"
+                                >
+                                  <Upload className="w-3 h-3" />
+                                  Upload
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          {isAdmin && step.adminFileName && (
+                            <button
+                              onClick={() =>
+                                setDeliverableTarget({
+                                  type: "step",
+                                  stepId: step.id,
+                                })
+                              }
+                              className="mt-1.5 text-xs text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                            >
+                              Replace deliverable
+                            </button>
                           )}
                         </div>
+
+                        {/* Per-step price/payment */}
+                        {isAdmin ? (
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                              Step Price
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <div className="relative flex-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">
+                                  $
+                                </span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  value={stepPriceInputs[step.id] ?? ""}
+                                  onChange={(e) =>
+                                    setStepPriceInputs((prev) => ({
+                                      ...prev,
+                                      [step.id]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
+                                />
+                              </div>
+                              <button
+                                onClick={() => handleSetStepPrice(step.id)}
+                                disabled={
+                                  savingStepPrice === step.id ||
+                                  !stepPriceInputs[step.id]
+                                }
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold transition-all"
+                              >
+                                {savingStepPrice === step.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <DollarSign className="w-3.5 h-3.5" />
+                                )}
+                                Save
+                              </button>
+                            </div>
+                            {step.cost !== null && (
+                              <p className="mt-1.5 text-xs text-green-700 font-medium">
+                                Current: ${step.cost.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        ) : step.cost !== null && step.adminFileUrl ? (
+                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div>
+                              <p className="text-xs text-orange-700 font-medium mb-0.5">
+                                Payment Due
+                              </p>
+                              <p className="text-xl font-bold text-orange-900">
+                                ${step.cost.toLocaleString()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={handlePay}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition-all"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              Pay Now
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDownload(project.adminFileUrl!)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium transition-all shadow-sm"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Download
-                        </button>
-                      )}
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <Upload className="w-10 h-10 text-slate-200 mb-3" />
-                      <p className="text-sm text-slate-500 font-medium">
-                        No deliverables uploaded yet
-                      </p>
-                      {isAdmin && (
-                        <button
-                          onClick={() => setShowUploadModal(true)}
-                          className="mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
-                        >
-                          Upload a file
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  ))}
+
+                  {/* ── Add New Step button (always visible) ── */}
+                  <button
+                    onClick={() => setShowAddStepModal(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isAdmin ? "Add Step (on behalf of client)" : "Add New Step"}
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -987,14 +1387,13 @@ export default function RequestDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* ---- File Upload Modal ---- */}
+      {/* ---- Deliverable Upload Modal (project or step) ---- */}
       {isAdmin && (
         <Modal
-          isOpen={showUploadModal}
+          isOpen={deliverableTarget !== null}
           onClose={() => {
-            setShowUploadModal(false);
-            setUploadFile(null);
-            setUploadDescription("");
+            setDeliverableTarget(null);
+            setDeliverableFile(null);
           }}
           title="Upload Deliverable File"
         >
@@ -1006,52 +1405,37 @@ export default function RequestDetailPage({ params }: PageProps) {
               <input
                 type="file"
                 onChange={(e) => {
-                  if (e.target.files?.[0]) setUploadFile(e.target.files[0]);
+                  if (e.target.files?.[0])
+                    setDeliverableFile(e.target.files[0]);
                 }}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
               />
-              {uploadFile && (
+              {deliverableFile && (
                 <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-slate-400" />
-                  {uploadFile.name} (
-                  {(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
+                  {deliverableFile.name} (
+                  {(deliverableFile.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
-            </div>
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-slate-900 mb-2"
-              >
-                Note (Optional)
-              </label>
-              <Input
-                id="description"
-                type="text"
-                value={uploadDescription}
-                onChange={(e) => setUploadDescription(e.target.value)}
-                placeholder="e.g. Final structural model v2"
-              />
             </div>
             <div className="flex gap-3 pt-2">
               <Button
                 onClick={() => {
-                  setShowUploadModal(false);
-                  setUploadFile(null);
-                  setUploadDescription("");
+                  setDeliverableTarget(null);
+                  setDeliverableFile(null);
                 }}
                 variant="secondary"
                 className="flex-1"
-                disabled={isUploading}
+                disabled={isUploadingDeliverable}
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleFileUpload}
-                disabled={!uploadFile || isUploading}
+                onClick={handleUploadDeliverable}
+                disabled={!deliverableFile || isUploadingDeliverable}
                 className="flex-1 gap-2"
               >
-                {isUploading ? (
+                {isUploadingDeliverable ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Uploading...
@@ -1067,6 +1451,82 @@ export default function RequestDetailPage({ params }: PageProps) {
           </div>
         </Modal>
       )}
+
+      {/* ---- Add New Step Modal ---- */}
+      <Modal
+        isOpen={showAddStepModal}
+        onClose={() => {
+          setShowAddStepModal(false);
+          setNewStepLabel("");
+          setNewStepFile(null);
+        }}
+        title="Add New Step"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-2">
+              Step Label <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={newStepLabel}
+              onChange={(e) => setNewStepLabel(e.target.value)}
+              placeholder="e.g. Level 2 Foundation Plans"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-2">
+              File{" "}
+              <span className="text-slate-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files?.[0]) setNewStepFile(e.target.files[0]);
+              }}
+              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {newStepFile && (
+              <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-400" />
+                {newStepFile.name} (
+                {(newStepFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={() => {
+                setShowAddStepModal(false);
+                setNewStepLabel("");
+                setNewStepFile(null);
+              }}
+              variant="secondary"
+              className="flex-1"
+              disabled={isCreatingStep}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddStep}
+              disabled={!newStepLabel.trim() || isCreatingStep}
+              className="flex-1 gap-2"
+            >
+              {isCreatingStep ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Add Step
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ---- Video Upload Modal ---- */}
       {isAdmin && (

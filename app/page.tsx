@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Unbounded } from "next/font/google";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,7 +28,11 @@ const unbounded = Unbounded({
 const ModelViewer = dynamic(() => import("@/components/landing/ModelViewer"), {
   ssr: false,
 });
-
+// Loading animation component
+const LoadingAnimation = dynamic(
+  () => import("@/components/landing/LoadingAnimation"),
+  { ssr: false },
+);
 function scrollToSection(id: string) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -36,20 +40,13 @@ function scrollToSection(id: string) {
 
 export default function HeroPage() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = 1.8;
-    }
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 3900);
+    const timer = setTimeout(() => setIsLoaded(true), 1000);
     // Handle hash on load (e.g. navigating from another page via /#about)
     if (window.location.hash) {
       const id = window.location.hash.replace("#", "");
-      setTimeout(() => scrollToSection(id), 3900);
+      setTimeout(() => scrollToSection(id), 1000);
     }
     return () => clearTimeout(timer);
   }, []);
@@ -61,17 +58,10 @@ export default function HeroPage() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 2.6 }}
-          className="fixed inset-0 z-[999] bg-black flex items-center justify-center"
+          transition={{ duration: 0.5 }}
+          className="fixed inset-0 z-[999] flex items-center justify-center"
         >
-          <video
-            ref={videoRef}
-            src="/loading1.mp4"
-            autoPlay
-            loop
-            muted
-            className="w-full h-full object-cover"
-          />
+          <LoadingAnimation />
         </motion.div>
       )}
 
@@ -275,7 +265,6 @@ export default function HeroPage() {
               <video
                 src="/Blueprint_to_D_Wireframe_Model.mp4"
                 className="w-full h-full object-cover"
-                autoPlay
                 loop
                 muted
               />
@@ -417,7 +406,6 @@ export default function HeroPage() {
           >
             <video
               src="/Stickmodel_Final_Video.mp4"
-              autoPlay
               loop
               muted
               className="w-full h-full object-cover"

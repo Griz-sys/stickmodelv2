@@ -40,23 +40,70 @@ model Project {
   uploadedBy   String?
   status       String    @default("uploaded") // uploaded, finished
   userId       String?
+  notes        String?
 
-  // Single user submission (original upload)
+  // Initial submission (original upload)
   userFileName String?
   userFileUrl  String?
   userFileSize Int?
   userFileType String?
 
-  // Single admin deliverable file
+  // Initial admin deliverable file
   adminFileName String?
   adminFileUrl  String?
   adminFileSize Int?
   adminFileType String?
   
   user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  steps       ProjectStep[]
 
   @@index([userId])
   @@index([status])
   @@index([dateUpload])
   @@map("projects")
+}
+
+model ProjectStep {
+  id          String    @id @default(uuid())
+  projectId   String
+  order       Int
+  userLabel   String
+
+  // User upload
+  userFileName String?
+  userFileUrl  String?
+  userFileSize Int?
+  userFileType String?
+
+  // Admin deliverable
+  adminFileName String?
+  adminFileUrl  String?
+  adminFileSize Int?
+  adminFileType String?
+
+  // Per-step cost/payment (placeholder)
+  cost        Float?
+  isPaid      Boolean   @default(false)
+  datePayment DateTime?
+
+  createdAt   DateTime  @default(now())
+
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_steps")
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  otp       String
+  name      String
+  companyName String
+  website   String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("otp_verifications")
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { sendUserFileUploadNotification, sendDeliverableUploadNotification } from '@/lib/email';
 
 // Get a single project
 export async function GET(
@@ -25,6 +26,9 @@ export async function GET(
             name: true,
             email: true,
           },
+        },
+        steps: {
+          orderBy: { order: 'asc' },
         },
       },
     });
@@ -72,6 +76,22 @@ export async function PATCH(
     // Admins can update any fields
     if (user.role === 'admin') {
       const project = await prisma.project.update({ where: { id }, data: body });
+      
+      // Send email to user if admin uploaded initial deliverable
+      if (body.adminFileName && existing.userId) {
+        const userInfo = await prisma.user.findUnique({ where: { id: existing.userId } });
+        if (userInfo) {
+          await sendDeliverableUploadNotification(
+            existing.name,
+            userInfo.name,
+            userInfo.email,
+            body.adminFileName,
+            'Initial Submission',
+            body.cost
+          );
+        }
+      }
+      
       return NextResponse.json({ project });
     }
 
@@ -96,6 +116,21 @@ export async function PATCH(
     }
 
     const project = await prisma.project.update({ where: { id }, data: updateData });
+    
+    // Send email to admins if user uploaded initial file
+    if (body.userFileName && existing.userId) {
+      const userInfo = await prisma.user.findUnique({ where: { id: existing.userId } });
+      if (userInfo) {
+        await sendUserFileUploadNotification(
+          existing.name,
+          userInfo.name,
+          userInfo.email,
+          body.userFileName,
+          'Initial Submission'
+        );
+      }
+    }
+    
     return NextResponse.json({ project });
   } catch (error) {
     console.error('Update project error:', error);

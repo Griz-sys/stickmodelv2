@@ -15,11 +15,15 @@ function LoginForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState<"form" | "otp">("form");
+  const [otpValue, setOtpValue] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    companyName: "",
+    website: "",
   });
 
   useEffect(() => {
@@ -33,34 +37,67 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      const endpoint =
-        mode === "login" ? "/api/auth/login" : "/api/auth/signup";
+      if (mode === "login") {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
 
-      const body =
-        mode === "login"
-          ? { email: formData.email, password: formData.password }
-          : formData;
+        const data = await response.json();
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+        if (!response.ok)
+          throw new Error(data.error || "Authentication failed");
 
-      const data = await response.json();
+        const user = data.user as { role?: string };
 
-      if (!response.ok) throw new Error(data.error || "Authentication failed");
+        if (user?.role === "admin") {
+          router.push("/admin");
+        } else {
+          const redirect = searchParams.get("redirect") || "/home";
+          router.push(redirect);
+        }
 
-      const user = data.user as { role?: string };
-
-      if (user?.role === "admin") {
-        router.push("/admin");
+        router.refresh();
       } else {
-        const redirect = searchParams.get("redirect") || "/home";
-        router.push(redirect);
-      }
+        if (step === "form") {
+          // Step 1: send OTP to the user's email to verify it
+          const response = await fetch("/api/auth/send-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              companyName: formData.companyName,
+              website: formData.website,
+            }),
+          });
 
-      router.refresh();
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Failed to send code");
+
+          setStep("otp");
+        } else {
+          // Step 2: verify OTP and submit the invite request
+          const response = await fetch("/api/auth/request-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: formData.email, otp: otpValue }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Failed to send request");
+
+          setFormData({ name: "", email: "", password: "", companyName: "", website: "" });
+          setOtpValue("");
+          setStep("form");
+          setMode("login");
+          alert("✓ Invite request sent! We'll review your request and contact you soon.");
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error occurred");
     } finally {
@@ -78,7 +115,9 @@ function LoginForm() {
   const toggleMode = () => {
     setMode((prev) => (prev === "login" ? "signup" : "login"));
     setError("");
-    setFormData({ name: "", email: "", password: "" });
+    setStep("form");
+    setOtpValue("");
+    setFormData({ name: "", email: "", password: "", companyName: "", website: "" });
   };
 
   return (
@@ -117,14 +156,23 @@ function LoginForm() {
           <div className="bg-white/80 backdrop-blur-xl border border-orange-100 rounded-2xl p-8 shadow-xl">
             {/* Title */}
             <div className="text-center mb-8">
+              {mode === "login" && (
+                <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm font-semibold text-orange-900">
+                    🔒 We are invite-only currently
+                  </p>
+                </div>
+              )}
               <h1 className="text-3xl font-bold text-slate-900">
-                {mode === "login" ? "Welcome Back" : "Create Account"}
+                {mode === "login" ? "Welcome Back" : step === "form" ? "Request an Invite" : "Verify Your Email"}
               </h1>
 
               <p className="text-slate-500 mt-2">
                 {mode === "login"
                   ? "Login to access your projects"
-                  : "Start building structural models faster"}
+                  : step === "form"
+                  ? "Join us and start building structural models faster"
+                  : "Enter the 6-digit code we sent to your inbox"}
               </p>
             </div>
 
@@ -141,55 +189,147 @@ function LoginForm() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {mode === "signup" && (
-                <div>
-                  <label className="text-sm font-medium text-slate-700">
-                    Full Name
-                  </label>
-                  <Input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    placeholder="John Doe"
-                    className="mt-2 focus-visible:ring-orange-500"
-                  />
-                </div>
+              {mode === "login" ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <Input
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      placeholder="you@example.com"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Password
+                    </label>
+                    <Input
+                      name="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      minLength={6}
+                      disabled={isLoading}
+                      placeholder="••••••••"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+                </>
+              ) : step === "form" ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Full Name
+                    </label>
+                    <Input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      placeholder="John Doe"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Company Name
+                    </label>
+                    <Input
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      placeholder="Your Company"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <Input
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      placeholder="you@example.com"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Website <span className="text-slate-400">(optional)</span>
+                    </label>
+                    <Input
+                      name="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      placeholder="https://yourcompany.com"
+                      className="mt-2 focus-visible:ring-orange-500"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                    <p className="text-sm text-slate-700">
+                      We sent a 6-digit code to{" "}
+                      <strong>{formData.email}</strong>
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Check your inbox (and spam folder)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Verification Code
+                    </label>
+                    <Input
+                      value={otpValue}
+                      onChange={(e) =>
+                        setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      required
+                      disabled={isLoading}
+                      placeholder="123456"
+                      maxLength={6}
+                      inputMode="numeric"
+                      className="mt-2 text-center text-2xl tracking-widest font-mono focus-visible:ring-orange-500"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("form");
+                      setOtpValue("");
+                      setError("");
+                    }}
+                    className="text-sm text-slate-500 hover:text-orange-600 transition text-center w-full"
+                  >
+                    ← Back / Resend code
+                  </button>
+                </>
               )}
-
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Email
-                </label>
-                <Input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  placeholder="you@example.com"
-                  className="mt-2 focus-visible:ring-orange-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-700">
-                  Password
-                </label>
-                <Input
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  disabled={isLoading}
-                  placeholder="••••••••"
-                  className="mt-2 focus-visible:ring-orange-500"
-                />
-              </div>
 
               <Button
                 type="submit"
@@ -203,12 +343,18 @@ function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="animate-spin mr-2 w-5 h-5" />
-                    {mode === "login" ? "Signing in..." : "Creating account..."}
+                    {mode === "login"
+                      ? "Signing in..."
+                      : step === "form"
+                      ? "Sending code..."
+                      : "Submitting..."}
                   </>
                 ) : mode === "login" ? (
                   "Sign In"
+                ) : step === "form" ? (
+                  "Send Verification Code"
                 ) : (
-                  "Create Account"
+                  "Submit Request"
                 )}
               </Button>
             </form>
@@ -221,7 +367,7 @@ function LoginForm() {
                 className="text-sm text-slate-600 hover:text-[#ff5a1f] font-medium transition"
               >
                 {mode === "login"
-                  ? "Don't have an account? Sign up"
+                  ? "Don't have access? Request an invite"
                   : "Already have an account? Sign in"}
               </button>
             </div>
