@@ -42,6 +42,34 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // For non-admin users, strip adminFileUrl/adminFileName from unpaid content
+    // so download URLs are never exposed client-side until payment is confirmed
+    if (user.role !== 'admin') {
+      const sanitizedProject = { ...project };
+      
+      // Hide actual download URL if not paid; keep filename/size so the UI
+      // can show the payment panel instead of "No deliverable yet".
+      if (!project.isPaidInitial) {
+        sanitizedProject.adminFileUrl = null;
+      }
+      
+      // Hide step deliverables if not paid
+      const sanitizedSteps = project.steps.map((step) => {
+        if (!step.isPaid) {
+          return {
+            ...step,
+            adminFileUrl: null,
+            adminFileName: null,
+            adminFileSize: null,
+            adminFileType: null,
+          };
+        }
+        return step;
+      });
+      
+      return NextResponse.json({ project: { ...sanitizedProject, steps: sanitizedSteps } });
+    }
+
     return NextResponse.json({ project });
   } catch (error) {
     console.error('Get project error:', error);

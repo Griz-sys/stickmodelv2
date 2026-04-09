@@ -296,7 +296,7 @@ export default function LandingPage() {
                     {
                       icon: "≡",
                       title: "Levels & Elevations",
-                      desc: "Correct vertical positioning for every floor and support structure, eliminating manual input errors.",
+                      desc: "Correct Elevations Job for every floor and support structure, eliminating manual input errors.",
                     },
                     {
                       icon: "#",
@@ -438,7 +438,7 @@ export default function LandingPage() {
               <div className="hidden md:flex w-full md:w-1/2 shrink-0">
                 <div className="w-full overflow-hidden">
                   <img
-                    src="/abt.png"
+                    src="/abt.jpg"
                     alt="Engineering blueprints"
                     className="w-full h-[420px] object-cover block"
                     onError={(e) => {

@@ -33,12 +33,13 @@ model Project {
   dateFinish   DateTime?
   datePayment  DateTime?
   cost         Float?
+  isPaidInitial Boolean  @default(false) // Track if initial submission has been paid
   downloadLink String?
   uploadLink   String?
   // Main project video (admin uploaded)
   videoUrl     String?
   uploadedBy   String?
-  status       String    @default("uploaded") // uploaded, finished
+  status       String    @default("waiting_for_confirmation") // waiting_for_confirmation | in_progress | issue | finished
   userId       String?
   notes        String?
 

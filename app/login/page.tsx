@@ -121,13 +121,13 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-orange-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-stone-50 to-white">
       {/* Header */}
       <header className="border-b border-orange-100 bg-white/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-2 text-slate-600 hover:text-orange-600 transition"
+            className="flex items-center gap-2 text-slate-600 hover:text-[#E67E00] transition"
           >
             <ArrowLeft className="w-5 h-5" />
             Back
@@ -153,12 +153,12 @@ function LoginForm() {
           transition={{ duration: 0.45 }}
           className="w-full max-w-md"
         >
-          <div className="bg-white/80 backdrop-blur-xl border border-orange-100 rounded-2xl p-8 shadow-xl">
+          <div className="bg-white/80 backdrop-blur-xl border border-stone-200 rounded-none p-8 shadow-xl">
             {/* Title */}
             <div className="text-center mb-8">
               {mode === "login" && (
-                <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <p className="text-sm font-semibold text-orange-900">
+                <div className="mb-6 p-4 bg-[#E67E00]/10 border border-[#E67E00]/30 rounded-none">
+                  <p className="text-sm font-semibold text-[#E67E00]">
                     🔒 We are invite-only currently
                   </p>
                 </div>
@@ -203,7 +203,7 @@ function LoginForm() {
                       required
                       disabled={isLoading}
                       placeholder="you@example.com"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
@@ -220,7 +220,7 @@ function LoginForm() {
                       minLength={6}
                       disabled={isLoading}
                       placeholder="••••••••"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
                 </>
@@ -237,7 +237,7 @@ function LoginForm() {
                       required
                       disabled={isLoading}
                       placeholder="John Doe"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
@@ -252,7 +252,7 @@ function LoginForm() {
                       required
                       disabled={isLoading}
                       placeholder="Your Company"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
@@ -268,7 +268,7 @@ function LoginForm() {
                       required
                       disabled={isLoading}
                       placeholder="you@example.com"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
@@ -283,13 +283,13 @@ function LoginForm() {
                       onChange={handleChange}
                       disabled={isLoading}
                       placeholder="https://yourcompany.com"
-                      className="mt-2 focus-visible:ring-orange-500"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-center p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                  <div className="text-center p-4 bg-[#E67E00]/10 border border-[#E67E00]/30 rounded-none">
                     <p className="text-sm text-slate-700">
                       We sent a 6-digit code to{" "}
                       <strong>{formData.email}</strong>
@@ -313,7 +313,7 @@ function LoginForm() {
                       placeholder="123456"
                       maxLength={6}
                       inputMode="numeric"
-                      className="mt-2 text-center text-2xl tracking-widest font-mono focus-visible:ring-orange-500"
+                      className="mt-2 text-center text-2xl tracking-widest font-mono focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
@@ -324,7 +324,7 @@ function LoginForm() {
                       setOtpValue("");
                       setError("");
                     }}
-                    className="text-sm text-slate-500 hover:text-orange-600 transition text-center w-full"
+                    className="text-sm text-slate-500 hover:text-[#E67E00] transition text-center w-full"
                   >
                     ← Back / Resend code
                   </button>
@@ -334,10 +334,10 @@ function LoginForm() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-6 rounded-xl text-white font-semibold
-                bg-[#ff5a1f] hover:bg-[#ff6b2c]
-                shadow-lg shadow-orange-500/30
-                hover:shadow-orange-500/40
+                className="w-full py-6 rounded-none text-white font-semibold
+                bg-[#E67E00] hover:bg-[#d66c00]
+                shadow-lg shadow-[#E67E00]/30
+                hover:shadow-[#E67E00]/40
                 transition-all"
               >
                 {isLoading ? (
@@ -364,7 +364,7 @@ function LoginForm() {
               <button
                 onClick={toggleMode}
                 disabled={isLoading}
-                className="text-sm text-slate-600 hover:text-[#ff5a1f] font-medium transition"
+                className="w-full py-3 px-6 rounded-none font-semibold text-sm border-2 border-[#E67E00] text-[#E67E00] hover:bg-[#E67E00] hover:text-white transition-all"
               >
                 {mode === "login"
                   ? "Don't have access? Request an invite"
@@ -387,7 +387,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="animate-spin w-8 h-8 text-orange-500" />
+          <Loader2 className="animate-spin w-8 h-8 text-[#E67E00]" />
         </div>
       }
     >

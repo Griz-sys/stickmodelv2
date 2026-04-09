@@ -21,16 +21,15 @@ import {
   Video,
   DollarSign,
   ChevronDown,
-  FolderOpen,
   CheckCircle,
   User,
   Calendar,
   Hash,
   Weight,
-  StickyNote,
   LogOut,
   Plus,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -71,6 +70,7 @@ interface Project {
   dateUpload: string;
   dateFinish: string | null;
   cost: number | null;
+  isPaidInitial: boolean;
   status: string;
   notes: string | null;
   videoUrl: string | null;
@@ -93,9 +93,9 @@ interface Project {
 
 const STATUS_OPTIONS = [
   {
-    value: "uploaded",
-    label: "Uploaded",
-    color: "bg-blue-100 text-blue-700 border-blue-200",
+    value: "waiting_for_confirmation",
+    label: "Waiting for Confirmation",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
   },
   {
     value: "in_progress",
@@ -121,7 +121,11 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPaying, setIsPaying] = useState(false);
+
+  // PayPal: tracks which step is currently initiating payment (loading state)
+  const [payingStepId, setPayingStepId] = useState<string | null>(null);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
+  const [paypalSuccess, setPaypalSuccess] = useState(false);
 
   // Video upload modal
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -166,6 +170,23 @@ export default function RequestDetailPage({ params }: PageProps) {
   useEffect(() => {
     fetchCurrentUser();
     fetchProject();
+    // Handle PayPal redirect return
+    const params = new URLSearchParams(window.location.search);
+    const paypalStatus = params.get("paypal");
+    if (paypalStatus === "success") {
+      setPaypalSuccess(true);
+      // Clean the URL
+      const clean = window.location.pathname;
+      window.history.replaceState({}, "", clean);
+    } else if (paypalStatus === "error") {
+      setPaypalError("Payment could not be completed. Please try again.");
+      const clean = window.location.pathname;
+      window.history.replaceState({}, "", clean);
+    } else if (paypalStatus === "cancelled") {
+      setPaypalError("Payment was cancelled.");
+      const clean = window.location.pathname;
+      window.history.replaceState({}, "", clean);
+    }
   }, [id]);
 
   useEffect(() => {
@@ -208,13 +229,6 @@ export default function RequestDetailPage({ params }: PageProps) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePay = async () => {
-    setIsPaying(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    alert("Payment functionality not yet implemented");
-    setIsPaying(false);
   };
 
   const handleStatusUpdate = async (newStatus: string) => {
@@ -499,6 +513,28 @@ export default function RequestDetailPage({ params }: PageProps) {
   const isAdmin = currentUser?.role === "admin";
   const backUrl = isAdmin ? "/admin" : "/home";
 
+  // PayPal redirect flow: create order server-side → redirect to PayPal checkout
+  const handlePayWithPayPal = async (stepId?: string) => {
+    if (!project) return;
+    setPayingStepId(stepId || 'initial');
+    setPaypalError(null);
+    try {
+      const res = await fetch("/api/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(stepId ? { projectId: project.id, stepId } : { projectId: project.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create PayPal order");
+      if (!data.approveUrl) throw new Error("No PayPal approval URL returned");
+      // Redirect to PayPal checkout — avoids popup/CSP issues entirely
+      window.location.href = data.approveUrl;
+    } catch (error) {
+      setPaypalError(error instanceof Error ? error.message : "Payment failed");
+      setPayingStepId(null);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -545,7 +581,7 @@ export default function RequestDetailPage({ params }: PageProps) {
 
   const isFinished = project.status === "finished";
   const isInProgress = project.status === "in_progress";
-  const isUploaded = project.status === "uploaded";
+  const isWaitingForConfirmation = project.status === "waiting_for_confirmation";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -597,6 +633,27 @@ export default function RequestDetailPage({ params }: PageProps) {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* PayPal return banners */}
+        {paypalSuccess && (
+          <div className="mb-6 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-green-900">Payment successful!</p>
+              <p className="text-sm text-green-700">Your download is now available below.</p>
+            </div>
+            <button onClick={() => setPaypalSuccess(false)} className="text-green-500 hover:text-green-700 text-lg leading-none">✕</button>
+          </div>
+        )}
+        {paypalError && (
+          <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-red-900">Payment issue</p>
+              <p className="text-sm text-red-700">{paypalError}</p>
+            </div>
+            <button onClick={() => setPaypalError(null)} className="text-red-500 hover:text-red-700 text-lg leading-none">✕</button>
+          </div>
+        )}
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
@@ -714,16 +771,15 @@ export default function RequestDetailPage({ params }: PageProps) {
                   <h2 className="text-base font-semibold text-slate-900 mb-4">
                     Project Status
                   </h2>
-                  {isUploaded && (
-                    <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                      <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  {isWaitingForConfirmation && (
+                    <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                      <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-blue-900 mb-0.5">
-                          Project received
+                        <p className="font-semibold text-yellow-900 mb-0.5">
+                          Waiting for confirmation
                         </p>
-                        <p className="text-sm text-blue-700">
-                          We'll start processing soon. You'll be notified when
-                          it's ready.
+                        <p className="text-sm text-yellow-700">
+                          We've received your drawing. Our team is reviewing the files and will start processing shortly.
                         </p>
                       </div>
                     </div>
@@ -733,11 +789,10 @@ export default function RequestDetailPage({ params }: PageProps) {
                       <Loader2 className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5 animate-spin" />
                       <div>
                         <p className="font-semibold text-orange-900 mb-0.5">
-                          Work in progress
+                          We are processing
                         </p>
                         <p className="text-sm text-orange-700">
-                          Your project is currently being processed. Check back
-                          soon.
+                          Your model is currently being created. You'll receive an email when it's ready for download.
                         </p>
                       </div>
                     </div>
@@ -829,30 +884,31 @@ export default function RequestDetailPage({ params }: PageProps) {
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
                           Deliverable
                         </p>
-                        {project.adminFileName && project.adminFileUrl ? (
-                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                              <span className="text-sm font-medium text-slate-800 truncate">
-                                {project.adminFileName}
-                              </span>
-                              {project.adminFileSize && (
-                                <span className="text-xs text-slate-400 flex-shrink-0">
-                                  {formatFileSize(project.adminFileSize)}
+                        {project.adminFileName ? (
+                          isAdmin ? (
+                            /* Admin: show download + remove button */
+                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-slate-800 truncate">
+                                  {project.adminFileName}
                                 </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                              <a
-                                href={project.adminFileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all"
-                              >
-                                <Download className="w-3 h-3" />
-                                Download
-                              </a>
-                              {isAdmin && (
+                                {project.adminFileSize && (
+                                  <span className="text-xs text-slate-400 flex-shrink-0">
+                                    {formatFileSize(project.adminFileSize)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                <a
+                                  href={project.adminFileUrl ?? undefined}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  Download
+                                </a>
                                 <button
                                   onClick={handleRemoveProjectDeliverable}
                                   disabled={isRemovingProjectDeliverable}
@@ -865,9 +921,94 @@ export default function RequestDetailPage({ params }: PageProps) {
                                     <Trash2 className="w-3.5 h-3.5" />
                                   )}
                                 </button>
-                              )}
+                              </div>
                             </div>
-                          </div>
+                          ) : project.isPaidInitial ? (
+                            /* User: paid → show download */
+                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-slate-800 truncate">
+                                  {project.adminFileName}
+                                </span>
+                                {project.adminFileSize && (
+                                  <span className="text-xs text-slate-400 flex-shrink-0">
+                                    {formatFileSize(project.adminFileSize)}
+                                  </span>
+                                )}
+                              </div>
+                              <a
+                                href={project.adminFileUrl ?? undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all flex-shrink-0 ml-2"
+                              >
+                                <Download className="w-3 h-3" />
+                                Download
+                              </a>
+                            </div>
+                          ) : project.cost !== null ? (
+                            /* User: not paid but cost set → show payment */
+                            <div className="rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
+                              <div className="flex items-center justify-between px-4 py-3 border-b border-orange-100">
+                                <div>
+                                  <p className="text-xs text-orange-700 font-semibold uppercase tracking-wide mb-0.5">
+                                    Payment Required
+                                  </p>
+                                  <p className="text-2xl font-bold text-orange-900">
+                                    ${project.cost.toLocaleString()}
+                                  </p>
+                                </div>
+                                <Lock className="w-6 h-6 text-orange-400" />
+                              </div>
+                              <div className="px-4 py-3">
+                                <button
+                                  onClick={() => handlePayWithPayPal()}
+                                  disabled={payingStepId === 'initial'}
+                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0070ba] hover:bg-[#005ea6] disabled:opacity-60 text-white text-sm font-semibold transition-all"
+                                >
+                                  {payingStepId === 'initial' ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      Redirecting to PayPal…
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CreditCard className="w-4 h-4" />
+                                      Pay with PayPal
+                                    </>
+                                  )}
+                                </button>
+                                <p className="text-xs text-orange-600 mt-2 text-center">
+                                  Download unlocks after payment
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            /* User: deliverable ready but no cost set → free download */
+                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-slate-800 truncate">
+                                  {project.adminFileName}
+                                </span>
+                                {project.adminFileSize && (
+                                  <span className="text-xs text-slate-400 flex-shrink-0">
+                                    {formatFileSize(project.adminFileSize)}
+                                  </span>
+                                )}
+                              </div>
+                              <a
+                                href={project.adminFileUrl ?? undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all flex-shrink-0 ml-2"
+                              >
+                                <Download className="w-3 h-3" />
+                                Download
+                              </a>
+                            </div>
+                          )
                         ) : (
                           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                             <span className="text-sm text-slate-400">
@@ -897,6 +1038,48 @@ export default function RequestDetailPage({ params }: PageProps) {
                           </button>
                         )}
                       </div>
+
+                      {/* Inline price input for Initial Submission (admin only) */}
+                      {isAdmin && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                            Step Price
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={priceInput}
+                                onChange={(e) => setPriceInput(e.target.value)}
+                                className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
+                              />
+                            </div>
+                            <button
+                              onClick={handleSetPrice}
+                              disabled={isSavingPrice || !priceInput}
+                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold transition-all"
+                            >
+                              {isSavingPrice ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <DollarSign className="w-3.5 h-3.5" />
+                              )}
+                              Save
+                            </button>
+                          </div>
+                          {project.cost !== null && (
+                            <p className="mt-1.5 text-xs text-green-700 font-medium">
+                              Current: ${project.cost.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -913,9 +1096,17 @@ export default function RequestDetailPage({ params }: PageProps) {
                             {step.userLabel}
                           </span>
                         </span>
-                        <span className="text-xs text-slate-400">
-                          {formatRelativeTime(new Date(step.createdAt))}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {step.isPaid && (
+                            <span className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                              <CheckCircle className="w-3 h-3" />
+                              Paid
+                            </span>
+                          )}
+                          <span className="text-xs text-slate-400">
+                            {formatRelativeTime(new Date(step.createdAt))}
+                          </span>
+                        </div>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* User file */}
@@ -959,6 +1150,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                             Deliverable
                           </p>
                           {step.adminFileName && step.adminFileUrl ? (
+                            /* Deliverable available + PAID → show download */
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -1001,6 +1193,43 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 )}
                               </div>
                             </div>
+                          ) : step.cost !== null && !isAdmin && !step.isPaid ? (
+                            /* Deliverable ready (URL hidden until paid) → show payment */
+                            <div className="rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
+                              <div className="flex items-center justify-between px-4 py-3 border-b border-orange-100">
+                                <div>
+                                  <p className="text-xs text-orange-700 font-semibold uppercase tracking-wide mb-0.5">
+                                    Payment Required
+                                  </p>
+                                  <p className="text-2xl font-bold text-orange-900">
+                                    ${step.cost.toLocaleString()}
+                                  </p>
+                                </div>
+                                <Lock className="w-6 h-6 text-orange-400" />
+                              </div>
+                              <div className="px-4 py-3">
+                                <button
+                                  onClick={() => handlePayWithPayPal(step.id)}
+                                  disabled={payingStepId === step.id}
+                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0070ba] hover:bg-[#005ea6] disabled:opacity-60 text-white text-sm font-semibold transition-all"
+                                >
+                                  {payingStepId === step.id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      Redirecting to PayPal…
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CreditCard className="w-4 h-4" />
+                                      Pay ${step.cost?.toLocaleString()} with PayPal
+                                    </>
+                                  )}
+                                </button>
+                                <p className="text-xs text-orange-600 mt-2 text-center">
+                                  Download unlocks after payment
+                                </p>
+                              </div>
+                            </div>
                           ) : (
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                               <span className="text-sm text-slate-400">
@@ -1037,8 +1266,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                           )}
                         </div>
 
-                        {/* Per-step price/payment */}
-                        {isAdmin ? (
+                        {/* Per-step price (admin only — set the price) */}
+                        {isAdmin && (
                           <div>
                             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
                               Step Price
@@ -1085,25 +1314,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                               </p>
                             )}
                           </div>
-                        ) : step.cost !== null && step.adminFileUrl ? (
-                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                            <div>
-                              <p className="text-xs text-orange-700 font-medium mb-0.5">
-                                Payment Due
-                              </p>
-                              <p className="text-xl font-bold text-orange-900">
-                                ${step.cost.toLocaleString()}
-                              </p>
-                            </div>
-                            <button
-                              onClick={handlePay}
-                              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition-all"
-                            >
-                              <CreditCard className="w-3.5 h-3.5" />
-                              Pay Now
-                            </button>
-                          </div>
-                        ) : null}
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1265,122 +1476,6 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </motion.div>
-
-            {/* ---- Set Price (Admin) ---- */}
-            {isAdmin && (
-              <motion.div
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
-                    <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                      Set Project Price
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    {project.cost !== null && (
-                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-center">
-                        <p className="text-xs text-green-700 font-medium mb-0.5">
-                          Current Price
-                        </p>
-                        <p className="text-2xl font-bold text-green-800">
-                          ${project.cost.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                    <div className="relative mb-3">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">
-                        $
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={priceInput}
-                        onChange={(e) => setPriceInput(e.target.value)}
-                        className="w-full pl-7 pr-4 py-2.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
-                      />
-                    </div>
-                    <button
-                      onClick={handleSetPrice}
-                      disabled={isSavingPrice || !priceInput}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold transition-all shadow-sm"
-                    >
-                      {isSavingPrice ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <DollarSign className="w-4 h-4" />
-                          {project.cost !== null ? "Update Price" : "Set Price"}
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ---- Payment (User view, if finished) ---- */}
-            {!isAdmin && isFinished && (
-              <motion.div
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
-                    <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
-                      Payment
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    {project.cost ? (
-                      <div className="mb-5 text-center">
-                        <p className="text-xs text-slate-500 mb-1">
-                          Total Amount Due
-                        </p>
-                        <p className="text-4xl font-bold text-slate-900">
-                          ${project.cost.toLocaleString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mb-5 p-3 bg-slate-50 rounded-xl text-center">
-                        <p className="text-sm text-slate-500">
-                          Cost to be determined
-                        </p>
-                      </div>
-                    )}
-                    <button
-                      onClick={handlePay}
-                      disabled={isPaying}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-semibold transition-all shadow-sm"
-                    >
-                      {isPaying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-4 h-4" />
-                          Pay Now
-                        </>
-                      )}
-                    </button>
-                    <p className="text-xs text-slate-400 mt-3 text-center">
-                      Payment processing not yet implemented
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
 
             {/* ---- Summary Stats ---- */}
           </div>

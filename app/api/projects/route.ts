@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         cost,
         uploadedBy: dbUser.name,
         userId: dbUser.id,
-        status: 'uploaded',
+        status: 'waiting_for_confirmation',
       },
     });
 
