@@ -126,7 +126,9 @@ export async function POST(request: NextRequest) {
 
     const accessToken = await getPayPalAccessToken();
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Derive app URL from the incoming request so it works on any host (Vercel, DO, local)
+    const origin = request.headers.get('origin') || request.nextUrl.origin;
+    const appUrl = origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     const orderRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
       method: 'POST',

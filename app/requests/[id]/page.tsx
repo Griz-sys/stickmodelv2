@@ -327,7 +327,7 @@ export default function RequestDetailPage({ params }: PageProps) {
               adminFileSize: deliverableFile.size,
               adminFileType: deliverableFile.type,
             }),
-          }
+          },
         );
         if (!patchRes.ok) throw new Error("Failed to save step file info");
         await fetchProject();
@@ -371,15 +371,16 @@ export default function RequestDetailPage({ params }: PageProps) {
     if (!project) return;
     setRemovingStepDeliverable(stepId);
     try {
-      const res = await fetch(
-        `/api/projects/${project.id}/steps/${stepId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`/api/projects/${project.id}/steps/${stepId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Failed to remove deliverable");
       await fetchProject();
     } catch (error) {
       console.error("Remove step deliverable failed:", error);
-      alert(error instanceof Error ? error.message : "Failed to remove deliverable");
+      alert(
+        error instanceof Error ? error.message : "Failed to remove deliverable",
+      );
     } finally {
       setRemovingStepDeliverable(null);
     }
@@ -396,14 +397,11 @@ export default function RequestDetailPage({ params }: PageProps) {
     }
     setSavingStepPrice(stepId);
     try {
-      const res = await fetch(
-        `/api/projects/${project.id}/steps/${stepId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cost: parsed }),
-        }
-      );
+      const res = await fetch(`/api/projects/${project.id}/steps/${stepId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cost: parsed }),
+      });
       if (!res.ok) throw new Error("Failed to save price");
       await fetchProject();
     } catch (error) {
@@ -516,21 +514,55 @@ export default function RequestDetailPage({ params }: PageProps) {
   // PayPal redirect flow: create order server-side → redirect to PayPal checkout
   const handlePayWithPayPal = async (stepId?: string) => {
     if (!project) return;
-    setPayingStepId(stepId || 'initial');
+    const payingId = stepId || 'initial';
+    setPayingStepId(payingId);
     setPaypalError(null);
     try {
-      const res = await fetch("/api/paypal/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(stepId ? { projectId: project.id, stepId } : { projectId: project.id }),
+      const res = await fetch('/api/paypal/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          stepId ? { projectId: project.id, stepId } : { projectId: project.id }
+        ),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create PayPal order");
-      if (!data.approveUrl) throw new Error("No PayPal approval URL returned");
-      // Redirect to PayPal checkout — avoids popup/CSP issues entirely
-      window.location.href = data.approveUrl;
+      if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
+      if (!data.approveUrl) throw new Error('No PayPal approval URL returned');
+
+      // Open PayPal in a popup — stays on the current page
+      const popup = window.open(
+        data.approveUrl,
+        'paypal_checkout',
+        'width=600,height=700,scrollbars=yes,resizable=yes'
+      );
+
+      // Listen for the popup to post a message back once payment is done
+      const onMessage = (event: MessageEvent) => {
+        if (!event.data?.paypal) return;
+        window.removeEventListener('message', onMessage);
+        setPayingStepId(null);
+        if (event.data.paypal === 'success') {
+          setPaypalSuccess(true);
+          fetchProject(); // Refresh project data to show download button
+        } else if (event.data.paypal === 'cancelled') {
+          // silently ignore
+        } else {
+          setPaypalError('Payment could not be completed. Please try again.');
+        }
+        popup?.close();
+      };
+      window.addEventListener('message', onMessage);
+
+      // Fallback: if user closes the popup manually, clean up
+      const pollTimer = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(pollTimer);
+          window.removeEventListener('message', onMessage);
+          setPayingStepId(null);
+        }
+      }, 500);
     } catch (error) {
-      setPaypalError(error instanceof Error ? error.message : "Payment failed");
+      setPaypalError(error instanceof Error ? error.message : 'Payment failed');
       setPayingStepId(null);
     }
   };
@@ -581,7 +613,8 @@ export default function RequestDetailPage({ params }: PageProps) {
 
   const isFinished = project.status === "finished";
   const isInProgress = project.status === "in_progress";
-  const isWaitingForConfirmation = project.status === "waiting_for_confirmation";
+  const isWaitingForConfirmation =
+    project.status === "waiting_for_confirmation";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -638,10 +671,19 @@ export default function RequestDetailPage({ params }: PageProps) {
           <div className="mb-6 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold text-green-900">Payment successful!</p>
-              <p className="text-sm text-green-700">Your download is now available below.</p>
+              <p className="font-semibold text-green-900">
+                Payment successful!
+              </p>
+              <p className="text-sm text-green-700">
+                Your download is now available below.
+              </p>
             </div>
-            <button onClick={() => setPaypalSuccess(false)} className="text-green-500 hover:text-green-700 text-lg leading-none">✕</button>
+            <button
+              onClick={() => setPaypalSuccess(false)}
+              className="text-green-500 hover:text-green-700 text-lg leading-none"
+            >
+              ✕
+            </button>
           </div>
         )}
         {paypalError && (
@@ -651,7 +693,12 @@ export default function RequestDetailPage({ params }: PageProps) {
               <p className="font-semibold text-red-900">Payment issue</p>
               <p className="text-sm text-red-700">{paypalError}</p>
             </div>
-            <button onClick={() => setPaypalError(null)} className="text-red-500 hover:text-red-700 text-lg leading-none">✕</button>
+            <button
+              onClick={() => setPaypalError(null)}
+              className="text-red-500 hover:text-red-700 text-lg leading-none"
+            >
+              ✕
+            </button>
           </div>
         )}
         {/* Page Header */}
@@ -779,7 +826,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                           Waiting for confirmation
                         </p>
                         <p className="text-sm text-yellow-700">
-                          We've received your drawing. Our team is reviewing the files and will start processing shortly.
+                          We've received your drawing. Our team is reviewing the
+                          files and will start processing shortly.
                         </p>
                       </div>
                     </div>
@@ -792,7 +840,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                           We are processing
                         </p>
                         <p className="text-sm text-orange-700">
-                          Your model is currently being created. You'll receive an email when it's ready for download.
+                          Your model is currently being created. You'll receive
+                          an email when it's ready for download.
                         </p>
                       </div>
                     </div>
@@ -964,10 +1013,10 @@ export default function RequestDetailPage({ params }: PageProps) {
                               <div className="px-4 py-3">
                                 <button
                                   onClick={() => handlePayWithPayPal()}
-                                  disabled={payingStepId === 'initial'}
+                                  disabled={payingStepId === "initial"}
                                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0070ba] hover:bg-[#005ea6] disabled:opacity-60 text-white text-sm font-semibold transition-all"
                                 >
-                                  {payingStepId === 'initial' ? (
+                                  {payingStepId === "initial" ? (
                                     <>
                                       <Loader2 className="w-4 h-4 animate-spin" />
                                       Redirecting to PayPal…
@@ -1221,7 +1270,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                                   ) : (
                                     <>
                                       <CreditCard className="w-4 h-4" />
-                                      Pay ${step.cost?.toLocaleString()} with PayPal
+                                      Pay ${step.cost?.toLocaleString()} with
+                                      PayPal
                                     </>
                                   )}
                                 </button>
@@ -1325,7 +1375,9 @@ export default function RequestDetailPage({ params }: PageProps) {
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
                   >
                     <Plus className="w-4 h-4" />
-                    {isAdmin ? "Add Step (on behalf of client)" : "Add New Step"}
+                    {isAdmin
+                      ? "Add Step (on behalf of client)"
+                      : "Add New Step"}
                   </button>
                 </div>
               </div>

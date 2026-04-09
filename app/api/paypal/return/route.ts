@@ -32,24 +32,37 @@ async function getPayPalAccessToken(): Promise<string> {
 // GET /api/paypal/return?token=ORDER_ID&projectId=...&stepId=...
 // PayPal redirects users here after approving the payment.
 // stepId can be omitted or "initial" for initial submission payment
+// Returns an HTML page that posts a message to the opener (popup parent) and closes itself.
+function popupResponse(status: 'success' | 'error' | 'cancelled', projectId: string) {
+  const data = JSON.stringify({ paypal: status, projectId });
+  const html = `<!DOCTYPE html><html><head><title>Payment ${status}</title>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;}
+.box{text-align:center;padding:2rem;border-radius:1rem;background:#fff;box-shadow:0 4px 24px #0001;}
+h2{margin:0 0 .5rem}p{color:#64748b;margin:0}</style></head>
+<body><div class="box">
+${status === 'success' ? '<h2>&#10003; Payment Complete!</h2><p>Closing window…</p>' : status === 'cancelled' ? '<h2>Payment Cancelled</h2><p>Closing window…</p>' : '<h2>Payment Failed</h2><p>Closing window…</p>'}
+</div><script>
+try{if(window.opener&&!window.opener.closed){window.opener.postMessage(${data},'*');}}
+catch(e){}
+setTimeout(function(){window.close();},1200);
+</script></body></html>`;
+  return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const orderId = searchParams.get('token'); // PayPal passes the order ID as "token"
   const projectId = searchParams.get('projectId');
   const stepId = searchParams.get('stepId');
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const failUrl = `${appUrl}/requests/${projectId}?paypal=error`;
-  const successUrl = `${appUrl}/requests/${projectId}?paypal=success`;
-
   if (!orderId || !projectId) {
-    return NextResponse.redirect(failUrl);
+    return popupResponse('error', projectId || '');
   }
 
   // Verify the user is authenticated
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.redirect(`${appUrl}/login`);
+    return popupResponse('error', projectId);
   }
 
   try {
@@ -59,7 +72,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!project || project.userId !== user.id) {
-      return NextResponse.redirect(failUrl);
+      return popupResponse('error', projectId);
     }
 
     const isInitialSubmission = !stepId || stepId === 'initial';
@@ -67,7 +80,7 @@ export async function GET(request: NextRequest) {
     if (isInitialSubmission) {
       // Payment for initial submission
       if (project.isPaidInitial) {
-        return NextResponse.redirect(successUrl); // Already paid, idempotent
+        return popupResponse('success', projectId); // Already paid, idempotent
       }
     } else {
       // Payment for a step
@@ -76,11 +89,11 @@ export async function GET(request: NextRequest) {
       });
 
       if (!step || step.projectId !== projectId) {
-        return NextResponse.redirect(failUrl);
+        return popupResponse('error', projectId);
       }
 
       if (step.isPaid) {
-        return NextResponse.redirect(successUrl); // Already paid, idempotent
+        return popupResponse('success', projectId); // Already paid, idempotent
       }
     }
 
@@ -93,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     if (!orderDetailsRes.ok) {
       console.error('Could not fetch PayPal order details');
-      return NextResponse.redirect(failUrl);
+      return popupResponse('error', projectId);
     }
 
     const orderDetails = await orderDetailsRes.json();
@@ -109,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     if (purchaseUnit?.custom_id !== expectedCustomId) {
       console.error('PayPal order custom_id mismatch', purchaseUnit?.custom_id, expectedCustomId);
-      return NextResponse.redirect(failUrl);
+      return popupResponse('error', projectId);
     }
 
     // Capture the payment
@@ -124,7 +137,7 @@ export async function GET(request: NextRequest) {
     if (!captureRes.ok) {
       const err = await captureRes.json();
       console.error('PayPal capture error:', JSON.stringify(err));
-      return NextResponse.redirect(failUrl);
+      return popupResponse('error', projectId);
     }
 
     const capture = await captureRes.json();
@@ -134,7 +147,7 @@ export async function GET(request: NextRequest) {
 
     if (!captureStatus) {
       console.error('PayPal capture not completed:', capture.status);
-      return NextResponse.redirect(failUrl);
+      return popupResponse('error', projectId);
     }
 
     // Mark payment as paid
@@ -150,9 +163,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.redirect(successUrl);
+    return popupResponse('success', projectId);
   } catch (error) {
     console.error('PayPal return handler error:', error);
-    return NextResponse.redirect(failUrl);
+    return popupResponse('error', projectId || '');
   }
 }
