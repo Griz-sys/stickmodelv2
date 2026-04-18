@@ -68,10 +68,7 @@ export function AuthenticatedNav() {
           onClick={handleLogout}
           className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
         >
-          <img src="/logo.svg" alt="StickModel" className="h-11 w-auto" />
-          <span className="font-semibold text-lg text-slate-900">
-            stickmodel.com
-          </span>
+          <img src="/horizontal.svg" alt="StickModel" className="h-11 w-auto" />
         </button>
 
         {/* Navigation */}

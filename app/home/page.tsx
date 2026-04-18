@@ -395,8 +395,11 @@ export default function HomePage() {
             href="/"
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           >
-            <img src="/logo.svg" alt="StickModel" className="h-10 w-auto" />
-            <span className="font-semibold text-slate-900">StickModel</span>
+            <img
+              src="/horizontal.svg"
+              alt="StickModel"
+              className="h-7 w-auto"
+            />
           </Link>
 
           <div className="flex items-center gap-4">

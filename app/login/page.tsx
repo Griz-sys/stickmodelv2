@@ -134,11 +134,7 @@ function LoginForm() {
           </Link>
 
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.svg" alt="StickModel" className="h-11 w-auto" />
-
-            <span className="font-semibold text-lg text-slate-900">
-              StickModel
-            </span>
+            <img src="/horizontal.svg" alt="StickModel" className="h-8 w-auto" />
           </Link>
 
           <div className="w-20" />

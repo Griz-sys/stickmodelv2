@@ -24,9 +24,9 @@ apt install -y certbot python3-certbot-nginx
 
 # Clone repository
 cd /home
-rm -rf stickmodel || true
-git clone https://github.com/yourusername/stickmodel.git
-cd stickmodel/stickmodel
+rm -rf stickmodelv2 || true
+git clone https://github.com/Griz-sys/stickmodelv2.git
+cd stickmodelv2/stickmodel
 
 # Install dependencies
 npm install
@@ -84,7 +84,7 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 
 echo "✅ StickModel deployed!"
-echo "📝 Edit /home/stickmodel/stickmodel/.env with your credentials"
+echo "📝 Edit /home/stickmodelv2/stickmodel/.env with your credentials"
 echo "🌐 Your app will be running at http://YOUR_DROPLET_IP"
 echo "🔐 After setting domain: sudo certbot --nginx -d your-domain.com"
-echo "📡 To deploy updates: cd /home/stickmodel/stickmodel && git pull && npm run build && pm2 restart stickmodel"
+echo "📡 To deploy updates: cd /home/stickmodelv2/stickmodel && git pull && npm run build && pm2 restart stickmodel"

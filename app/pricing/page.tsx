@@ -2,24 +2,43 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ArrowRight, ChevronDown, Zap } from "lucide-react";
+import { CheckCircle2, ArrowRight, ChevronDown, Zap, Package } from "lucide-react";
 import { SimpleNav } from "@/components/simple-nav";
 import { motion, AnimatePresence } from "framer-motion";
 
-const FEATURES_STANDARD = [
+const PRICING_TIERS = [
+  {
+    range: "Up to 250 MT",
+    original: "$1,000",
+    discounted: "$600",
+    highlight: false,
+  },
+  {
+    range: "250 - 500 MT",
+    original: "$1,500",
+    discounted: "$900",
+    highlight: false,
+  },
+  {
+    range: "500 - 1,000 MT",
+    original: "$2,000",
+    discounted: "$1,200",
+    highlight: true,
+  },
+  {
+    range: ">1,000 MT",
+    original: "$2/MT",
+    discounted: "$1.2/MT",
+    highlight: false,
+  },
+];
+
+const FEATURES = [
   "IFC stick model file",
-  "~24 hour turnaround",
+  "24 hour turnaround",
   "Video preview before payment",
   "Unlimited revisions",
   "Email support",
-];
-
-const FEATURES_POPULAR = [
-  "Everything in Standard",
-  "Detailed Bill of Materials (CSV)",
-  "Material quantities & specs",
-  "~24 hour turnaround",
-  "Priority support",
 ];
 
 const FAQS = [
@@ -41,7 +60,7 @@ const FAQS = [
   {
     question: "Do you offer volume discounts?",
     answer:
-      "Yes! Contact us for custom pricing on bulk projects or ongoing partnerships.",
+      "Contact us for custom enterprise pricing on ongoing partnerships and volume commitments.",
   },
 ];
 
@@ -59,151 +78,123 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 mb-6">
+            <Zap className="w-4 h-4 text-orange-600" />
+            <span className="text-sm font-semibold text-orange-600">
+              40% Launch Discount
+            </span>
+          </div>
           <p className="text-xs tracking-widest text-slate-400 uppercase mb-5">
             Pricing
           </p>
           <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-5">
-            Simple, transparent
+            Transparent, tiered
             <span className="text-orange-600"> pricing</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Pay per project. No subscriptions, no hidden fees. You only pay
-            after reviewing and approving your model.
+            Simple weight-based pricing. All prices are per project. Pay only
+            after you approve the preview.
           </p>
         </motion.div>
       </section>
 
-      {/* ── CARDS ── */}
+      {/* ── PRICING TIERS ── */}
       <section className="max-w-4xl mx-auto px-6 pb-24">
-        <div className="grid md:grid-cols-2 gap-6 items-stretch">
-          {/* Standard */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.05 }}
-            whileHover={{ y: -4 }}
-            className="flex"
-          >
-            <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 flex flex-col transition-shadow duration-300 hover:shadow-xl hover:shadow-slate-100">
-              <div className="mb-8">
-                <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
-                  Standard
-                </p>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-1">
-                  Stick Model
-                </h2>
-                <p className="text-sm text-slate-500">Basic conversion</p>
-              </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {PRICING_TIERS.map((tier, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.05 + idx * 0.08 }}
+              whileHover={{ y: -4 }}
+              className="flex"
+            >
+              <div
+                className={`w-full rounded-2xl border-2 p-8 flex flex-col transition-shadow duration-300 relative ${
+                  tier.highlight
+                    ? "border-orange-500 bg-white hover:shadow-xl hover:shadow-orange-100/30"
+                    : "border-slate-200 bg-white hover:shadow-xl hover:shadow-slate-100"
+                }`}
+              >
+                {tier.highlight && (
+                  <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full border border-orange-200">
+                    <Zap className="w-3 h-3" />
+                    Most Popular
+                  </div>
+                )}
 
-              <div className="mb-8">
-                <div className="flex items-end gap-1">
-                  <span className="text-5xl font-bold text-slate-900">
-                    $999
-                  </span>
-                  <span className="text-slate-400 mb-1.5 text-sm">
-                    / project
-                  </span>
+                <div className="mb-8">
+                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">
+                    {tier.range}
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-slate-400 line-through">
+                        {tier.original}
+                      </span>
+                      <span className="text-3xl font-bold text-slate-900">
+                        {tier.discounted}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+
+                <Link href="/login" className="w-full">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors ${
+                      tier.highlight
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "border border-slate-200 bg-slate-50 text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    Get Started <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </Link>
               </div>
-
-              <ul className="space-y-3.5 mb-10 flex-grow border-t border-slate-100 pt-6">
-                {FEATURES_STANDARD.map((f) => (
-                  <li key={f} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-600">{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/login">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-100 transition-colors"
-                >
-                  Get Started <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Popular */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.12 }}
-            whileHover={{ y: -4 }}
-            className="flex"
-          >
-            <div className="w-full rounded-2xl border-2 border-orange-500 bg-white p-8 flex flex-col relative overflow-hidden transition-shadow duration-300 hover:shadow-xl hover:shadow-orange-100/30">
-              {/* Badge */}
-              <div className="absolute top-6 right-6">
-                <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full border border-orange-200">
-                  <Zap className="w-3 h-3" />
-                  Most Popular
-                </span>
-              </div>
-
-              <div className="mb-8 pt-1">
-                <p className="text-xs tracking-widest text-slate-400 uppercase mb-3">
-                  With ABM
-                </p>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-1">
-                  Stick Model + ABM
-                </h2>
-                <p className="text-sm text-slate-500">
-                  With Advanced Bill of Materials
-                </p>
-              </div>
-
-              <div className="mb-8">
-                <div className="flex items-end gap-1">
-                  <span className="text-5xl font-bold text-slate-900">
-                    $1199
-                  </span>
-                  <span className="text-slate-400 mb-1.5 text-sm">
-                    / project
-                  </span>
-                </div>
-              </div>
-
-              <ul className="space-y-3.5 mb-10 flex-grow border-t border-slate-100 pt-6">
-                {FEATURES_POPULAR.map((f, i) => (
-                  <li key={f} className="flex items-center gap-3">
-                    <CheckCircle2
-                      className={`w-4 h-4 flex-shrink-0 ${i >= 1 && i <= 2 ? "text-orange-500" : "text-emerald-500"}`}
-                    />
-                    <span
-                      className={`text-sm ${i >= 1 && i <= 2 ? "text-slate-900 font-medium" : "text-slate-600"}`}
-                    >
-                      {f}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/login">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
-                >
-                  Get Started <ArrowRight className="w-4 h-4" />
-                </motion.button>
-              </Link>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Guarantee note */}
+        {/* Add-on */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.4 }}
+          className="rounded-2xl border-2 border-slate-200 bg-white p-8 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Package className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 mb-1">
+                Advanced Bill of Materials (ABM)
+              </h3>
+              <p className="text-sm text-slate-500">
+                Detailed material quantities & specifications
+              </p>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-2xl font-bold text-slate-900">$200</p>
+            <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">
+              Add to any plan
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Note */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center text-sm text-slate-400 mt-8"
+          className="text-center text-sm text-slate-500 mt-8 italic"
         >
-          Pay only after you approve the preview &mdash; zero risk, no upfront
-          payment.
+          *All prices are per project. Launch discount of 40% available for
+          limited time.
         </motion.p>
       </section>
 
@@ -276,24 +267,7 @@ export default function PricingPage() {
       <footer className="border-t border-slate-100">
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <span className="font-semibold text-slate-900">StickModel</span>
+            <img src="/horizontal.svg" alt="StickModel" className="h-7 w-auto" />
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
             <Link

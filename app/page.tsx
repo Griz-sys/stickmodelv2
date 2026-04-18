@@ -387,9 +387,9 @@ export default function LandingPage() {
                 </thead>
                 <tbody>
                   {[
-                    ["Small (~500 MT)", "7 Days", "2.5 Days", "4.5 Days"],
-                    ["Medium (~1000 MT)", "14 Days", "5 Days", "9 Days"],
-                    ["Large (~2000 MT)", "28 Days", "10 Days", "18 Days"],
+                    ["Small (~500 MT)", "7 Days", "5 Days", "2 Days"],
+                    ["Medium (~1000 MT)", "14 Days", "10 Days", "4 Days"],
+                    ["Large (~2000 MT)", "28 Days", "20 Days", "8 Days"],
                   ].map((row) => (
                     <tr
                       key={row[0]}
@@ -425,7 +425,8 @@ export default function LandingPage() {
                 style={{ fontFamily: "var(--font-space-grotesk)" }}
               >
                 Our in-house systems enable 3.0x faster delivery for core
-                wireframe modeling tasks.
+                wireframe modeling tasks. StickModel delivery is always 24 hours,
+                regardless of project size.
               </p>
             </div>
           </div>
@@ -661,7 +662,7 @@ export default function LandingPage() {
           <div className="space-y-5 flex flex-col items-center md:items-start">
             <Link href="/">
               <img
-                src="/logo.svg"
+                src="/horizontal.svg"
                 alt="StickModel"
                 className="h-8 w-auto brightness-0 invert"
               />
