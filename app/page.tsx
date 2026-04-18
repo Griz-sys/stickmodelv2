@@ -387,9 +387,9 @@ export default function LandingPage() {
                 </thead>
                 <tbody>
                   {[
-                    ["Small (~500 MT)", "7 Days", "5 Days", "2 Days"],
-                    ["Medium (~1000 MT)", "14 Days", "10 Days", "4 Days"],
-                    ["Large (~2000 MT)", "28 Days", "20 Days", "8 Days"],
+                    ["Small (~500 MT)", "5 Days", "1 Day", "4 Days"],
+                    ["Medium (~1000 MT)", "10 Days", "1 Day", "9 Days"],
+                    ["Large (~2000 MT)", "20 Days", "1 Day", "19 Days"],
                   ].map((row) => (
                     <tr
                       key={row[0]}
