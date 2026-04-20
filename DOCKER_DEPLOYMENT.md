@@ -129,7 +129,62 @@ Press `Ctrl+X`, then `Y`, then `Enter` to save.
 
 ---
 
-### STEP 7: Build Docker Image
+### STEP 7: Build and Push Docker Image (Recommended Approach)
+
+**Option A: Push to GitHub Container Registry (GHCR) - Recommended**
+
+First, authenticate with GHCR on your local machine:
+
+```bash
+# Create a GitHub Personal Access Token (if you haven't already):
+# 1. Go to: https://github.com/settings/tokens
+# 2. Create new classic token with 'write:packages' and 'read:packages' permissions
+# 3. Copy the token
+
+# Login to GHCR
+echo YOUR_PERSONAL_ACCESS_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+```
+
+Then build and push:
+
+```bash
+cd /path/to/stickmodel
+
+# Option 1: Use the helper script
+bash docker-push.sh griz-sys
+
+# Option 2: Manual
+docker compose build
+docker tag stickmodel-stickmodel:latest ghcr.io/griz-sys/stickmodel:latest
+docker tag stickmodel-stickmodel:latest ghcr.io/griz-sys/stickmodel:v1.0.0
+docker push ghcr.io/griz-sys/stickmodel:latest
+docker push ghcr.io/griz-sys/stickmodel:v1.0.0
+```
+
+Then on your droplet, update `docker-compose.yml`:
+
+```yaml
+services:
+  stickmodel:
+    image: ghcr.io/griz-sys/stickmodel:latest
+```
+
+Then on droplet:
+
+```bash
+cd /var/www/stickmodel
+
+# Authenticate with GHCR (if private repo)
+echo YOUR_PERSONAL_ACCESS_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+
+# Pull and start
+docker compose pull
+docker compose up -d
+```
+
+---
+
+**Option B: Build directly on droplet (Slower, not recommended for production)**
 
 ```bash
 cd /var/www/stickmodel
@@ -276,6 +331,60 @@ docker images
 
 ## Updating Your Application
 
+**Recommended Workflow (Using GHCR):**
+
+1. **On your local machine, make changes and push:**
+```bash
+cd /path/to/stickmodel
+git add -A
+git commit -m "Update: description"
+git push origin main
+```
+
+2. **Build and push to GHCR:**
+```bash
+# Login to GHCR (if not already logged in)
+echo YOUR_PERSONAL_ACCESS_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+
+# Build image
+docker compose build
+
+# Tag it
+docker tag stickmodel-stickmodel:latest ghcr.io/griz-sys/stickmodel:latest
+
+# Push to registry
+docker push ghcr.io/griz-sys/stickmodel:latest
+```
+
+Or use the script:
+```bash
+bash docker-push.sh griz-sys
+```
+
+3. **On droplet, pull and restart:**
+```bash
+cd /var/www/stickmodel
+
+# Make sure docker-compose.yml has the right image reference:
+# image: ghcr.io/griz-sys/stickmodel:latest
+
+# If using private repo, login first
+echo YOUR_PERSONAL_ACCESS_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+
+# Pull latest image
+docker compose pull
+
+# Restart with new image
+docker compose up -d
+
+# Check logs
+docker compose logs -f
+```
+
+---
+
+**Alternative: Rebuild on droplet (slower, not recommended):**
+
 When you make changes locally:
 
 ```bash
@@ -289,7 +398,7 @@ cd /var/www/stickmodel
 git pull origin main
 
 # 3. Rebuild and restart
-docker compose build
+docker compose build --no-cache
 docker compose up -d
 
 # 4. Check status
