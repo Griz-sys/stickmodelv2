@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ArrowRight, ChevronDown, Zap, Package } from "lucide-react";
+import {
+  CheckCircle2,
+  ArrowRight,
+  ChevronDown,
+  Zap,
+  Package,
+} from "lucide-react";
 import { SimpleNav } from "@/components/simple-nav";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,25 +17,21 @@ const PRICING_TIERS = [
     range: "Up to 250 MT",
     original: "$1,000",
     discounted: "$600",
-    highlight: false,
   },
   {
     range: "250 - 500 MT",
     original: "$1,500",
     discounted: "$900",
-    highlight: false,
   },
   {
     range: "500 - 1,000 MT",
     original: "$2,000",
     discounted: "$1,200",
-    highlight: true,
   },
   {
     range: ">1,000 MT",
     original: "$2/MT",
     discounted: "$1.2/MT",
-    highlight: false,
   },
 ];
 
@@ -55,7 +57,7 @@ const FAQS = [
   {
     question: "What if I need revisions?",
     answer:
-      "Unlimited revisions are included. If something doesn't match your drawing, we'll fix it at no extra cost.",
+      "Upload revised set of drawings and get revised quote if any, depending on the changes.",
   },
   {
     question: "Do you offer volume discounts?",
@@ -111,19 +113,8 @@ export default function PricingPage() {
               className="flex"
             >
               <div
-                className={`w-full rounded-2xl border-2 p-8 flex flex-col transition-shadow duration-300 relative ${
-                  tier.highlight
-                    ? "border-orange-500 bg-white hover:shadow-xl hover:shadow-orange-100/30"
-                    : "border-slate-200 bg-white hover:shadow-xl hover:shadow-slate-100"
-                }`}
+                className={`w-full rounded-2xl border-2 border-slate-200 p-8 flex flex-col transition-shadow duration-300 relative bg-white hover:shadow-xl hover:shadow-slate-100`}
               >
-                {tier.highlight && (
-                  <div className="absolute top-4 right-4 inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full border border-orange-200">
-                    <Zap className="w-3 h-3" />
-                    Most Popular
-                  </div>
-                )}
-
                 <div className="mb-8">
                   <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">
                     {tier.range}
@@ -144,11 +135,7 @@ export default function PricingPage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors ${
-                      tier.highlight
-                        ? "bg-orange-600 hover:bg-orange-700 text-white"
-                        : "border border-slate-200 bg-slate-50 text-slate-900 hover:bg-slate-100"
-                    }`}
+                    className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors border border-slate-200 bg-slate-50 text-slate-900 hover:bg-orange-600 hover:text-white hover:border-orange-600"
                   >
                     Get Started <ArrowRight className="w-4 h-4" />
                   </motion.button>
@@ -267,7 +254,11 @@ export default function PricingPage() {
       <footer className="border-t border-slate-100">
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2.5">
-            <img src="/horizontal.svg" alt="StickModel" className="h-7 w-auto" />
+            <img
+              src="/horizontal.svg"
+              alt="StickModel"
+              className="h-7 w-auto"
+            />
           </div>
           <div className="flex gap-8 text-sm text-slate-500">
             <Link

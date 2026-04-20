@@ -12,15 +12,56 @@ import { SimpleNav } from "@/components/simple-nav";
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const formData = new FormData(e.currentTarget);
+      const data = {
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        subject: formData.get("subject") as string,
+        message: formData.get("message") as string,
+      };
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        let errorMsg = "Failed to send message. Please try again.";
+        
+        if (result.details) {
+          errorMsg = typeof result.details === "string" ? result.details : String(result.details);
+        } else if (result.error) {
+          errorMsg = typeof result.error === "string" ? result.error : String(result.error);
+        } else if (result.message) {
+          errorMsg = typeof result.message === "string" ? result.message : String(result.message);
+        }
+        
+        setError(errorMsg);
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error("Error sending message:", err);
+      const errorMsg = err instanceof Error ? err.message : "An error occurred. Please try again later.";
+      setError(errorMsg);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -43,7 +84,7 @@ export default function ContactPage() {
 
             <p className="text-lg text-slate-600 leading-relaxed mb-10 max-w-lg">
               Have questions about our stick modeling service or need a custom
-              quote for your structural drawings? Our team is here to help.
+              quote for your contract drawings? Our team is here to help.
             </p>
 
             <div className="space-y-6">
@@ -93,11 +134,17 @@ export default function ContactPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="grid md:grid-cols-2 gap-6">
-                        <Input label="Name" placeholder="Your name" required />
+                        <Input 
+                          label="Name" 
+                          placeholder="Your name" 
+                          name="name"
+                          required 
+                        />
                         <Input
                           label="Email"
                           type="email"
                           placeholder="you@company.com"
+                          name="email"
                           required
                         />
                       </div>
@@ -105,15 +152,23 @@ export default function ContactPage() {
                       <Input
                         label="Subject"
                         placeholder="What can we help you with?"
+                        name="subject"
                         required
                       />
 
                       <Textarea
                         label="Message"
                         placeholder="Tell us about your project..."
+                        name="message"
                         rows={5}
                         required
                       />
+
+                      {error && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                          {error}
+                        </div>
+                      )}
 
                       <Button
                         type="submit"
@@ -136,7 +191,7 @@ export default function ContactPage() {
       {/* FOOTER */}
       <footer className="border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="font-semibold text-lg">StickModel</div>
+          <img src="/horizontal.svg" alt="StickModel" className="h-7 w-auto" />
 
           <div className="flex gap-8 text-sm text-slate-500">
             <Link href="/#about">About</Link>
