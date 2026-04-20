@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-slim AS builder
+FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
@@ -23,11 +23,11 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-slim
+FROM node:20-bullseye
 
 WORKDIR /app
 
-# Install required system libraries before switching to non-root user
+# Install required system libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
     libssl1.1 \
