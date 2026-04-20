@@ -1,12 +1,15 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Copy prisma schema early (needed for postinstall)
+COPY prisma ./prisma
+
+# Install dependencies (includes prisma generate via postinstall)
 RUN npm ci
 
 # Copy source code
@@ -16,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -26,13 +29,15 @@ RUN apk add --no-cache dumb-init
 # Copy package files
 COPY package*.json ./
 
+# Copy prisma schema
+COPY prisma ./prisma
+
 # Install only production dependencies
 RUN npm ci --only=production
 
 # Copy built app from builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs

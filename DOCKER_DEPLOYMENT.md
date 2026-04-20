@@ -88,6 +88,9 @@ cd stickmodel
 # Or if using SSH key authentication:
 # git clone git@github.com:your-username/stickmodel.git
 # cd stickmodel
+
+# Make sure you have the latest changes with updated Dockerfile
+git pull origin main
 ```
 
 ---
@@ -296,6 +299,31 @@ docker compose logs -f
 ---
 
 ## Troubleshooting
+
+**Build fails with "EBADENGINE" warnings about Node version:**
+```bash
+# This means dependencies require Node 20+
+# The Dockerfile has been updated to use Node 20-alpine
+# Make sure you're using the latest version:
+git pull origin main
+
+# Then rebuild:
+docker compose build --no-cache
+docker compose up -d
+```
+
+**Build fails with "Prisma Schema not found":**
+```bash
+# Make sure prisma/schema.prisma exists in the project
+ls -la prisma/schema.prisma
+
+# The Dockerfile has been fixed to copy the prisma directory early
+# Pull latest changes:
+git pull origin main
+
+# Rebuild:
+docker compose build --no-cache
+```
 
 **Container keeps crashing:**
 ```bash
