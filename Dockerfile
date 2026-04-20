@@ -27,8 +27,11 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && rm -rf /var/lib/apt/lists/*
+# Install required system libraries before switching to non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dumb-init \
+    libssl1.1 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
