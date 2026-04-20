@@ -50,6 +50,7 @@ External Services:
 ## Current Setup Details
 
 ### Domain & SSL
+
 - **Domain:** stickmodel.com (with www.stickmodel.com)
 - **SSL Certificate:** Let's Encrypt (auto-renewed 30 days before expiration)
 - **Certificate Location:** `/etc/letsencrypt/live/stickmodel.com/`
@@ -59,24 +60,29 @@ External Services:
 - **Expiration:** Check with: `openssl x509 -in /etc/letsencrypt/live/stickmodel.com/fullchain.pem -noout -dates`
 
 ### Droplet Information
+
 - **IP Address:** 167.172.143.13
 - **OS:** Ubuntu (Linux)
 - **Docker:** Installed and running
 - **Docker Compose:** Version 2.x
 
 ### Database
+
 - **Type:** PostgreSQL (DigitalOcean Managed)
 - **Connection:** Private cluster endpoint
 - **ORM:** Prisma (schema: `prisma/schema.prisma`)
 - **Migrations:** Auto-run via Prisma
 
 ### Docker Setup
+
 - **Image Registry:** GitHub Container Registry (GHCR)
 - **Image Name:** `ghcr.io/griz-sys/stickmodel:latest`
-- **Base Image:** `node:20-slim` (Debian-based, supports native modules)
+- **Base Image:** `node:20-bullseye` (Debian 11 - has libssl1.1 for Prisma compatibility)
 - **Multi-Stage Build:** Builder stage for compilation, minimal production stage
+- **File Upload Limit:** 20GB (nginx client_max_body_size)
 
 ### Containers Running
+
 1. **stickmodel** - Node.js/Next.js application on port 3000
 2. **stickmodel-nginx** - Reverse proxy on ports 80/443
 
@@ -108,6 +114,7 @@ External Services:
    - **Headers:** Includes Reply-To and proper HTML formatting
 
 ### Email Setup Verification
+
 ```bash
 # Check email configuration in .env
 ssh root@167.172.143.13
@@ -147,6 +154,7 @@ docker compose logs -f stickmodel
 ```
 
 **Alternative (using the helper script):**
+
 ```bash
 # On local machine
 bash docker-push.sh griz-sys
@@ -178,6 +186,7 @@ docker compose logs -f stickmodel
 ```
 
 **IMPORTANT ENV VARIABLES:**
+
 ```bash
 # Database (DO NOT CHANGE without coordination)
 DATABASE_URL="postgresql://doadmin:PASSWORD@db-host:25060/defaultdb?sslmode=require"
@@ -264,6 +273,7 @@ docker compose up -d
 ## Troubleshooting
 
 ### Issue: App not responding
+
 ```bash
 # 1. Check container status
 docker compose ps
@@ -281,6 +291,7 @@ docker compose restart stickmodel
 ```
 
 ### Issue: HTTPS not working
+
 ```bash
 # 1. Check certificate exists
 ls -la /etc/letsencrypt/live/stickmodel.com/
@@ -296,6 +307,7 @@ docker compose restart nginx
 ```
 
 ### Issue: Emails not sending
+
 ```bash
 # 1. Check email config in .env
 cat .env | grep -i mail
@@ -308,6 +320,7 @@ docker compose logs stickmodel | grep -i "zepto\|mail\|error"
 ```
 
 ### Issue: Out of disk space
+
 ```bash
 # Check usage
 df -h
@@ -323,6 +336,7 @@ du -sh /var/www/stickmodel/*
 ```
 
 ### Issue: Port 80/443 already in use
+
 ```bash
 # Find what's using the port
 lsof -i :80
@@ -341,6 +355,7 @@ docker compose up -d
 ## Monitoring & Maintenance
 
 ### Daily Checks
+
 ```bash
 # Check all containers are running
 docker compose ps
@@ -350,6 +365,7 @@ docker compose exec stickmodel curl -f http://localhost:3000/health || echo "Unh
 ```
 
 ### Weekly Checks
+
 ```bash
 # Check certificate renewal status
 systemctl status certbot.timer
@@ -359,6 +375,7 @@ docker compose logs stickmodel | tail -100
 ```
 
 ### Monthly Checks
+
 ```bash
 # Check certificate expiration (renewal should happen at 30 days before)
 openssl x509 -in /etc/letsencrypt/live/stickmodel.com/fullchain.pem -noout -dates
@@ -375,6 +392,7 @@ certbot renew --dry-run
 ## Backup & Disaster Recovery
 
 ### Database Backup
+
 ```bash
 # DigitalOcean managed PostgreSQL has automatic daily backups
 # Access them via DigitalOcean Console > Databases > stickmodel > Backups
@@ -388,6 +406,7 @@ pg_dump $DATABASE_URL > backup.sql  # Create dump
 ```
 
 ### Application Backup
+
 ```bash
 # Entire project is version controlled in GitHub
 git clone https://github.com/Griz-sys/stickmodelv2.git /var/www/stickmodel-backup
@@ -401,6 +420,7 @@ git clone https://github.com/Griz-sys/stickmodelv2.git /var/www/stickmodel-backu
 ## Performance Optimization
 
 ### Current Optimizations
+
 1. **Gzip Compression** - HTML/CSS/JS compressed in transit
 2. **Static File Caching** - 30-day cache for images, fonts, CSS, JS
 3. **HTTP/2** - Multiplexing for faster loading
@@ -409,6 +429,7 @@ git clone https://github.com/Griz-sys/stickmodelv2.git /var/www/stickmodel-backu
 6. **Auto-Scaling** - Ready for multiple replicas if needed (edit docker-compose.yml)
 
 ### Monitor Performance
+
 ```bash
 # Check container resource usage
 docker stats stickmodel
@@ -442,12 +463,14 @@ SELECT * FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;
 ## Future Updates & Scaling
 
 ### To Scale Horizontally (Multiple Instances)
+
 ```yaml
 # In docker-compose.yml, use docker swarm or kubernetes
 # Or use DigitalOcean App Platform for auto-scaling
 ```
 
 ### To Add More Services
+
 ```bash
 # Add new service to docker-compose.yml
 # Example: Redis cache, worker queue, etc
@@ -457,6 +480,7 @@ docker compose up -d service_name
 ```
 
 ### To Update Nginx Config
+
 ```bash
 # Edit nginx.conf locally
 nano nginx.conf
@@ -523,11 +547,11 @@ When making changes to the codebase:
 
 ## Version History
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                                 | Author       |
+| ---------- | -------------------------------------- | ------------ |
 | 2026-04-20 | Docker deployment + SSL setup complete | AI Assistant |
-| | - Migrated from PM2 to Docker Compose | |
-| | - Set up GHCR for image registry | |
-| | - Configured Let's Encrypt SSL | |
-| | - Added nginx reverse proxy | |
-| | - Set up auto-renewal | |
+|            | - Migrated from PM2 to Docker Compose  |              |
+|            | - Set up GHCR for image registry       |              |
+|            | - Configured Let's Encrypt SSL         |              |
+|            | - Added nginx reverse proxy            |              |
+|            | - Set up auto-renewal                  |              |
