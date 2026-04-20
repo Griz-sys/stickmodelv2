@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -9,8 +9,12 @@ COPY package*.json ./
 # Copy prisma schema early (needed for postinstall)
 COPY prisma ./prisma
 
-# Install dependencies (includes prisma generate via postinstall)
-RUN npm ci
+# Delete package-lock.json to avoid Windows/Mac binary caching issues
+# npm install will regenerate it for Linux
+RUN rm -f package-lock.json
+
+# Install dependencies with fresh lock file generation
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -19,12 +23,12 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -32,16 +36,15 @@ COPY package*.json ./
 # Copy prisma schema
 COPY prisma ./prisma
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install production dependencies fresh in Linux environment
+RUN npm install --only=production --no-save
 
 # Copy built app from builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN useradd -m -u 1001 nextjs
 USER nextjs
 
 # Expose port
