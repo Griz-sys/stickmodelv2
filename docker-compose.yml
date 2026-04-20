@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  stickmodel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stickmodel
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - ZEPTO_MAIL_API_KEY=${ZEPTO_MAIL_API_KEY}
+      - ZEPTO_MAIL_FROM_EMAIL=${ZEPTO_MAIL_FROM_EMAIL}
+      - ZEPTO_MAIL_TO_EMAIL=${ZEPTO_MAIL_TO_EMAIL}
+      - ADMIN_EMAIL_RECIPIENTS=${ADMIN_EMAIL_RECIPIENTS}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - DO_SPACES_ENDPOINT=${DO_SPACES_ENDPOINT}
+      - DO_SPACES_S3_ENDPOINT=${DO_SPACES_S3_ENDPOINT}
+      - DO_SPACES_ACCESS_KEY_ID=${DO_SPACES_ACCESS_KEY_ID}
+      - DO_SPACES_SECRET_ACCESS_KEY=${DO_SPACES_SECRET_ACCESS_KEY}
+      - DO_SPACES_BUCKET=${DO_SPACES_BUCKET}
+      - DO_SPACES_REGION=${DO_SPACES_REGION}
+      - PAYPAL_ENV=${PAYPAL_ENV}
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      - PAYPAL_SECRET=${PAYPAL_SECRET}
+      - NEXT_PUBLIC_PAYPAL_CLIENT_ID=${NEXT_PUBLIC_PAYPAL_CLIENT_ID}
+    volumes:
+      - ./uploads:/app/uploads   # For any local uploads if needed
+    networks:
+      - stickmodel-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: stickmodel-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro    # For SSL certificates
+    depends_on:
+      - stickmodel
+    networks:
+      - stickmodel-network
+
+networks:
+  stickmodel-network:
+    driver: bridge
