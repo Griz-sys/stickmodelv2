@@ -9,7 +9,7 @@ import {
   Zap,
   Package,
 } from "lucide-react";
-import { SimpleNav } from "@/components/simple-nav";
+import { HeroNav } from "@/components/hero-nav";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PRICING_TIERS = [
@@ -71,7 +71,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <SimpleNav />
+      <HeroNav />
 
       {/* ── HERO ── */}
       <section className="max-w-4xl mx-auto px-6 pt-32 pb-16 text-center">
@@ -91,7 +91,7 @@ export default function PricingPage() {
           </p>
           <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-5">
             Transparent, tiered
-            <span className="text-orange-600"> pricing</span>
+            <span style={{ color: 'var(--color-amber-700)' }}> pricing</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
             Simple weight-based pricing. All prices are per project. Pay only

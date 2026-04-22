@@ -20,6 +20,7 @@ A structural wireframe modeling service for efficient building design.
 ## For Developers/AI
 
 Before making any changes or deployments, read [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md) which includes:
+
 - Complete architecture overview
 - How to update code and deploy
 - How to update environment variables

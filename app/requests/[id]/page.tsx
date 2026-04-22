@@ -514,55 +514,58 @@ export default function RequestDetailPage({ params }: PageProps) {
   // PayPal redirect flow: create order server-side → redirect to PayPal checkout
   const handlePayWithPayPal = async (stepId?: string) => {
     if (!project) return;
-    const payingId = stepId || 'initial';
+    const payingId = stepId || "initial";
     setPayingStepId(payingId);
     setPaypalError(null);
     try {
-      const res = await fetch('/api/paypal/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          stepId ? { projectId: project.id, stepId } : { projectId: project.id }
+          stepId
+            ? { projectId: project.id, stepId }
+            : { projectId: project.id },
         ),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create PayPal order');
-      if (!data.approveUrl) throw new Error('No PayPal approval URL returned');
+      if (!res.ok)
+        throw new Error(data.error || "Failed to create PayPal order");
+      if (!data.approveUrl) throw new Error("No PayPal approval URL returned");
 
       // Open PayPal in a popup — stays on the current page
       const popup = window.open(
         data.approveUrl,
-        'paypal_checkout',
-        'width=600,height=700,scrollbars=yes,resizable=yes'
+        "paypal_checkout",
+        "width=600,height=700,scrollbars=yes,resizable=yes",
       );
 
       // Listen for the popup to post a message back once payment is done
       const onMessage = (event: MessageEvent) => {
         if (!event.data?.paypal) return;
-        window.removeEventListener('message', onMessage);
+        window.removeEventListener("message", onMessage);
         setPayingStepId(null);
-        if (event.data.paypal === 'success') {
+        if (event.data.paypal === "success") {
           setPaypalSuccess(true);
           fetchProject(); // Refresh project data to show download button
-        } else if (event.data.paypal === 'cancelled') {
+        } else if (event.data.paypal === "cancelled") {
           // silently ignore
         } else {
-          setPaypalError('Payment could not be completed. Please try again.');
+          setPaypalError("Payment could not be completed. Please try again.");
         }
         popup?.close();
       };
-      window.addEventListener('message', onMessage);
+      window.addEventListener("message", onMessage);
 
       // Fallback: if user closes the popup manually, clean up
       const pollTimer = setInterval(() => {
         if (popup?.closed) {
           clearInterval(pollTimer);
-          window.removeEventListener('message', onMessage);
+          window.removeEventListener("message", onMessage);
           setPayingStepId(null);
         }
       }, 500);
     } catch (error) {
-      setPaypalError(error instanceof Error ? error.message : 'Payment failed');
+      setPaypalError(error instanceof Error ? error.message : "Payment failed");
       setPayingStepId(null);
     }
   };
@@ -627,7 +630,11 @@ export default function RequestDetailPage({ params }: PageProps) {
               href="/"
               className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             >
-              <img src="/horizontal.svg" alt="StickModel" className="h-7 w-auto" />
+              <img
+                src="/horizontal.svg"
+                alt="StickModel"
+                className="h-7 w-auto"
+              />
             </Link>
             <span className="text-slate-300 text-lg">/</span>
             <Link

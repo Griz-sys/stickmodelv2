@@ -29,6 +29,17 @@ interface User {
   email: string;
   role: string;
   createdAt: string;
+  designation: string | null;
+  companyName: string | null;
+  companyEmail: string | null;
+  companyWebsite: string | null;
+  phone: string | null;
+  location: string | null;
+  billingAddress: string | null;
+  billingContactName: string | null;
+  billingContactPhone: string | null;
+  referralSource: string | null;
+  referralDetail: string | null;
   _count: {
     projects: number;
   };
@@ -82,11 +93,19 @@ export default function AdminPage() {
 
   // Create user modal state
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [newUserName, setNewUserName] = useState("");
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [createUserError, setCreateUserError] = useState("");
+  const emptyNewUser = {
+    name: "", email: "", password: "",
+    designation: "", companyName: "", companyEmail: "", companyWebsite: "",
+    phone: "", location: "",
+    billingAddress: "", billingContactName: "", billingContactPhone: "",
+    referralSource: "", referralDetail: "",
+  };
+  const [newUserForm, setNewUserForm] = useState(emptyNewUser);
+
+  // User detail modal state
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -123,16 +142,12 @@ export default function AdminPage() {
   const handleCreateUser = async () => {
     setCreateUserError("");
 
-    if (
-      !newUserName.trim() ||
-      !newUserEmail.trim() ||
-      !newUserPassword.trim()
-    ) {
-      setCreateUserError("All fields are required");
+    if (!newUserForm.name.trim() || !newUserForm.email.trim() || !newUserForm.password.trim()) {
+      setCreateUserError("Name, email and password are required");
       return;
     }
 
-    if (newUserPassword.length < 6) {
+    if (newUserForm.password.length < 6) {
       setCreateUserError("Password must be at least 6 characters");
       return;
     }
@@ -142,11 +157,7 @@ export default function AdminPage() {
       const response = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newUserName,
-          email: newUserEmail,
-          password: newUserPassword,
-        }),
+        body: JSON.stringify(newUserForm),
       });
 
       const data = await response.json();
@@ -160,9 +171,7 @@ export default function AdminPage() {
       setUsers([data.user, ...users]);
 
       // Reset form
-      setNewUserName("");
-      setNewUserEmail("");
-      setNewUserPassword("");
+      setNewUserForm(emptyNewUser);
       setShowCreateUserModal(false);
     } catch (error) {
       console.error("Failed to create user:", error);
@@ -200,7 +209,11 @@ export default function AdminPage() {
             href="/"
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
           >
-            <img src="/horizontal.svg" alt="StickModel" className="h-10 w-auto" />
+            <img
+              src="/horizontal.svg"
+              alt="StickModel"
+              className="h-10 w-auto"
+            />
           </Link>
 
           <div className="flex items-center gap-4">
@@ -380,9 +393,7 @@ export default function AdminPage() {
             {activeTab === "users" && (
               <Button
                 onClick={() => {
-                  setNewUserName("");
-                  setNewUserEmail("");
-                  setNewUserPassword("");
+                  setNewUserForm(emptyNewUser);
                   setCreateUserError("");
                   setShowCreateUserModal(true);
                 }}
@@ -556,6 +567,14 @@ export default function AdminPage() {
                           <p className="text-sm text-slate-500 mt-1">
                             {user.email}
                           </p>
+                          {user.companyName && (
+                            <p className="text-sm text-slate-400 mt-0.5">
+                              {user.designation
+                                ? `${user.designation} @ `
+                                : ""}
+                              {user.companyName}
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center gap-4 flex-wrap">
                           <div className="inline-flex items-center gap-2">
@@ -578,6 +597,11 @@ export default function AdminPage() {
                                 : "projects"}
                             </span>
                           </div>
+                          {user.location && (
+                            <div className="text-sm text-slate-500">
+                              📍 {user.location}
+                            </div>
+                          )}
                           <div className="text-sm text-slate-500">
                             Joined{" "}
                             {new Date(user.createdAt).toLocaleDateString(
@@ -591,6 +615,12 @@ export default function AdminPage() {
                           </div>
                         </div>
                       </div>
+                      <button
+                        onClick={() => setSelectedUser(user)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-4 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      >
+                        Details
+                      </button>
                     </div>
                   </motion.div>
                 ))}
@@ -618,59 +648,111 @@ export default function AdminPage() {
             setCreateUserError("");
           }}
           title="Create New User"
+          className="max-w-2xl"
         >
-          <div className="space-y-4">
+          <div className="space-y-5 text-sm">
             {createUserError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-700">{createUserError}</p>
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
-                Full Name
-              </label>
-              <Input
-                type="text"
-                placeholder="John Doe"
-                value={newUserName}
-                onChange={(e) => setNewUserName(e.target.value)}
-                disabled={isCreatingUser}
-              />
+            {/* Account */}
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500">Account</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Full Name <span className="text-red-500">*</span></label>
+                <Input placeholder="John Doe" value={newUserForm.name} onChange={(e) => setNewUserForm((p) => ({ ...p, name: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Designation</label>
+                <Input placeholder="Structural Engineer" value={newUserForm.designation} onChange={(e) => setNewUserForm((p) => ({ ...p, designation: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Email <span className="text-red-500">*</span></label>
+                <Input type="email" placeholder="user@example.com" value={newUserForm.email} onChange={(e) => setNewUserForm((p) => ({ ...p, email: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Password <span className="text-red-500">*</span></label>
+                <Input type="password" placeholder="Min 6 characters" value={newUserForm.password} onChange={(e) => setNewUserForm((p) => ({ ...p, password: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Phone</label>
+                <Input type="tel" placeholder="+1 (555) 000-0000" value={newUserForm.phone} onChange={(e) => setNewUserForm((p) => ({ ...p, phone: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Location</label>
+                <Input placeholder="City, State, Country" value={newUserForm.location} onChange={(e) => setNewUserForm((p) => ({ ...p, location: e.target.value }))} disabled={isCreatingUser} />
+              </div>
             </div>
 
+            {/* Company */}
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">Company</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Company Name</label>
+                <Input placeholder="ACME Fabricators" value={newUserForm.companyName} onChange={(e) => setNewUserForm((p) => ({ ...p, companyName: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Company Email</label>
+                <Input type="email" placeholder="info@company.com" value={newUserForm.companyEmail} onChange={(e) => setNewUserForm((p) => ({ ...p, companyEmail: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+            </div>
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
-                Email
-              </label>
-              <Input
-                type="email"
-                placeholder="user@example.com"
-                value={newUserEmail}
-                onChange={(e) => setNewUserEmail(e.target.value)}
-                disabled={isCreatingUser}
-              />
+              <label className="block text-sm font-medium text-slate-900 mb-1">Company Website</label>
+              <Input type="url" placeholder="https://company.com" value={newUserForm.companyWebsite} onChange={(e) => setNewUserForm((p) => ({ ...p, companyWebsite: e.target.value }))} disabled={isCreatingUser} />
             </div>
 
+            {/* Billing */}
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">Billing</p>
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
-                Password
-              </label>
-              <Input
-                type="password"
-                placeholder="At least 6 characters"
-                value={newUserPassword}
-                onChange={(e) => setNewUserPassword(e.target.value)}
-                disabled={isCreatingUser}
-              />
+              <label className="block text-sm font-medium text-slate-900 mb-1">Registered Billing Address</label>
+              <Input placeholder="123 Main St, City, State, ZIP" value={newUserForm.billingAddress} onChange={(e) => setNewUserForm((p) => ({ ...p, billingAddress: e.target.value }))} disabled={isCreatingUser} />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Billing Contact Name</label>
+                <Input placeholder="Jane Smith" value={newUserForm.billingContactName} onChange={(e) => setNewUserForm((p) => ({ ...p, billingContactName: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Billing Contact Number</label>
+                <Input type="tel" placeholder="+1 (555) 000-0000" value={newUserForm.billingContactPhone} onChange={(e) => setNewUserForm((p) => ({ ...p, billingContactPhone: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+            </div>
+
+            {/* Source */}
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">How did they hear about us?</p>
+            <div>
+              <select
+                value={newUserForm.referralSource}
+                onChange={(e) => setNewUserForm((p) => ({ ...p, referralSource: e.target.value, referralDetail: "" }))}
+                disabled={isCreatingUser}
+                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              >
+                <option value="">Select an option…</option>
+                <option value="NASSC26">NASSC&apos;26</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="via Detailer">Via Detailer</option>
+                <option value="via Fabricator">Via Fabricator</option>
+                <option value="Other">Other (specify)</option>
+              </select>
+            </div>
+            {(newUserForm.referralSource === "via Detailer" || newUserForm.referralSource === "via Fabricator" || newUserForm.referralSource === "Other") && (
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  {newUserForm.referralSource === "via Detailer" ? "Detailer name / company" : newUserForm.referralSource === "via Fabricator" ? "Fabricator name / company" : "Please specify"}
+                </label>
+                <Input placeholder="Enter details…" value={newUserForm.referralDetail} onChange={(e) => setNewUserForm((p) => ({ ...p, referralDetail: e.target.value }))} disabled={isCreatingUser} />
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <Button
-                onClick={() => {
-                  setShowCreateUserModal(false);
-                  setCreateUserError("");
-                }}
+                onClick={() => { setShowCreateUserModal(false); setCreateUserError(""); }}
                 variant="secondary"
                 className="flex-1"
                 disabled={isCreatingUser}
@@ -679,28 +761,149 @@ export default function AdminPage() {
               </Button>
               <Button
                 onClick={handleCreateUser}
-                disabled={
-                  isCreatingUser ||
-                  !newUserName ||
-                  !newUserEmail ||
-                  !newUserPassword
-                }
+                disabled={isCreatingUser || !newUserForm.name || !newUserForm.email || !newUserForm.password}
                 className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
               >
                 {isCreatingUser ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" />Creating...</>
                 ) : (
-                  <>
-                    <Users className="w-4 h-4" />
-                    Create User
-                  </>
+                  <><Users className="w-4 h-4" />Create User</>
                 )}
               </Button>
             </div>
           </div>
+        </Modal>
+
+        {/* User Detail Modal */}
+        <Modal
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+          title="User Details"
+        >
+          {selectedUser && (
+            <div className="space-y-6 text-sm">
+              {/* Personal */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3">
+                  Personal
+                </p>
+                <table className="w-full">
+                  <tbody>
+                    {[
+                      ["Name", selectedUser.name],
+                      ["Email", selectedUser.email],
+                      ["Designation", selectedUser.designation],
+                      ["Phone", selectedUser.phone],
+                      ["Location", selectedUser.location],
+                      [
+                        "Joined",
+                        new Date(selectedUser.createdAt).toLocaleDateString(
+                          "en-US",
+                          { month: "long", day: "numeric", year: "numeric" },
+                        ),
+                      ],
+                    ].map(([label, value]) =>
+                      value ? (
+                        <tr key={label} className="border-b border-slate-100">
+                          <td className="py-2 pr-4 text-slate-500 font-medium w-40">
+                            {label}
+                          </td>
+                          <td className="py-2 text-slate-900">{value}</td>
+                        </tr>
+                      ) : null,
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Company */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3">
+                  Company
+                </p>
+                <table className="w-full">
+                  <tbody>
+                    {[
+                      ["Company", selectedUser.companyName],
+                      ["Company Email", selectedUser.companyEmail],
+                      ["Website", selectedUser.companyWebsite],
+                    ].map(([label, value]) =>
+                      value ? (
+                        <tr key={label} className="border-b border-slate-100">
+                          <td className="py-2 pr-4 text-slate-500 font-medium w-40">
+                            {label}
+                          </td>
+                          <td className="py-2 text-slate-900">{value}</td>
+                        </tr>
+                      ) : null,
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Billing */}
+              {(selectedUser.billingAddress ||
+                selectedUser.billingContactName ||
+                selectedUser.billingContactPhone) && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3">
+                    Billing
+                  </p>
+                  <table className="w-full">
+                    <tbody>
+                      {[
+                        ["Billing Address", selectedUser.billingAddress],
+                        ["Billing Contact", selectedUser.billingContactName],
+                        ["Billing Phone", selectedUser.billingContactPhone],
+                      ].map(([label, value]) =>
+                        value ? (
+                          <tr key={label} className="border-b border-slate-100">
+                            <td className="py-2 pr-4 text-slate-500 font-medium w-40">
+                              {label}
+                            </td>
+                            <td className="py-2 text-slate-900">{value}</td>
+                          </tr>
+                        ) : null,
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Referral */}
+              {selectedUser.referralSource && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3">
+                    Source
+                  </p>
+                  <table className="w-full">
+                    <tbody>
+                      <tr className="border-b border-slate-100">
+                        <td className="py-2 pr-4 text-slate-500 font-medium w-40">
+                          How they heard
+                        </td>
+                        <td className="py-2 text-slate-900">
+                          {selectedUser.referralSource}
+                          {selectedUser.referralDetail
+                            ? ` — ${selectedUser.referralDetail}`
+                            : ""}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end">
+                <Button
+                  onClick={() => setSelectedUser(null)}
+                  variant="secondary"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </Modal>
       </div>
     </div>

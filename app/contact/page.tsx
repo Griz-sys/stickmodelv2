@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageSquare, Clock, Send, CheckCircle2 } from "lucide-react";
-import { SimpleNav } from "@/components/simple-nav";
+import { HeroNav } from "@/components/hero-nav";
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,15 +40,24 @@ export default function ContactPage() {
 
       if (!response.ok) {
         let errorMsg = "Failed to send message. Please try again.";
-        
+
         if (result.details) {
-          errorMsg = typeof result.details === "string" ? result.details : String(result.details);
+          errorMsg =
+            typeof result.details === "string"
+              ? result.details
+              : String(result.details);
         } else if (result.error) {
-          errorMsg = typeof result.error === "string" ? result.error : String(result.error);
+          errorMsg =
+            typeof result.error === "string"
+              ? result.error
+              : String(result.error);
         } else if (result.message) {
-          errorMsg = typeof result.message === "string" ? result.message : String(result.message);
+          errorMsg =
+            typeof result.message === "string"
+              ? result.message
+              : String(result.message);
         }
-        
+
         setError(errorMsg);
         setIsSubmitting(false);
         return;
@@ -58,7 +67,10 @@ export default function ContactPage() {
       setIsSubmitted(true);
     } catch (err) {
       console.error("Error sending message:", err);
-      const errorMsg = err instanceof Error ? err.message : "An error occurred. Please try again later.";
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : "An error occurred. Please try again later.";
       setError(errorMsg);
       setIsSubmitting(false);
     }
@@ -66,7 +78,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <SimpleNav />
+      <HeroNav />
 
       {/* HERO */}
       <section className="max-w-7xl mx-auto px-6 pt-32 pb-20">
@@ -79,7 +91,7 @@ export default function ContactPage() {
 
             <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-6">
               Let's Talk About
-              <span className="text-orange-600"> Your Project</span>
+              <span style={{ color: 'var(--color-amber-700)' }}> Your Project</span>
             </h1>
 
             <p className="text-lg text-slate-600 leading-relaxed mb-10 max-w-lg">
@@ -134,11 +146,11 @@ export default function ContactPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="grid md:grid-cols-2 gap-6">
-                        <Input 
-                          label="Name" 
-                          placeholder="Your name" 
+                        <Input
+                          label="Name"
+                          placeholder="Your name"
                           name="name"
-                          required 
+                          required
                         />
                         <Input
                           label="Email"

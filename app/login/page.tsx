@@ -24,6 +24,15 @@ function LoginForm() {
     password: "",
     companyName: "",
     website: "",
+    designation: "",
+    companyEmail: "",
+    phone: "",
+    location: "",
+    billingAddress: "",
+    billingContactName: "",
+    billingContactPhone: "",
+    referralSource: "",
+    referralDetail: "",
   });
 
   useEffect(() => {
@@ -73,11 +82,21 @@ function LoginForm() {
               email: formData.email,
               companyName: formData.companyName,
               website: formData.website,
+              designation: formData.designation,
+              companyEmail: formData.companyEmail,
+              phone: formData.phone,
+              location: formData.location,
+              billingAddress: formData.billingAddress,
+              billingContactName: formData.billingContactName,
+              billingContactPhone: formData.billingContactPhone,
+              referralSource: formData.referralSource,
+              referralDetail: formData.referralDetail,
             }),
           });
 
           const data = await response.json();
-          if (!response.ok) throw new Error(data.error || "Failed to send code");
+          if (!response.ok)
+            throw new Error(data.error || "Failed to send code");
 
           setStep("otp");
         } else {
@@ -89,13 +108,31 @@ function LoginForm() {
           });
 
           const data = await response.json();
-          if (!response.ok) throw new Error(data.error || "Failed to send request");
+          if (!response.ok)
+            throw new Error(data.error || "Failed to send request");
 
-          setFormData({ name: "", email: "", password: "", companyName: "", website: "" });
+          setFormData({
+            name: "",
+            email: "",
+            password: "",
+            companyName: "",
+            website: "",
+            designation: "",
+            companyEmail: "",
+            phone: "",
+            location: "",
+            billingAddress: "",
+            billingContactName: "",
+            billingContactPhone: "",
+            referralSource: "",
+            referralDetail: "",
+          });
           setOtpValue("");
           setStep("form");
           setMode("login");
-          alert("✓ Invite request sent! We'll review your request and contact you soon.");
+          alert(
+            "✓ Invite request sent! We'll review your request and contact you soon.",
+          );
         }
       }
     } catch (err) {
@@ -117,7 +154,22 @@ function LoginForm() {
     setError("");
     setStep("form");
     setOtpValue("");
-    setFormData({ name: "", email: "", password: "", companyName: "", website: "" });
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      companyName: "",
+      website: "",
+      designation: "",
+      companyEmail: "",
+      phone: "",
+      location: "",
+      billingAddress: "",
+      billingContactName: "",
+      billingContactPhone: "",
+      referralSource: "",
+      referralDetail: "",
+    });
   };
 
   return (
@@ -134,7 +186,11 @@ function LoginForm() {
           </Link>
 
           <Link href="/" className="flex items-center gap-3">
-            <img src="/horizontal.svg" alt="StickModel" className="h-8 w-auto" />
+            <img
+              src="/horizontal.svg"
+              alt="StickModel"
+              className="h-8 w-auto"
+            />
           </Link>
 
           <div className="w-20" />
@@ -147,7 +203,7 @@ function LoginForm() {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="w-full max-w-md"
+          className={`w-full ${mode === "signup" && step === "form" ? "max-w-2xl" : "max-w-md"}`}
         >
           <div className="bg-white/80 backdrop-blur-xl border border-stone-200 rounded-none p-8 shadow-xl">
             {/* Title */}
@@ -160,15 +216,19 @@ function LoginForm() {
                 </div>
               )}
               <h1 className="text-3xl font-bold text-slate-900">
-                {mode === "login" ? "Welcome Back" : step === "form" ? "Request an Invite" : "Verify Your Email"}
+                {mode === "login"
+                  ? "Welcome Back"
+                  : step === "form"
+                    ? "Request an Invite"
+                    : "Verify Your Email"}
               </h1>
 
               <p className="text-slate-500 mt-2">
                 {mode === "login"
                   ? "Login to access your projects"
                   : step === "form"
-                  ? "Join us and start building structural models faster"
-                  : "Enter the 6-digit code we sent to your inbox"}
+                    ? "Join us and start building structural models faster"
+                    : "Enter the 6-digit code we sent to your inbox"}
               </p>
             </div>
 
@@ -221,56 +281,128 @@ function LoginForm() {
                   </div>
                 </>
               ) : step === "form" ? (
-                <>
-                  <div>
-                    <label className="text-sm font-medium text-slate-700">
-                      Full Name
-                    </label>
-                    <Input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      disabled={isLoading}
-                      placeholder="John Doe"
-                      className="mt-2 focus-visible:ring-[#E67E00]"
-                    />
+                <div className="space-y-5">
+                  {/* ── Personal ── */}
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    Personal
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        disabled={isLoading}
+                        placeholder="John Doe"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Designation
+                      </label>
+                      <Input
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="Structural Engineer"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        disabled={isLoading}
+                        placeholder="you@example.com"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Phone Number
+                      </label>
+                      <Input
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="+1 (555) 000-0000"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-slate-700">
-                      Company Name
+                      Location
                     </label>
                     <Input
-                      name="companyName"
-                      value={formData.companyName}
+                      name="location"
+                      value={formData.location}
                       onChange={handleChange}
-                      required
                       disabled={isLoading}
-                      placeholder="Your Company"
+                      placeholder="City, State, Country"
                       className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-slate-700">
-                      Email
-                    </label>
-                    <Input
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      disabled={isLoading}
-                      placeholder="you@example.com"
-                      className="mt-2 focus-visible:ring-[#E67E00]"
-                    />
+                  {/* ── Company ── */}
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 pt-2">
+                    Company
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Company Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        required
+                        disabled={isLoading}
+                        placeholder="ACME Fabricators"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Company Email
+                      </label>
+                      <Input
+                        name="companyEmail"
+                        type="email"
+                        value={formData.companyEmail}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="info@company.com"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-slate-700">
-                      Website <span className="text-slate-400">(optional)</span>
+                      Company Website{" "}
+                      <span className="text-slate-400">(optional)</span>
                     </label>
                     <Input
                       name="website"
@@ -282,7 +414,106 @@ function LoginForm() {
                       className="mt-2 focus-visible:ring-[#E67E00]"
                     />
                   </div>
-                </>
+
+                  {/* ── Billing ── */}
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 pt-2">
+                    Billing
+                  </p>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Registered Billing Address
+                    </label>
+                    <Input
+                      name="billingAddress"
+                      value={formData.billingAddress}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      placeholder="123 Main St, City, State, ZIP"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Billing Contact Name
+                      </label>
+                      <Input
+                        name="billingContactName"
+                        value={formData.billingContactName}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="Jane Smith"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        Billing Contact Number
+                      </label>
+                      <Input
+                        name="billingContactPhone"
+                        type="tel"
+                        value={formData.billingContactPhone}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="+1 (555) 000-0000"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* ── Referral ── */}
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 pt-2">
+                    How did you hear about us?
+                  </p>
+
+                  <div>
+                    <select
+                      name="referralSource"
+                      value={formData.referralSource}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          referralSource: e.target.value,
+                          referralDetail: "",
+                        }))
+                      }
+                      disabled={isLoading}
+                      className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-md text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#E67E00] focus:border-transparent"
+                    >
+                      <option value="">Select an option…</option>
+                      <option value="NASSC26">NASSC&apos;26</option>
+                      <option value="LinkedIn">LinkedIn</option>
+                      <option value="via Detailer">Via Detailer</option>
+                      <option value="via Fabricator">Via Fabricator</option>
+                      <option value="Other">Other (specify)</option>
+                    </select>
+                  </div>
+
+                  {(formData.referralSource === "via Detailer" ||
+                    formData.referralSource === "via Fabricator" ||
+                    formData.referralSource === "Other") && (
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">
+                        {formData.referralSource === "via Detailer"
+                          ? "Detailer name / company"
+                          : formData.referralSource === "via Fabricator"
+                            ? "Fabricator name / company"
+                            : "Please specify"}
+                      </label>
+                      <Input
+                        name="referralDetail"
+                        value={formData.referralDetail}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        placeholder="Enter details…"
+                        className="mt-2 focus-visible:ring-[#E67E00]"
+                      />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <div className="text-center p-4 bg-[#E67E00]/10 border border-[#E67E00]/30 rounded-none">
@@ -302,7 +533,9 @@ function LoginForm() {
                     <Input
                       value={otpValue}
                       onChange={(e) =>
-                        setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))
+                        setOtpValue(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        )
                       }
                       required
                       disabled={isLoading}
@@ -342,8 +575,8 @@ function LoginForm() {
                     {mode === "login"
                       ? "Signing in..."
                       : step === "form"
-                      ? "Sending code..."
-                      : "Submitting..."}
+                        ? "Sending code..."
+                        : "Submitting..."}
                   </>
                 ) : mode === "login" ? (
                   "Sign In"

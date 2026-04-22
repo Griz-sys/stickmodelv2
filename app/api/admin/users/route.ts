@@ -19,6 +19,17 @@ export async function GET(request: NextRequest) {
         email: true,
         role: true,
         createdAt: true,
+        designation: true,
+        companyName: true,
+        companyEmail: true,
+        companyWebsite: true,
+        phone: true,
+        location: true,
+        billingAddress: true,
+        billingContactName: true,
+        billingContactPhone: true,
+        referralSource: true,
+        referralDetail: true,
         _count: {
           select: {
             projects: true,
@@ -48,7 +59,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, password } = body;
+    const {
+      name, email, password,
+      designation, companyName, companyEmail, companyWebsite,
+      phone, location,
+      billingAddress, billingContactName, billingContactPhone,
+      referralSource, referralDetail,
+    } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -79,6 +96,17 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         password: hashedPassword,
         role: 'user',
+        designation: designation || null,
+        companyName: companyName || null,
+        companyEmail: companyEmail || null,
+        companyWebsite: companyWebsite || null,
+        phone: phone || null,
+        location: location || null,
+        billingAddress: billingAddress || null,
+        billingContactName: billingContactName || null,
+        billingContactPhone: billingContactPhone || null,
+        referralSource: referralSource || null,
+        referralDetail: referralDetail || null,
       },
       select: {
         id: true,
@@ -86,10 +114,19 @@ export async function POST(request: NextRequest) {
         email: true,
         role: true,
         createdAt: true,
+        designation: true,
+        companyName: true,
+        companyEmail: true,
+        companyWebsite: true,
+        phone: true,
+        location: true,
+        billingAddress: true,
+        billingContactName: true,
+        billingContactPhone: true,
+        referralSource: true,
+        referralDetail: true,
         _count: {
-          select: {
-            projects: true,
-          },
+          select: { projects: true },
         },
       },
     });

@@ -1,9 +1,24 @@
 import prisma from '@/lib/prisma';
 
+export interface InviteData {
+  name: string;
+  companyName: string;
+  website?: string;
+  designation?: string;
+  companyEmail?: string;
+  phone?: string;
+  location?: string;
+  billingAddress?: string;
+  billingContactName?: string;
+  billingContactPhone?: string;
+  referralSource?: string;
+  referralDetail?: string;
+}
+
 export async function storeOtp(
   email: string,
   otp: string,
-  data: { name: string; companyName: string; website?: string }
+  data: InviteData
 ) {
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
@@ -18,6 +33,15 @@ export async function storeOtp(
       name: data.name,
       companyName: data.companyName,
       website: data.website,
+      designation: data.designation,
+      companyEmail: data.companyEmail,
+      phone: data.phone,
+      location: data.location,
+      billingAddress: data.billingAddress,
+      billingContactName: data.billingContactName,
+      billingContactPhone: data.billingContactPhone,
+      referralSource: data.referralSource,
+      referralDetail: data.referralDetail,
       expiresAt,
     },
   });
@@ -28,7 +52,7 @@ export async function storeOtp(
 export async function verifyAndConsumeOtp(
   email: string,
   otp: string
-): Promise<{ valid: boolean; data?: { name: string; companyName: string; website?: string } }> {
+): Promise<{ valid: boolean; data?: InviteData }> {
   const entry = await prisma.otpVerification.findUnique({
     where: { email: email.toLowerCase() },
   });
@@ -59,6 +83,15 @@ export async function verifyAndConsumeOtp(
       name: entry.name,
       companyName: entry.companyName,
       website: entry.website || undefined,
+      designation: entry.designation || undefined,
+      companyEmail: entry.companyEmail || undefined,
+      phone: entry.phone || undefined,
+      location: entry.location || undefined,
+      billingAddress: entry.billingAddress || undefined,
+      billingContactName: entry.billingContactName || undefined,
+      billingContactPhone: entry.billingContactPhone || undefined,
+      referralSource: entry.referralSource || undefined,
+      referralDetail: entry.referralDetail || undefined,
     },
   };
 }

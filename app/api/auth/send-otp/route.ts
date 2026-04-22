@@ -7,7 +7,12 @@ function generateOtp(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, companyName, website } = await request.json();
+    const {
+      name, email, companyName, website,
+      designation, companyEmail, phone, location,
+      billingAddress, billingContactName, billingContactPhone,
+      referralSource, referralDetail,
+    } = await request.json();
 
     if (!name || !email || !companyName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -21,7 +26,12 @@ export async function POST(request: NextRequest) {
     }
 
     const otp = generateOtp();
-    await storeOtp(email, otp, { name, companyName, website });
+    await storeOtp(email, otp, {
+      name, companyName, website,
+      designation, companyEmail, phone, location,
+      billingAddress, billingContactName, billingContactPhone,
+      referralSource, referralDetail,
+    });
 
     const response = await fetch('https://api.zeptomail.in/v1.1/email', {
       method: 'POST',
