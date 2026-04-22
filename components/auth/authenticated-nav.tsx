@@ -44,7 +44,14 @@ export function AuthenticatedNav() {
   };
 
   // Don't show nav on public pages or pages with their own navbar
-  const pagesWithoutNav = ["/", "/login", "/admin", "/home"];
+  const pagesWithoutNav = [
+    "/",
+    "/login",
+    "/admin",
+    "/home",
+    "/pricing",
+    "/contact",
+  ];
   if (pagesWithoutNav.includes(pathname) || pathname.startsWith("/requests/")) {
     return null;
   }

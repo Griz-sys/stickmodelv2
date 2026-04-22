@@ -91,7 +91,7 @@ export default function PricingPage() {
           </p>
           <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-5">
             Transparent, tiered
-            <span style={{ color: 'var(--color-amber-700)' }}> pricing</span>
+            <span style={{ color: "#E67E00" }}> pricing</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
             Simple weight-based pricing. All prices are per project. Pay only
@@ -135,7 +135,7 @@ export default function PricingPage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors border border-slate-200 bg-slate-50 text-slate-900 hover:bg-orange-600 hover:text-white hover:border-orange-600"
+                    className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors border border-slate-200 bg-slate-50 text-slate-900 hover:bg-[#E67E00] hover:text-white hover:border-[#E67E00]"
                   >
                     Get Started <ArrowRight className="w-4 h-4" />
                   </motion.button>

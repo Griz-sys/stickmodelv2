@@ -96,11 +96,20 @@ export default function AdminPage() {
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [createUserError, setCreateUserError] = useState("");
   const emptyNewUser = {
-    name: "", email: "", password: "",
-    designation: "", companyName: "", companyEmail: "", companyWebsite: "",
-    phone: "", location: "",
-    billingAddress: "", billingContactName: "", billingContactPhone: "",
-    referralSource: "", referralDetail: "",
+    name: "",
+    email: "",
+    password: "",
+    designation: "",
+    companyName: "",
+    companyEmail: "",
+    companyWebsite: "",
+    phone: "",
+    location: "",
+    billingAddress: "",
+    billingContactName: "",
+    billingContactPhone: "",
+    referralSource: "",
+    referralDetail: "",
   };
   const [newUserForm, setNewUserForm] = useState(emptyNewUser);
 
@@ -142,7 +151,11 @@ export default function AdminPage() {
   const handleCreateUser = async () => {
     setCreateUserError("");
 
-    if (!newUserForm.name.trim() || !newUserForm.email.trim() || !newUserForm.password.trim()) {
+    if (
+      !newUserForm.name.trim() ||
+      !newUserForm.email.trim() ||
+      !newUserForm.password.trim()
+    ) {
       setCreateUserError("Name, email and password are required");
       return;
     }
@@ -569,9 +582,7 @@ export default function AdminPage() {
                           </p>
                           {user.companyName && (
                             <p className="text-sm text-slate-400 mt-0.5">
-                              {user.designation
-                                ? `${user.designation} @ `
-                                : ""}
+                              {user.designation ? `${user.designation} @ ` : ""}
                               {user.companyName}
                             </p>
                           )}
@@ -658,78 +669,227 @@ export default function AdminPage() {
             )}
 
             {/* Account */}
-            <p className="text-xs font-bold uppercase tracking-widest text-orange-500">Account</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
+              Account
+            </p>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Full Name <span className="text-red-500">*</span></label>
-                <Input placeholder="John Doe" value={newUserForm.name} onChange={(e) => setNewUserForm((p) => ({ ...p, name: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="John Doe"
+                  value={newUserForm.name}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({ ...p, name: e.target.value }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Designation</label>
-                <Input placeholder="Structural Engineer" value={newUserForm.designation} onChange={(e) => setNewUserForm((p) => ({ ...p, designation: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Designation
+                </label>
+                <Input
+                  placeholder="Structural Engineer"
+                  value={newUserForm.designation}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      designation: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Email <span className="text-red-500">*</span></label>
-                <Input type="email" placeholder="user@example.com" value={newUserForm.email} onChange={(e) => setNewUserForm((p) => ({ ...p, email: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={newUserForm.email}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({ ...p, email: e.target.value }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Password <span className="text-red-500">*</span></label>
-                <Input type="password" placeholder="Min 6 characters" value={newUserForm.password} onChange={(e) => setNewUserForm((p) => ({ ...p, password: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={newUserForm.password}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({ ...p, password: e.target.value }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Phone</label>
-                <Input type="tel" placeholder="+1 (555) 000-0000" value={newUserForm.phone} onChange={(e) => setNewUserForm((p) => ({ ...p, phone: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Phone
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="+1 (555) 000-0000"
+                  value={newUserForm.phone}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({ ...p, phone: e.target.value }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Location</label>
-                <Input placeholder="City, State, Country" value={newUserForm.location} onChange={(e) => setNewUserForm((p) => ({ ...p, location: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Location
+                </label>
+                <Input
+                  placeholder="City, State, Country"
+                  value={newUserForm.location}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({ ...p, location: e.target.value }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             </div>
 
             {/* Company */}
-            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">Company</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">
+              Company
+            </p>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Company Name</label>
-                <Input placeholder="ACME Fabricators" value={newUserForm.companyName} onChange={(e) => setNewUserForm((p) => ({ ...p, companyName: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Company Name
+                </label>
+                <Input
+                  placeholder="ACME Fabricators"
+                  value={newUserForm.companyName}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      companyName: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Company Email</label>
-                <Input type="email" placeholder="info@company.com" value={newUserForm.companyEmail} onChange={(e) => setNewUserForm((p) => ({ ...p, companyEmail: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Company Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="info@company.com"
+                  value={newUserForm.companyEmail}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      companyEmail: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-1">Company Website</label>
-              <Input type="url" placeholder="https://company.com" value={newUserForm.companyWebsite} onChange={(e) => setNewUserForm((p) => ({ ...p, companyWebsite: e.target.value }))} disabled={isCreatingUser} />
+              <label className="block text-sm font-medium text-slate-900 mb-1">
+                Company Website
+              </label>
+              <Input
+                type="url"
+                placeholder="https://company.com"
+                value={newUserForm.companyWebsite}
+                onChange={(e) =>
+                  setNewUserForm((p) => ({
+                    ...p,
+                    companyWebsite: e.target.value,
+                  }))
+                }
+                disabled={isCreatingUser}
+              />
             </div>
 
             {/* Billing */}
-            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">Billing</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">
+              Billing
+            </p>
             <div>
-              <label className="block text-sm font-medium text-slate-900 mb-1">Registered Billing Address</label>
-              <Input placeholder="123 Main St, City, State, ZIP" value={newUserForm.billingAddress} onChange={(e) => setNewUserForm((p) => ({ ...p, billingAddress: e.target.value }))} disabled={isCreatingUser} />
+              <label className="block text-sm font-medium text-slate-900 mb-1">
+                Registered Billing Address
+              </label>
+              <Input
+                placeholder="123 Main St, City, State, ZIP"
+                value={newUserForm.billingAddress}
+                onChange={(e) =>
+                  setNewUserForm((p) => ({
+                    ...p,
+                    billingAddress: e.target.value,
+                  }))
+                }
+                disabled={isCreatingUser}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Billing Contact Name</label>
-                <Input placeholder="Jane Smith" value={newUserForm.billingContactName} onChange={(e) => setNewUserForm((p) => ({ ...p, billingContactName: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Billing Contact Name
+                </label>
+                <Input
+                  placeholder="Jane Smith"
+                  value={newUserForm.billingContactName}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      billingContactName: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-900 mb-1">Billing Contact Number</label>
-                <Input type="tel" placeholder="+1 (555) 000-0000" value={newUserForm.billingContactPhone} onChange={(e) => setNewUserForm((p) => ({ ...p, billingContactPhone: e.target.value }))} disabled={isCreatingUser} />
+                <label className="block text-sm font-medium text-slate-900 mb-1">
+                  Billing Contact Number
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="+1 (555) 000-0000"
+                  value={newUserForm.billingContactPhone}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      billingContactPhone: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             </div>
 
             {/* Source */}
-            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">How did they hear about us?</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500 pt-2">
+              How did they hear about us?
+            </p>
             <div>
               <select
                 value={newUserForm.referralSource}
-                onChange={(e) => setNewUserForm((p) => ({ ...p, referralSource: e.target.value, referralDetail: "" }))}
+                onChange={(e) =>
+                  setNewUserForm((p) => ({
+                    ...p,
+                    referralSource: e.target.value,
+                    referralDetail: "",
+                  }))
+                }
                 disabled={isCreatingUser}
                 className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400"
               >
@@ -741,18 +901,37 @@ export default function AdminPage() {
                 <option value="Other">Other (specify)</option>
               </select>
             </div>
-            {(newUserForm.referralSource === "via Detailer" || newUserForm.referralSource === "via Fabricator" || newUserForm.referralSource === "Other") && (
+            {(newUserForm.referralSource === "via Detailer" ||
+              newUserForm.referralSource === "via Fabricator" ||
+              newUserForm.referralSource === "Other") && (
               <div>
                 <label className="block text-sm font-medium text-slate-900 mb-1">
-                  {newUserForm.referralSource === "via Detailer" ? "Detailer name / company" : newUserForm.referralSource === "via Fabricator" ? "Fabricator name / company" : "Please specify"}
+                  {newUserForm.referralSource === "via Detailer"
+                    ? "Detailer name / company"
+                    : newUserForm.referralSource === "via Fabricator"
+                      ? "Fabricator name / company"
+                      : "Please specify"}
                 </label>
-                <Input placeholder="Enter details…" value={newUserForm.referralDetail} onChange={(e) => setNewUserForm((p) => ({ ...p, referralDetail: e.target.value }))} disabled={isCreatingUser} />
+                <Input
+                  placeholder="Enter details…"
+                  value={newUserForm.referralDetail}
+                  onChange={(e) =>
+                    setNewUserForm((p) => ({
+                      ...p,
+                      referralDetail: e.target.value,
+                    }))
+                  }
+                  disabled={isCreatingUser}
+                />
               </div>
             )}
 
             <div className="flex gap-3 pt-4">
               <Button
-                onClick={() => { setShowCreateUserModal(false); setCreateUserError(""); }}
+                onClick={() => {
+                  setShowCreateUserModal(false);
+                  setCreateUserError("");
+                }}
                 variant="secondary"
                 className="flex-1"
                 disabled={isCreatingUser}
@@ -761,13 +940,24 @@ export default function AdminPage() {
               </Button>
               <Button
                 onClick={handleCreateUser}
-                disabled={isCreatingUser || !newUserForm.name || !newUserForm.email || !newUserForm.password}
+                disabled={
+                  isCreatingUser ||
+                  !newUserForm.name ||
+                  !newUserForm.email ||
+                  !newUserForm.password
+                }
                 className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
               >
                 {isCreatingUser ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" />Creating...</>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
                 ) : (
-                  <><Users className="w-4 h-4" />Create User</>
+                  <>
+                    <Users className="w-4 h-4" />
+                    Create User
+                  </>
                 )}
               </Button>
             </div>

@@ -91,7 +91,7 @@ export default function ContactPage() {
 
             <h1 className="text-5xl lg:text-6xl font-semibold leading-tight mb-6">
               Let's Talk About
-              <span style={{ color: 'var(--color-amber-700)' }}> Your Project</span>
+              <span style={{ color: "#E67E00" }}> Your Project</span>
             </h1>
 
             <p className="text-lg text-slate-600 leading-relaxed mb-10 max-w-lg">
