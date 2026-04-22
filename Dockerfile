@@ -11,10 +11,10 @@ COPY prisma ./prisma
 
 # Delete package-lock.json to avoid Windows/Mac binary caching issues
 # npm install will regenerate it for Linux
-RUN rm -f package-lock.json
+RUN rm -f package-lock.json && npm cache clean --force
 
 # Install dependencies with fresh lock file generation
-RUN npm install
+RUN npm install --force
 
 # Copy source code
 COPY . .
