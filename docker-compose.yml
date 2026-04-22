@@ -3,12 +3,12 @@ version: '3.8'
 services:
   stickmodel:
     # OPTION 1: Build image locally (uncomment build, comment image)
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     
     # OPTION 2: Pull from GitHub Container Registry (uncomment image, comment build)
-    # image: ghcr.io/griz-sys/stickmodel:latest
+    image: ghcr.io/griz-sys/stickmodel:latest
     
     container_name: stickmodel
     restart: unless-stopped
