@@ -122,9 +122,11 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // PayPal: tracks which step is currently initiating payment (loading state)
-  const [payingStepId, setPayingStepId] = useState<string | null>(null);
+  // PAYMENT DISABLED: these state vars kept to avoid removing refs in admin price/step sections
+  const [payingStepId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [paypalError, setPaypalError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [paypalSuccess, setPaypalSuccess] = useState(false);
 
   // Video upload modal
@@ -170,23 +172,12 @@ export default function RequestDetailPage({ params }: PageProps) {
   useEffect(() => {
     fetchCurrentUser();
     fetchProject();
-    // Handle PayPal redirect return
-    const params = new URLSearchParams(window.location.search);
-    const paypalStatus = params.get("paypal");
-    if (paypalStatus === "success") {
-      setPaypalSuccess(true);
-      // Clean the URL
-      const clean = window.location.pathname;
-      window.history.replaceState({}, "", clean);
-    } else if (paypalStatus === "error") {
-      setPaypalError("Payment could not be completed. Please try again.");
-      const clean = window.location.pathname;
-      window.history.replaceState({}, "", clean);
-    } else if (paypalStatus === "cancelled") {
-      setPaypalError("Payment was cancelled.");
-      const clean = window.location.pathname;
-      window.history.replaceState({}, "", clean);
-    }
+    // PAYMENT DISABLED: PayPal redirect handler commented out
+    // const params = new URLSearchParams(window.location.search);
+    // const paypalStatus = params.get("paypal");
+    // if (paypalStatus === "success") { setPaypalSuccess(true); ... }
+    // else if (paypalStatus === "error") { setPaypalError(...); }
+    // else if (paypalStatus === "cancelled") { setPaypalError(...); }
   }, [id]);
 
   useEffect(() => {
@@ -511,64 +502,8 @@ export default function RequestDetailPage({ params }: PageProps) {
   const isAdmin = currentUser?.role === "admin";
   const backUrl = isAdmin ? "/admin" : "/home";
 
-  // PayPal redirect flow: create order server-side → redirect to PayPal checkout
-  const handlePayWithPayPal = async (stepId?: string) => {
-    if (!project) return;
-    const payingId = stepId || "initial";
-    setPayingStepId(payingId);
-    setPaypalError(null);
-    try {
-      const res = await fetch("/api/paypal/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          stepId
-            ? { projectId: project.id, stepId }
-            : { projectId: project.id },
-        ),
-      });
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.error || "Failed to create PayPal order");
-      if (!data.approveUrl) throw new Error("No PayPal approval URL returned");
-
-      // Open PayPal in a popup — stays on the current page
-      const popup = window.open(
-        data.approveUrl,
-        "paypal_checkout",
-        "width=600,height=700,scrollbars=yes,resizable=yes",
-      );
-
-      // Listen for the popup to post a message back once payment is done
-      const onMessage = (event: MessageEvent) => {
-        if (!event.data?.paypal) return;
-        window.removeEventListener("message", onMessage);
-        setPayingStepId(null);
-        if (event.data.paypal === "success") {
-          setPaypalSuccess(true);
-          fetchProject(); // Refresh project data to show download button
-        } else if (event.data.paypal === "cancelled") {
-          // silently ignore
-        } else {
-          setPaypalError("Payment could not be completed. Please try again.");
-        }
-        popup?.close();
-      };
-      window.addEventListener("message", onMessage);
-
-      // Fallback: if user closes the popup manually, clean up
-      const pollTimer = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(pollTimer);
-          window.removeEventListener("message", onMessage);
-          setPayingStepId(null);
-        }
-      }, 500);
-    } catch (error) {
-      setPaypalError(error instanceof Error ? error.message : "Payment failed");
-      setPayingStepId(null);
-    }
-  };
+  // PAYMENT DISABLED: handlePayWithPayPal commented out
+  // const handlePayWithPayPal = async (stepId?: string) => { ... };
 
   const handleLogout = async () => {
     try {
@@ -672,41 +607,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* PayPal return banners */}
-        {paypalSuccess && (
-          <div className="mb-6 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold text-green-900">
-                Payment successful!
-              </p>
-              <p className="text-sm text-green-700">
-                Your download is now available below.
-              </p>
-            </div>
-            <button
-              onClick={() => setPaypalSuccess(false)}
-              className="text-green-500 hover:text-green-700 text-lg leading-none"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-        {paypalError && (
-          <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-semibold text-red-900">Payment issue</p>
-              <p className="text-sm text-red-700">{paypalError}</p>
-            </div>
-            <button
-              onClick={() => setPaypalError(null)}
-              className="text-red-500 hover:text-red-700 text-lg leading-none"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+        {/* PAYMENT DISABLED: PayPal return banners hidden */}
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
@@ -978,69 +879,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 </button>
                               </div>
                             </div>
-                          ) : project.isPaidInitial ? (
-                            /* User: paid → show download */
-                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                <span className="text-sm font-medium text-slate-800 truncate">
-                                  {project.adminFileName}
-                                </span>
-                                {project.adminFileSize && (
-                                  <span className="text-xs text-slate-400 flex-shrink-0">
-                                    {formatFileSize(project.adminFileSize)}
-                                  </span>
-                                )}
-                              </div>
-                              <a
-                                href={project.adminFileUrl ?? undefined}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all flex-shrink-0 ml-2"
-                              >
-                                <Download className="w-3 h-3" />
-                                Download
-                              </a>
-                            </div>
-                          ) : project.cost !== null ? (
-                            /* User: not paid but cost set → show payment */
-                            <div className="rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
-                              <div className="flex items-center justify-between px-4 py-3 border-b border-orange-100">
-                                <div>
-                                  <p className="text-xs text-orange-700 font-semibold uppercase tracking-wide mb-0.5">
-                                    Payment Required
-                                  </p>
-                                  <p className="text-2xl font-bold text-orange-900">
-                                    ${project.cost.toLocaleString()}
-                                  </p>
-                                </div>
-                                <Lock className="w-6 h-6 text-orange-400" />
-                              </div>
-                              <div className="px-4 py-3">
-                                <button
-                                  onClick={() => handlePayWithPayPal()}
-                                  disabled={payingStepId === "initial"}
-                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0070ba] hover:bg-[#005ea6] disabled:opacity-60 text-white text-sm font-semibold transition-all"
-                                >
-                                  {payingStepId === "initial" ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                      Redirecting to PayPal…
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CreditCard className="w-4 h-4" />
-                                      Pay with PayPal
-                                    </>
-                                  )}
-                                </button>
-                                <p className="text-xs text-orange-600 mt-2 text-center">
-                                  Download unlocks after payment
-                                </p>
-                              </div>
-                            </div>
                           ) : (
-                            /* User: deliverable ready but no cost set → free download */
+                            /* PAYMENT DISABLED: user sees download directly when deliverable is available */
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -1133,6 +973,25 @@ export default function RequestDetailPage({ params }: PageProps) {
                               Current: ${project.cost.toLocaleString()}
                             </p>
                           )}
+                        </div>
+                      )}
+
+                      {/* Total charges and invoice info for users */}
+                      {!isAdmin && project.cost !== null && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                            Total Charges
+                          </p>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-baseline gap-2 mb-2">
+                              <span className="text-2xl font-bold text-slate-900">
+                                ${project.cost.toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600">
+                              An invoice will be sent to your email {project.user?.email} for this deliverable.
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1248,45 +1107,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 )}
                               </div>
                             </div>
-                          ) : step.cost !== null && !isAdmin && !step.isPaid ? (
-                            /* Deliverable ready (URL hidden until paid) → show payment */
-                            <div className="rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
-                              <div className="flex items-center justify-between px-4 py-3 border-b border-orange-100">
-                                <div>
-                                  <p className="text-xs text-orange-700 font-semibold uppercase tracking-wide mb-0.5">
-                                    Payment Required
-                                  </p>
-                                  <p className="text-2xl font-bold text-orange-900">
-                                    ${step.cost.toLocaleString()}
-                                  </p>
-                                </div>
-                                <Lock className="w-6 h-6 text-orange-400" />
-                              </div>
-                              <div className="px-4 py-3">
-                                <button
-                                  onClick={() => handlePayWithPayPal(step.id)}
-                                  disabled={payingStepId === step.id}
-                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0070ba] hover:bg-[#005ea6] disabled:opacity-60 text-white text-sm font-semibold transition-all"
-                                >
-                                  {payingStepId === step.id ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                      Redirecting to PayPal…
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CreditCard className="w-4 h-4" />
-                                      Pay ${step.cost?.toLocaleString()} with
-                                      PayPal
-                                    </>
-                                  )}
-                                </button>
-                                <p className="text-xs text-orange-600 mt-2 text-center">
-                                  Download unlocks after payment
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
+                          ) : ( /* PAYMENT DISABLED: payment gate removed */
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                               <span className="text-sm text-slate-400">
                                 No deliverable yet
@@ -1369,6 +1190,25 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 Current: ${step.cost.toLocaleString()}
                               </p>
                             )}
+                          </div>
+                        )}
+
+                        {/* Step cost display for users */}
+                        {!isAdmin && step.cost !== null && (
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                              Step Cost
+                            </p>
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <span className="text-2xl font-bold text-slate-900">
+                                  ${step.cost.toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-600">
+                                An invoice will be sent to your email {project.user?.email} for this step.
+                              </p>
+                            </div>
                           </div>
                         )}
                       </div>

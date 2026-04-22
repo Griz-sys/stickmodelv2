@@ -103,7 +103,7 @@ export default function ContactPage() {
               <InfoRow
                 icon={<Mail className="w-5 h-5" />}
                 title="Email"
-                desc="hello@stickmodel.com"
+                desc="info@stickmodel.com"
               />
 
               <InfoRow
@@ -206,9 +206,30 @@ export default function ContactPage() {
           <img src="/horizontal.svg" alt="StickModel" className="h-7 w-auto" />
 
           <div className="flex gap-8 text-sm text-slate-500">
-            <Link href="/#about">About</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/contact">Contact</Link>
+            <Link
+              href="/#about"
+              className="hover:text-[#E67E00] transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/pricing"
+              className="hover:text-[#E67E00] transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/faq"
+              className="hover:text-[#E67E00] transition-colors"
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/contact"
+              className="hover:text-[#E67E00] transition-colors"
+            >
+              Contact
+            </Link>
           </div>
         </div>
       </footer>

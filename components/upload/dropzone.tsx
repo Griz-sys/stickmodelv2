@@ -114,11 +114,6 @@ export function Dropzone({
           {isDragging ? "Drop your file here" : "Drag & drop your file here"}
         </p>
         <p className="text-sm text-slate-500">or click to browse</p>
-
-        {/* Max size note */}
-        <p className="text-xs text-slate-400 mt-3">
-          Max 100MB
-        </p>
       </label>
     </div>
   );

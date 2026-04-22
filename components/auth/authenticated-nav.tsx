@@ -51,6 +51,7 @@ export function AuthenticatedNav() {
     "/home",
     "/pricing",
     "/contact",
+    "/faq",
   ];
   if (pagesWithoutNav.includes(pathname) || pathname.startsWith("/requests/")) {
     return null;

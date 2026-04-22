@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const {
       name, email, companyName, website,
-      designation, companyEmail, phone, location,
+      designation, phone, location,
       billingAddress, billingContactName, billingContactPhone,
       referralSource, referralDetail,
     } = await request.json();
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const otp = generateOtp();
     await storeOtp(email, otp, {
       name, companyName, website,
-      designation, companyEmail, phone, location,
+      designation, phone, location,
       billingAddress, billingContactName, billingContactPhone,
       referralSource, referralDetail,
     });

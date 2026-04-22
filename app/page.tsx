@@ -645,6 +645,12 @@ export default function LandingPage() {
                 Resources
               </span>
               <Link
+                href="/faq"
+                className="text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                FAQ
+              </Link>
+              <Link
                 href="/terms"
                 className="text-zinc-400 hover:text-white transition-colors text-sm"
               >

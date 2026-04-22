@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  CheckCircle2,
   ArrowRight,
-  ChevronDown,
   Zap,
   Package,
 } from "lucide-react";
@@ -35,39 +33,12 @@ const PRICING_TIERS = [
   },
 ];
 
-const FEATURES = [
-  "IFC stick model file",
-  "24 hour turnaround",
-  "Video preview before payment",
-  "Unlimited revisions",
-  "Email support",
-];
+const FEATURES = [];
 
-const FAQS = [
-  {
-    question: "When do I pay?",
-    answer:
-      "You only pay after we've created your model and you've approved the video preview. No upfront costs.",
-  },
-  {
-    question: "What file formats do you accept?",
-    answer:
-      "We accept structural drawings in PDF format. Make sure your drawings are clear and legible for best results.",
-  },
-  {
-    question: "What if I need revisions?",
-    answer:
-      "Upload revised set of drawings and get revised quote if any, depending on the changes.",
-  },
-  {
-    question: "Do you offer volume discounts?",
-    answer:
-      "Contact us for custom enterprise pricing on ongoing partnerships and volume commitments.",
-  },
-];
+const FAQS = [];
 
 export default function PricingPage() {
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [expandedFaq] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -190,64 +161,29 @@ export default function PricingPage() {
         <div className="h-px bg-slate-100" />
       </div>
 
-      {/* ── FAQ ── */}
-      <section className="max-w-3xl mx-auto px-6 pt-20 pb-28">
+      {/* ── CTA TO FAQ ── */}
+      <section className="max-w-3xl mx-auto px-6 py-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
         >
-          <p className="text-xs tracking-widest text-slate-400 uppercase mb-4">
-            FAQ
-          </p>
-          <h2 className="text-3xl font-semibold text-slate-900 mb-12">
-            Common questions
+          <h2 className="text-3xl font-semibold text-slate-900 mb-4">
+            Have more questions?
           </h2>
-        </motion.div>
-
-        <div className="divide-y divide-slate-100">
-          {FAQS.map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.2 + idx * 0.06 }}
+          <p className="text-slate-500 mb-8 max-w-xl mx-auto">
+            Check out our comprehensive FAQ page for detailed answers about our process, software compatibility, and more.
+          </p>
+          <Link href="/faq">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className="px-8 py-3 rounded-lg font-semibold bg-[#E67E00] text-white hover:bg-[#d66c00] transition-all"
             >
-              <button
-                onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                className="w-full flex items-center justify-between py-5 text-left group"
-              >
-                <span className="font-medium text-slate-900 group-hover:text-orange-600 transition-colors">
-                  {item.question}
-                </span>
-                <motion.span
-                  animate={{ rotate: expandedFaq === idx ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex-shrink-0 ml-4 text-slate-400"
-                >
-                  <ChevronDown className="w-5 h-5" />
-                </motion.span>
-              </button>
-
-              <AnimatePresence initial={false}>
-                {expandedFaq === idx && (
-                  <motion.div
-                    key="body"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22 }}
-                    className="overflow-hidden"
-                  >
-                    <p className="pb-5 text-slate-500 leading-relaxed text-sm max-w-xl">
-                      {item.answer}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </div>
+              View Full FAQ
+            </motion.button>
+          </Link>
+        </motion.div>
       </section>
 
       {/* ── FOOTER ── */}
@@ -263,19 +199,25 @@ export default function PricingPage() {
           <div className="flex gap-8 text-sm text-slate-500">
             <Link
               href="/#about"
-              className="hover:text-orange-600 transition-colors"
+              className="hover:text-[#E67E00] transition-colors"
             >
               About
             </Link>
             <Link
               href="/pricing"
-              className="hover:text-orange-600 transition-colors"
+              className="hover:text-[#E67E00] transition-colors"
             >
               Pricing
             </Link>
             <Link
+              href="/faq"
+              className="hover:text-[#E67E00] transition-colors"
+            >
+              FAQ
+            </Link>
+            <Link
               href="/contact"
-              className="hover:text-orange-600 transition-colors"
+              className="hover:text-[#E67E00] transition-colors"
             >
               Contact
             </Link>

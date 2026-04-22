@@ -25,7 +25,6 @@ function LoginForm() {
     companyName: "",
     website: "",
     designation: "",
-    companyEmail: "",
     phone: "",
     location: "",
     billingAddress: "",
@@ -83,7 +82,6 @@ function LoginForm() {
               companyName: formData.companyName,
               website: formData.website,
               designation: formData.designation,
-              companyEmail: formData.companyEmail,
               phone: formData.phone,
               location: formData.location,
               billingAddress: formData.billingAddress,
@@ -118,7 +116,6 @@ function LoginForm() {
             companyName: "",
             website: "",
             designation: "",
-            companyEmail: "",
             phone: "",
             location: "",
             billingAddress: "",
@@ -161,7 +158,6 @@ function LoginForm() {
       companyName: "",
       website: "",
       designation: "",
-      companyEmail: "",
       phone: "",
       location: "",
       billingAddress: "",
@@ -320,7 +316,7 @@ function LoginForm() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-slate-700">
-                        Email <span className="text-red-500">*</span>
+                        Official Email <span className="text-red-500">*</span>
                       </label>
                       <Input
                         name="email"
@@ -329,7 +325,7 @@ function LoginForm() {
                         onChange={handleChange}
                         required
                         disabled={isLoading}
-                        placeholder="you@example.com"
+                        placeholder="you@company.com"
                         className="mt-2 focus-visible:ring-[#E67E00]"
                       />
                     </div>
@@ -368,35 +364,19 @@ function LoginForm() {
                     Company
                   </p>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-slate-700">
-                        Company Name <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleChange}
-                        required
-                        disabled={isLoading}
-                        placeholder="ACME Fabricators"
-                        className="mt-2 focus-visible:ring-[#E67E00]"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-slate-700">
-                        Company Email
-                      </label>
-                      <Input
-                        name="companyEmail"
-                        type="email"
-                        value={formData.companyEmail}
-                        onChange={handleChange}
-                        disabled={isLoading}
-                        placeholder="info@company.com"
-                        className="mt-2 focus-visible:ring-[#E67E00]"
-                      />
-                    </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Company Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      placeholder="ACME Fabricators"
+                      className="mt-2 focus-visible:ring-[#E67E00]"
+                    />
                   </div>
 
                   <div>
