@@ -45,16 +45,16 @@ export default function PricingPage() {
       <HeroNav />
 
       {/* ── HERO ── */}
-      <section className="max-w-4xl mx-auto px-6 pt-32 pb-16 text-center">
+      <section className="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 mb-6">
-            <Zap className="w-4 h-4 text-orange-600" />
-            <span className="text-sm font-semibold text-orange-600">
-              40% Launch Discount
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-orange-100 mb-6">
+            <Zap className="w-6 h-6 text-orange-600" />
+            <span className="text-base font-semibold text-orange-600">
+              40% Launch Discount*
             </span>
           </div>
           <p className="text-xs tracking-widest text-slate-400 uppercase mb-5">
@@ -137,7 +137,12 @@ export default function PricingPage() {
             </div>
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="text-2xl font-bold text-slate-900">$200</p>
+            <div className="flex items-center justify-end gap-3">
+              <span className="text-sm text-slate-400 line-through">
+                $200
+              </span>
+              <span className="text-2xl font-bold text-slate-900">$120</span>
+            </div>
             <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">
               Add to any plan
             </p>
@@ -151,8 +156,8 @@ export default function PricingPage() {
           transition={{ delay: 0.3 }}
           className="text-center text-sm text-slate-500 mt-8 italic"
         >
-          *All prices are per project. Launch discount of 40% available for
-          limited time.
+          *All prices are per project. Get a 40% launch discount for a limited
+          time (valid till October 2026).
         </motion.p>
       </section>
 
