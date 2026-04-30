@@ -99,30 +99,11 @@ export default function LandingPage() {
                 fontSize: "clamp(2.6rem, 7vw, 6.5rem)",
               }}
             >
-              {/* Large screens */}
-              <span className="hidden xl:block">
-                DRAWING TO STICK MODEL
-                <br />
-                IN&nbsp;24&nbsp;HOURS
-              </span>
-
-              {/* Mid screens (MacBook / awkward widths) */}
-              <span className="hidden md:block xl:hidden">
-                DRAWING TO
-                <br />
-                STICK MODEL
-                <br />
-                IN&nbsp;24&nbsp;HOURS
-              </span>
-
-              {/* Small screens */}
-              <span className="block md:hidden">
-                DRAWING TO
-                <br />
-                STICK MODEL
-                <br />
-                IN&nbsp;24&nbsp;HOURS
-              </span>
+              DRAWING TO
+              <br />
+              STICK MODEL
+              <br />
+              IN&nbsp;24&nbsp;HOURS
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
