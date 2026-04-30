@@ -10,7 +10,7 @@ const normalizeOptional = (value: unknown) => {
 };
 
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
