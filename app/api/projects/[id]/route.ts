@@ -104,15 +104,23 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const allowedKeys = [
-      'userFileName',
-      'userFileUrl',
-      'userFileSize',
-      'userFileType',
-      'notes',
-    ];
+    const allowedKeys = ['notes'];
+    const canAttachInitialFile =
+      !existing.userFileName &&
+      !existing.userFileUrl &&
+      !existing.userFileSize &&
+      !existing.userFileType;
 
-    const updateData: Record<string, any> = {};
+    if (canAttachInitialFile) {
+      allowedKeys.push(
+        'userFileName',
+        'userFileUrl',
+        'userFileSize',
+        'userFileType'
+      );
+    }
+
+    const updateData: Record<string, unknown> = {};
     for (const key of allowedKeys) {
       if (Object.prototype.hasOwnProperty.call(body, key)) {
         updateData[key] = body[key];

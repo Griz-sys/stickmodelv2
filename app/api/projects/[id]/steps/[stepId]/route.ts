@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { sendUserFileUploadNotification, sendDeliverableUploadNotification } from '@/lib/email';
+import { sendDeliverableUploadNotification } from '@/lib/email';
 
-// PATCH - update a step (admin: deliverable, cost; user: their own file/label)
+// PATCH - update a step (admin only)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; stepId: string }> }
@@ -47,38 +47,7 @@ export async function PATCH(
       return NextResponse.json({ step: updated });
     }
 
-    // Regular users may only update their own fields
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: { user: true },
-    });
-    if (!project || project.userId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const allowed = ['userLabel', 'userFileName', 'userFileUrl', 'userFileSize', 'userFileType'];
-    const updateData: Record<string, unknown> = {};
-    for (const key of allowed) {
-      if (Object.prototype.hasOwnProperty.call(body, key)) {
-        updateData[key] = body[key];
-      }
-    }
-
-    const updated = await prisma.projectStep.update({ where: { id: stepId }, data: updateData });
-    
-    // Send email to admins if user uploaded file
-    if (body.userFileName && project.user) {
-      const stepLabel = body.userLabel || step.userLabel;
-      await sendUserFileUploadNotification(
-        project.name,
-        project.user.name,
-        project.user.email,
-        body.userFileName,
-        stepLabel
-      );
-    }
-    
-    return NextResponse.json({ step: updated });
+    return NextResponse.json({ error: 'Only admins can update steps' }, { status: 403 });
   } catch (error) {
     console.error('Update step error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
         name,
         tonnage,
         cost,
+        notes: notes || null,
         uploadedBy: dbUser.name,
         userId: dbUser.id,
         status: 'waiting_for_confirmation',

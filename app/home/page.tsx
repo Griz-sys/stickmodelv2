@@ -126,10 +126,16 @@ export default function HomePage() {
   };
 
   const activeRequests = projects.filter(
-    (r) => r.status !== "finished" || !r.dateFinish,
+    (r) =>
+      r.status !== "finished" ||
+      !r.dateFinish ||
+      new Date(r.dateFinish).getTime() + 24 * 60 * 60 * 1000 > Date.now(),
   );
   const pastRequests = projects.filter(
-    (r) => r.status === "finished" && r.dateFinish,
+    (r) =>
+      r.status === "finished" &&
+      !!r.dateFinish &&
+      new Date(r.dateFinish).getTime() + 24 * 60 * 60 * 1000 <= Date.now(),
   );
   const isNewUser = projects.length === 0;
 
@@ -816,8 +822,8 @@ export default function HomePage() {
               <Checkbox
                 checked={includeBOM}
                 onChange={(e) => setIncludeBOM(e.target.checked)}
-                label="Include Bill of Materials"
-                description="Request a detailed materials list with your project"
+                label="Include Advance Bill of Material (ABM)"
+                description="Request a detailed advance bill of material with your project"
               />
             </div>
 

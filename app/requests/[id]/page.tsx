@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDate, formatRelativeTime, formatFileSize } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -136,6 +137,8 @@ export default function RequestDetailPage({ params }: PageProps) {
 
   // Admin status update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [notesInput, setNotesInput] = useState("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   // Project-level price (initial submission)
   const [priceInput, setPriceInput] = useState("");
@@ -184,6 +187,7 @@ export default function RequestDetailPage({ params }: PageProps) {
     if (project?.cost !== undefined && project.cost !== null) {
       setPriceInput(String(project.cost));
     }
+    setNotesInput(project?.notes ?? "");
     if (project?.steps) {
       const prices: Record<string, string> = {};
       for (const s of project.steps) {
@@ -191,7 +195,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       }
       setStepPriceInputs(prices);
     }
-  }, [project?.cost, project?.steps]);
+  }, [project?.cost, project?.notes, project?.steps]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -270,6 +274,31 @@ export default function RequestDetailPage({ params }: PageProps) {
       alert("Failed to save price");
     } finally {
       setIsSavingPrice(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!project) return;
+    setIsSavingNotes(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notes: notesInput.trim() || null,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save note");
+      }
+      const data = await response.json();
+      setProject(data.project);
+    } catch (error) {
+      console.error("Failed to save notes:", error);
+      alert(error instanceof Error ? error.message : "Failed to save note");
+    } finally {
+      setIsSavingNotes(false);
     }
   };
 
@@ -1216,15 +1245,15 @@ export default function RequestDetailPage({ params }: PageProps) {
                   ))}
 
                   {/* ── Add New Step button (always visible) ── */}
-                  <button
-                    onClick={() => setShowAddStepModal(true)}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {isAdmin
-                      ? "Add Step (on behalf of client)"
-                      : "Add New Step"}
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setShowAddStepModal(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Step (on behalf of client)
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -1272,27 +1301,60 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </motion.div>
-            {project.notes && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                    <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                      <span className="w-1.5 h-4 bg-yellow-400 rounded-full inline-block" />
-                      Client Notes
-                    </h2>
-                  </div>
-                  <div className="p-6">
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-                      {project.notes}
-                    </p>
-                  </div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                  <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-yellow-400 rounded-full inline-block" />
+                    Additional Notes
+                  </h2>
                 </div>
-              </motion.div>
-            )}
+                <div className="p-6">
+                  {isAdmin ? (
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {project.notes || "No notes added yet."}
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                        <p className="text-sm font-semibold text-amber-900">
+                          Edit Additional Note
+                        </p>
+                        <p className="mt-1 text-xs text-amber-800">
+                          Use this section to update the note for this project.
+                          Other project fields are locked.
+                        </p>
+                      </div>
+                      <Textarea
+                        value={notesInput}
+                        onChange={(e) => setNotesInput(e.target.value)}
+                        rows={5}
+                        placeholder="Add project notes or updates for the admin team..."
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs text-slate-500">
+                          This is the only project field you can edit.
+                        </p>
+                        <Button
+                          onClick={handleSaveNotes}
+                          disabled={isSavingNotes}
+                          className="gap-2"
+                        >
+                          {isSavingNotes ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : null}
+                          Save Notes
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           </div>
 
           {/* ======== RIGHT / SIDEBAR ======== */}
@@ -1446,80 +1508,82 @@ export default function RequestDetailPage({ params }: PageProps) {
       )}
 
       {/* ---- Add New Step Modal ---- */}
-      <Modal
-        isOpen={showAddStepModal}
-        onClose={() => {
-          setShowAddStepModal(false);
-          setNewStepLabel("");
-          setNewStepFile(null);
-        }}
-        title="Add New Step"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              Step Label <span className="text-red-500">*</span>
-            </label>
-            <Input
-              type="text"
-              value={newStepLabel}
-              onChange={(e) => setNewStepLabel(e.target.value)}
-              placeholder="e.g. Level 2 Foundation Plans"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              File{" "}
-              <span className="text-slate-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="file"
-              onChange={(e) => {
-                if (e.target.files?.[0]) setNewStepFile(e.target.files[0]);
-              }}
-              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            {newStepFile && (
-              <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
-                {newStepFile.name} (
-                {(newStepFile.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
-            )}
-          </div>
-          <div className="flex gap-3 pt-2">
-            <Button
-              onClick={() => {
-                setShowAddStepModal(false);
-                setNewStepLabel("");
-                setNewStepFile(null);
-              }}
-              variant="secondary"
-              className="flex-1"
-              disabled={isCreatingStep}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddStep}
-              disabled={!newStepLabel.trim() || isCreatingStep}
-              className="flex-1 gap-2"
-            >
-              {isCreatingStep ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Add Step
-                </>
+      {isAdmin && (
+        <Modal
+          isOpen={showAddStepModal}
+          onClose={() => {
+            setShowAddStepModal(false);
+            setNewStepLabel("");
+            setNewStepFile(null);
+          }}
+          title="Add New Step"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                Step Label <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={newStepLabel}
+                onChange={(e) => setNewStepLabel(e.target.value)}
+                placeholder="e.g. Level 2 Foundation Plans"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-900 mb-2">
+                File{" "}
+                <span className="text-slate-400 font-normal">(optional)</span>
+              </label>
+              <input
+                type="file"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) setNewStepFile(e.target.files[0]);
+                }}
+                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {newStepFile && (
+                <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-slate-400" />
+                  {newStepFile.name} (
+                  {(newStepFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
               )}
-            </Button>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button
+                onClick={() => {
+                  setShowAddStepModal(false);
+                  setNewStepLabel("");
+                  setNewStepFile(null);
+                }}
+                variant="secondary"
+                className="flex-1"
+                disabled={isCreatingStep}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddStep}
+                disabled={!newStepLabel.trim() || isCreatingStep}
+                className="flex-1 gap-2"
+              >
+                {isCreatingStep ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Add Step
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
 
       {/* ---- Video Upload Modal ---- */}
       {isAdmin && (

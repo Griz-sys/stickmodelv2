@@ -114,6 +114,9 @@ export function Dropzone({
           {isDragging ? "Drop your file here" : "Drag & drop your file here"}
         </p>
         <p className="text-sm text-slate-500">or click to browse</p>
+        <p className="mt-3 text-xs font-medium text-amber-700">
+          Preferred upload format: ZIP file with all related drawings.
+        </p>
       </label>
     </div>
   );

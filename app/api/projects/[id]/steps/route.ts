@@ -32,7 +32,7 @@ export async function GET(
   }
 }
 
-// POST - user creates a new step with a label (and optional file info)
+// POST - admin creates a new step with a label (and optional file info)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,8 +46,8 @@ export async function POST(
     const project = await prisma.project.findUnique({ where: { id } });
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 
-    if (user.role !== 'admin' && project.userId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (user.role !== 'admin') {
+      return NextResponse.json({ error: 'Only admins can create steps' }, { status: 403 });
     }
 
     const body = await request.json();
