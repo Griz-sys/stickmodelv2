@@ -36,7 +36,7 @@ export function HeroNav() {
             href="/login"
             className="bg-[#E67E00] text-white px-6 py-2.5 font-bold text-[13px] tracking-widest uppercase hover:bg-[#d66c00] transition-colors"
           >
-            Get Started
+            Sign In
           </Link>
         </div>
         <button

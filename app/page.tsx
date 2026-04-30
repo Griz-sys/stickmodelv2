@@ -124,7 +124,7 @@ export default function LandingPage() {
                 href="/login"
                 className="bg-[#E67E00] text-white px-8 py-4 font-bold uppercase text-sm tracking-widest hover:bg-[#904D00] transition-colors text-center"
               >
-                Upload Now
+                GET STARTED
               </Link>
               <Link
                 href="/contact"

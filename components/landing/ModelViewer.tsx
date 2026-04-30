@@ -49,7 +49,7 @@ function Model() {
     const t = state.clock.getElapsedTime();
     const floatOffset = Math.sin(t * 0.8) * 0.08; // slightly larger but still gentle
 
-    // Base Y is -0.5 (original), float around that
+    // Keep the model anchored slightly to the right while it floats.
     const targetPosY = -0.35 + floatOffset;
     group.position.y = THREE.MathUtils.lerp(
       group.position.y,
@@ -59,7 +59,7 @@ function Model() {
   });
 
   return (
-    <group ref={groupRef} scale={1.12} position={[0, -0.35, 0]}>
+    <group ref={groupRef} scale={1.12} position={[2.2, -0.35, 0]}>
       <primitive object={gltf.scene} />
     </group>
   );
@@ -209,6 +209,7 @@ const ModelViewer = () => {
             enableRotate={true}
             autoRotate
             autoRotateSpeed={0.6}
+            target={[4, -2, 6]}
             minPolarAngle={Math.PI / 4}
             maxPolarAngle={Math.PI / 2.2}
           />
