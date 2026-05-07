@@ -141,16 +141,19 @@ git commit -m "Feature: add new feature"
 git push origin main
 
 # Step 2: Build and push Docker image
-docker compose build --no-cache
-docker tag stickmodel-stickmodel:latest ghcr.io/griz-sys/stickmodel:latest
-docker push ghcr.io/griz-sys/stickmodel:latest
+
+docker build -t stickmodel-stickmodel:latest --no-cache .
+docker tag stickmodel-stickmodel:latest ghcr.io/griz-sys/stickmodel:v1.0.0
+docker push ghcr.io/griz-sys/stickmodel:v1.0.0
+
 
 # Step 3: On DROPLET, pull and restart
 ssh root@167.172.143.13
 cd /var/www/stickmodel
+git pull
 docker compose pull
 docker compose up -d
-docker compose logs -f stickmodel
+docker logs stickmodel -f
 ```
 
 **Alternative (using the helper script):**

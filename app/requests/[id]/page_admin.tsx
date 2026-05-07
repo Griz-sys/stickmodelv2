@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Modal } from "@/components/ui/modal";
 import { formatDate, formatRelativeTime, formatFileSize } from "@/lib/utils";
 import {
@@ -88,6 +90,13 @@ export default function RequestDetailPage({ params }: PageProps) {
   // Admin status update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
+  // Finish project modal / email options
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [sendEmailNotification, setSendEmailNotification] = useState(true);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailCc, setEmailCc] = useState("");
+
   useEffect(() => {
     fetchCurrentUser();
     fetchProject();
@@ -162,6 +171,48 @@ export default function RequestDetailPage({ params }: PageProps) {
       if (response.ok) {
         const data = await response.json();
         setProject(data.project);
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update status");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const openFinishModal = () => {
+    const name = project?.user?.name || "there";
+    const projectName = project?.name || "your project";
+    setSendEmailNotification(true);
+    setEmailSubject(`Your project "${projectName}" is complete!`);
+    setEmailBody(
+      `Hi ${name},\n\nYour project "${projectName}" has been completed and is ready for download.\n\nLog in to your account to access your deliverables.\n\nBest regards,\nStickModel Team\n\nIf you have any questions, please contact us at info@stickmodel.com`
+    );
+    setEmailCc("");
+    setShowFinishModal(true);
+  };
+
+  const handleFinishProject = async () => {
+    if (!project) return;
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "finished",
+          dateFinish: new Date().toISOString(),
+          sendEmailNotification,
+          emailSubject: sendEmailNotification ? emailSubject : undefined,
+          emailBody: sendEmailNotification ? emailBody : undefined,
+          emailCc: sendEmailNotification ? emailCc : undefined,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProject(data.project);
+        setShowFinishModal(false);
       }
     } catch (error) {
       console.error("Failed to update status:", error);
@@ -386,7 +437,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                       In Progress
                     </Button>
                     <Button
-                      onClick={() => handleStatusUpdate("finished")}
+                      onClick={openFinishModal}
                       disabled={
                         isUpdatingStatus || project.status === "finished"
                       }
@@ -728,6 +779,89 @@ export default function RequestDetailPage({ params }: PageProps) {
                   <>
                     <Upload className="w-4 h-4" />
                     Upload
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Finish Project Modal */}
+      {isAdmin && (
+        <Modal
+          isOpen={showFinishModal}
+          onClose={() => setShowFinishModal(false)}
+          title="Mark Project as Finished"
+        >
+          <div className="space-y-4">
+            <Checkbox
+              label="Send email notification to user"
+              description="An email will be sent to the project owner when you confirm."
+              checked={sendEmailNotification}
+              onChange={(e) => setSendEmailNotification(e.target.checked)}
+            />
+
+            {sendEmailNotification && (
+              <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                    Subject
+                  </label>
+                  <Input
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Email subject..."
+                  />
+                </div>
+
+                <Textarea
+                  label="Body"
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  rows={8}
+                  placeholder="Email body..."
+                />
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                    CC
+                  </label>
+                  <Input
+                    value={emailCc}
+                    onChange={(e) => setEmailCc(e.target.value)}
+                    placeholder="cc@example.com, another@example.com"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Separate multiple addresses with a comma.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={() => setShowFinishModal(false)}
+                variant="secondary"
+                className="flex-1"
+                disabled={isUpdatingStatus}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleFinishProject}
+                disabled={isUpdatingStatus}
+                className="flex-1 bg-green-600 hover:bg-green-700 gap-2"
+              >
+                {isUpdatingStatus ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Confirm Finished
                   </>
                 )}
               </Button>

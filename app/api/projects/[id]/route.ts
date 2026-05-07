@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { sendUserFileUploadNotification, sendDeliverableUploadNotification } from '@/lib/email';
+import { sendUserFileUploadNotification, sendDeliverableUploadNotification, sendProjectFinishedNotification } from '@/lib/email';
 
 // Get a single project
 export async function GET(
@@ -79,23 +79,40 @@ export async function PATCH(
 
     // Admins can update any fields
     if (user.role === 'admin') {
-      const project = await prisma.project.update({ where: { id }, data: body });
-      
+      // Strip email-only fields before passing to Prisma
+      const { sendEmailNotification, emailSubject, emailBody, emailBcc, ...projectData } = body;
+      const project = await prisma.project.update({ where: { id }, data: projectData });
+
+      // Send project finished email if status changed to finished
+      if (projectData.status === 'finished' && sendEmailNotification && existing.userId) {
+        const userInfo = await prisma.user.findUnique({ where: { id: existing.userId } });
+        if (userInfo) {
+          await sendProjectFinishedNotification(
+            existing.name,
+            userInfo.name,
+            userInfo.email,
+            emailSubject,
+            emailBody,
+            emailBcc
+          );
+        }
+      }
+
       // Send email to user if admin uploaded initial deliverable
-      if (body.adminFileName && existing.userId) {
+      if (projectData.adminFileName && existing.userId) {
         const userInfo = await prisma.user.findUnique({ where: { id: existing.userId } });
         if (userInfo) {
           await sendDeliverableUploadNotification(
             existing.name,
             userInfo.name,
             userInfo.email,
-            body.adminFileName,
+            projectData.adminFileName,
             'Initial Submission',
-            body.cost
+            projectData.cost
           );
         }
       }
-      
+
       return NextResponse.json({ project });
     }
 

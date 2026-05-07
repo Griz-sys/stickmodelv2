@@ -476,7 +476,7 @@ export default function LandingPage() {
                           />
                         </svg>
                       ),
-                      title: "Human-Level Precision",
+                      title: "High Level Precision",
                       desc: "Automated QA checks combined with expert oversight ensure error-free structural geometry.",
                     },
                   ].map((item) => (

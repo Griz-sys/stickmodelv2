@@ -9,6 +9,7 @@ interface EmailRecipient {
 
 interface SendEmailOptions {
   to: EmailRecipient | EmailRecipient[];
+  bcc?: EmailRecipient | EmailRecipient[];
   subject: string;
   html: string;
   replyTo?: EmailRecipient;
@@ -45,6 +46,14 @@ export async function sendEmail(options: SendEmailOptions) {
             name: recipient.name || 'User',
           },
         })),
+        ...(options.bcc && {
+          bcc: (Array.isArray(options.bcc) ? options.bcc : [options.bcc]).map((recipient: EmailRecipient) => ({
+            email_address: {
+              address: recipient.address,
+              name: recipient.name || recipient.address,
+            },
+          })),
+        }),
         ...(options.replyTo && {
           reply_to: {
             address: options.replyTo.address,
@@ -163,8 +172,67 @@ export async function sendDeliverableUploadNotification(
         ">Download Your File</a>
       </p>
       <p style="font-size: 12px; color: #666;">
-        If you have any questions, please reply to this email or contact us at shivansh@grizlabs.com
+        If you have any questions, please reply to this email or contact us at info@stickmodel.com
       </p>
     `,
+  });
+}
+
+/**
+ * Send email to user when admin marks project as finished
+ */
+export async function sendProjectFinishedNotification(
+  projectName: string,
+  userName: string,
+  userEmail: string,
+  customSubject?: string,
+  customBody?: string,
+  ccEmails?: string
+) {
+  const subject = customSubject || `Your project "${projectName}" is complete!`;
+
+  let htmlBody: string;
+  if (customBody) {
+    const escapedBody = customBody
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br />');
+    htmlBody = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+      <p>${escapedBody}</p>
+    </div>`;
+  } else {
+    htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <h2>Your Project is Complete!</h2>
+        <p>Hi ${userName},</p>
+        <p>Your project <strong>${projectName}</strong> has been completed and is ready for download.</p>
+        <hr />
+        <p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/home" style="
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ff5a1f;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+          ">View Your Project</a>
+        </p>
+        <p style="font-size: 12px; color: #666;">
+          If you have any questions, please contact us at info@stickmodel.com
+        </p>
+      </div>
+    `;
+  }
+
+  const bccRecipients: EmailRecipient[] = ccEmails
+    ? ccEmails.split(',').map((e) => e.trim()).filter(Boolean).map((address) => ({ address }))
+    : [];
+
+  await sendEmail({
+    to: { address: userEmail, name: userName },
+    subject,
+    html: htmlBody,
+    ...(bccRecipients.length > 0 && { bcc: bccRecipients }),
   });
 }
