@@ -42,9 +42,10 @@ model Project {
   id           String    @id @default(uuid())
   name         String
   tonnage      Int?
-  dateUpload   DateTime  @default(now())
-  dateFinish   DateTime?
-  datePayment  DateTime?
+  dateUpload    DateTime  @default(now())
+  dateConfirmed DateTime?
+  dateFinish    DateTime?
+  datePayment   DateTime?
   cost         Float?
   isPaidInitial Boolean  @default(false) // Track if initial submission has been paid
   downloadLink String?

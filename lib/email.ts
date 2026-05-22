@@ -179,6 +179,61 @@ export async function sendDeliverableUploadNotification(
 }
 
 /**
+ * Send email to admins when a user downloads a deliverable
+ */
+export async function sendDeliverableDownloadNotification(
+  projectId: string,
+  projectName: string,
+  userName: string,
+  userEmail: string,
+  fileName: string,
+  stepLabel?: string
+) {
+  const adminEmails = process.env.ADMIN_EMAIL_RECIPIENTS?.split(',').map((e) =>
+    e.trim()
+  ) || [];
+
+  if (adminEmails.length === 0) {
+    console.warn('No admin emails configured');
+    return;
+  }
+
+  const recipients: EmailRecipient[] = adminEmails.map((email) => ({
+    address: email,
+    name: 'StickModel Admin',
+  }));
+
+  const stepInfo = stepLabel ? ` (step: "${stepLabel}")` : '';
+  const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/requests/${projectId}`;
+
+  await sendEmail({
+    to: recipients,
+    subject: `⬇️ Deliverable Downloaded: ${projectName}`,
+    html: `
+      <h2>Deliverable Download Notification</h2>
+      <p><strong>Project:</strong> ${projectName}</p>
+      <p><strong>User:</strong> ${userName} (${userEmail})</p>
+      <p><strong>File Downloaded:</strong> ${fileName}${stepInfo}</p>
+      <hr />
+      <p>
+        <a href="${projectUrl}" style="
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #ff5a1f;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+        ">View Project</a>
+      </p>
+    `,
+    replyTo: {
+      address: userEmail,
+      name: userName,
+    },
+  });
+}
+
+/**
  * Send email to user when admin marks project as finished
  */
 export async function sendProjectFinishedNotification(

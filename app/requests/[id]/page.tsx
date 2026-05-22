@@ -70,6 +70,7 @@ interface Project {
   name: string;
   tonnage: number | null;
   dateUpload: string;
+  dateConfirmed: string | null;
   dateFinish: string | null;
   cost: number | null;
   isPaidInitial: boolean;
@@ -434,6 +435,15 @@ export default function RequestDetailPage({ params }: PageProps) {
     } finally {
       setIsRemovingProjectDeliverable(false);
     }
+  };
+
+  const notifyDownload = (stepId?: string) => {
+    if (!project || currentUser?.role === "admin") return;
+    fetch(`/api/projects/${project.id}/download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(stepId ? { stepId } : {}),
+    }).catch(() => {});
   };
 
   const handleRemoveStepDeliverable = async (stepId: string) => {
@@ -982,6 +992,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 href={project.adminFileUrl ?? undefined}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => notifyDownload()}
                                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all flex-shrink-0 ml-2"
                               >
                                 <Download className="w-3 h-3" />
@@ -1167,6 +1178,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                                   href={step.adminFileUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
+                                  onClick={() => notifyDownload(step.id)}
                                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-green-400 hover:bg-green-50 text-xs font-medium text-slate-700 hover:text-green-600 transition-all"
                                 >
                                   <Download className="w-3 h-3" />
@@ -1492,6 +1504,104 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </motion.div>
+
+            {/* ---- Project Timeline (admin only) ---- */}
+            {isAdmin && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100">
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+                      Project Timeline
+                    </h3>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    {/* Uploaded by user */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Calendar className="w-4 h-4 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium mb-0.5">
+                          Uploaded by client
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {new Date(project.dateUpload).toLocaleString("en-US", {
+                            timeZone: "America/New_York",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}{" "}
+                          EST
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Confirmed by admin */}
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${project.dateConfirmed ? "bg-orange-50" : "bg-slate-100"}`}>
+                        <CheckCircle className={`w-4 h-4 ${project.dateConfirmed ? "text-orange-500" : "text-slate-300"}`} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium mb-0.5">
+                          Confirmed by admin
+                        </p>
+                        {project.dateConfirmed ? (
+                          <p className="text-sm font-semibold text-slate-900">
+                            {new Date(project.dateConfirmed).toLocaleString("en-US", {
+                              timeZone: "America/New_York",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}{" "}
+                            EST
+                          </p>
+                        ) : (
+                          <p className="text-sm text-slate-400">Not yet confirmed</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Finished by admin */}
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${project.dateFinish ? "bg-green-50" : "bg-slate-100"}`}>
+                        <CheckCircle2 className={`w-4 h-4 ${project.dateFinish ? "text-green-500" : "text-slate-300"}`} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium mb-0.5">
+                          Finished by admin
+                        </p>
+                        {project.dateFinish ? (
+                          <p className="text-sm font-semibold text-slate-900">
+                            {new Date(project.dateFinish).toLocaleString("en-US", {
+                              timeZone: "America/New_York",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}{" "}
+                            EST
+                          </p>
+                        ) : (
+                          <p className="text-sm text-slate-400">Not yet finished</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* ---- Summary Stats ---- */}
           </div>

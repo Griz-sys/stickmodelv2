@@ -81,7 +81,18 @@ export async function PATCH(
     if (user.role === 'admin') {
       // Strip email-only fields before passing to Prisma
       const { sendEmailNotification, emailSubject, emailBody, emailBcc, ...projectData } = body;
+
+      // Stamp dateConfirmed the first time admin moves status to in_progress.
+      // Done via raw SQL to avoid any cached-client schema mismatch issues.
+      const shouldSetConfirmed =
+        projectData.status === 'in_progress' &&
+        !(existing as Record<string, unknown>).dateConfirmed;
+
       const project = await prisma.project.update({ where: { id }, data: projectData });
+
+      if (shouldSetConfirmed) {
+        await prisma.$executeRaw`UPDATE projects SET "dateConfirmed" = NOW() WHERE id = ${id}`;
+      }
 
       // Send project finished email if status changed to finished
       if (projectData.status === 'finished' && sendEmailNotification && existing.userId) {
