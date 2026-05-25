@@ -179,6 +179,123 @@ export async function sendDeliverableUploadNotification(
 }
 
 /**
+ * Send email to admins when a user requests a new step
+ */
+export async function sendStepRequestNotification(
+  projectId: string,
+  projectName: string,
+  userName: string,
+  userEmail: string,
+  stepLabel: string,
+  fileName?: string,
+  budgetNote?: string
+) {
+  const adminEmails = process.env.ADMIN_EMAIL_RECIPIENTS?.split(',').map((e) =>
+    e.trim()
+  ) || [];
+
+  if (adminEmails.length === 0) {
+    console.warn('No admin emails configured');
+    return;
+  }
+
+  const recipients: EmailRecipient[] = adminEmails.map((email) => ({
+    address: email,
+    name: 'StickModel Admin',
+  }));
+
+  const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/requests/${projectId}`;
+
+  await sendEmail({
+    to: recipients,
+    subject: `🆕 Step Request: ${projectName}`,
+    html: `
+      <h2>New Step Request from Client</h2>
+      <p><strong>Project:</strong> ${projectName}</p>
+      <p><strong>Client:</strong> ${userName} (${userEmail})</p>
+      <p><strong>Step Name:</strong> ${stepLabel}</p>
+      ${fileName ? `<p><strong>File Attached:</strong> ${fileName}</p>` : '<p><strong>File:</strong> None uploaded</p>'}
+      ${budgetNote ? `<p><strong>Client Budget Note:</strong> ${budgetNote}</p>` : ''}
+      <hr />
+      <p>Please review and set charges for this step.</p>
+      <p>
+        <a href="${projectUrl}" style="
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #ff5a1f;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+        ">View Project</a>
+      </p>
+    `,
+    replyTo: {
+      address: userEmail,
+      name: userName,
+    },
+  });
+}
+
+/**
+ * Send email to admins when a user adds/updates a note on their project
+ */
+export async function sendNoteAddedNotification(
+  projectId: string,
+  projectName: string,
+  userName: string,
+  userEmail: string,
+  note: string
+) {
+  const adminEmails = process.env.ADMIN_EMAIL_RECIPIENTS?.split(',').map((e) =>
+    e.trim()
+  ) || [];
+
+  if (adminEmails.length === 0) {
+    console.warn('No admin emails configured');
+    return;
+  }
+
+  const recipients: EmailRecipient[] = adminEmails.map((email) => ({
+    address: email,
+    name: 'StickModel Admin',
+  }));
+
+  const projectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/requests/${projectId}`;
+  const escapedNote = note
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br />');
+
+  await sendEmail({
+    to: recipients,
+    subject: `📝 New Note from Client: ${projectName}`,
+    html: `
+      <h2>Client Added a Note</h2>
+      <p><strong>Project:</strong> ${projectName}</p>
+      <p><strong>Client:</strong> ${userName} (${userEmail})</p>
+      <p><strong>Note:</strong></p>
+      <blockquote style="border-left: 3px solid #ff5a1f; padding-left: 12px; color: #444;">${escapedNote}</blockquote>
+      <hr />
+      <p>
+        <a href="${projectUrl}" style="
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #ff5a1f;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+        ">View Project</a>
+      </p>
+    `,
+    replyTo: {
+      address: userEmail,
+      name: userName,
+    },
+  });
+}
+
+/**
  * Send email to admins when a user downloads a deliverable
  */
 export async function sendDeliverableDownloadNotification(

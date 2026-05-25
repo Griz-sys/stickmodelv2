@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { sendStepRequestNotification } from '@/lib/email';
 
 // GET - list all steps for a project
 export async function GET(
@@ -46,12 +47,12 @@ export async function POST(
     const project = await prisma.project.findUnique({ where: { id } });
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 
-    if (user.role !== 'admin') {
-      return NextResponse.json({ error: 'Only admins can create steps' }, { status: 403 });
+    if (user.role !== 'admin' && project.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
-    const { userLabel, userFileName, userFileUrl, userFileSize, userFileType } = body;
+    const { userLabel, userFileName, userFileUrl, userFileSize, userFileType, userBudgetNote } = body;
 
     if (!userLabel || !userLabel.trim()) {
       return NextResponse.json({ error: 'Step label is required' }, { status: 400 });
@@ -75,6 +76,22 @@ export async function POST(
         userFileType: userFileType ?? null,
       },
     });
+
+    // Notify admins when a client requests a new step
+    if (user.role !== 'admin') {
+      const userInfo = await prisma.user.findUnique({ where: { id: user.id } });
+      if (userInfo) {
+        await sendStepRequestNotification(
+          id,
+          project.name,
+          userInfo.name,
+          userInfo.email,
+          userLabel.trim(),
+          userFileName,
+          userBudgetNote
+        );
+      }
+    }
 
     return NextResponse.json({ step }, { status: 201 });
   } catch (error) {

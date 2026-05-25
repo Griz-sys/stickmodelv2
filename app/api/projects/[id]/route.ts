@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { sendUserFileUploadNotification, sendDeliverableUploadNotification, sendProjectFinishedNotification } from '@/lib/email';
+import { sendUserFileUploadNotification, sendDeliverableUploadNotification, sendProjectFinishedNotification, sendNoteAddedNotification } from '@/lib/email';
 
 // Get a single project
 export async function GET(
@@ -156,19 +156,29 @@ export async function PATCH(
     }
 
     const project = await prisma.project.update({ where: { id }, data: updateData });
-    
+
+    const userInfo = await prisma.user.findUnique({ where: { id: existing.userId! } });
+
     // Send email to admins if user uploaded initial file
-    if (body.userFileName && existing.userId) {
-      const userInfo = await prisma.user.findUnique({ where: { id: existing.userId } });
-      if (userInfo) {
-        await sendUserFileUploadNotification(
-          existing.name,
-          userInfo.name,
-          userInfo.email,
-          body.userFileName,
-          'Initial Submission'
-        );
-      }
+    if (body.userFileName && userInfo) {
+      await sendUserFileUploadNotification(
+        existing.name,
+        userInfo.name,
+        userInfo.email,
+        body.userFileName,
+        'Initial Submission'
+      );
+    }
+
+    // Send email to admins if user added/updated a note
+    if (body.notes && userInfo) {
+      await sendNoteAddedNotification(
+        id,
+        existing.name,
+        userInfo.name,
+        userInfo.email,
+        body.notes
+      );
     }
     
     return NextResponse.json({ project });

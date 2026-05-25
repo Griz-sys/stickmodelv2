@@ -23,14 +23,14 @@ export async function PATCH(
 
     if (user.role === 'admin') {
       const updated = await prisma.projectStep.update({ where: { id: stepId }, data: body });
-      
+
       // Send email to user if admin uploaded deliverable
       if (body.adminFileName) {
         const project = await prisma.project.findUnique({
           where: { id },
           include: { user: true },
         });
-        
+
         if (project?.user) {
           const stepLabel = step.userLabel;
           await sendDeliverableUploadNotification(
@@ -43,11 +43,26 @@ export async function PATCH(
           );
         }
       }
-      
+
       return NextResponse.json({ step: updated });
     }
 
-    return NextResponse.json({ error: 'Only admins can update steps' }, { status: 403 });
+    // Project owner can update only their own file fields
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (project?.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const allowedKeys = ['userFileName', 'userFileUrl', 'userFileSize', 'userFileType'];
+    const updateData: Record<string, unknown> = {};
+    for (const key of allowedKeys) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) {
+        updateData[key] = body[key];
+      }
+    }
+
+    const updated = await prisma.projectStep.update({ where: { id: stepId }, data: updateData });
+    return NextResponse.json({ step: updated });
   } catch (error) {
     console.error('Update step error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

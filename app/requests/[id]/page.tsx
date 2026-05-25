@@ -168,6 +168,7 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [showAddStepModal, setShowAddStepModal] = useState(false);
   const [newStepLabel, setNewStepLabel] = useState("");
   const [newStepFile, setNewStepFile] = useState<File | null>(null);
+  const [newStepBudget, setNewStepBudget] = useState("");
   const [isCreatingStep, setIsCreatingStep] = useState(false);
 
   // Per-step price inputs
@@ -249,8 +250,7 @@ export default function RequestDetailPage({ params }: PageProps) {
         }),
       });
       if (response.ok) {
-        const data = await response.json();
-        setProject(data.project);
+        await fetchProject();
       }
     } catch (error) {
       console.error("Failed to update status:", error);
@@ -289,8 +289,7 @@ export default function RequestDetailPage({ params }: PageProps) {
         }),
       });
       if (response.ok) {
-        const data = await response.json();
-        setProject(data.project);
+        await fetchProject();
         setShowFinishModal(false);
       }
     } catch (error) {
@@ -316,8 +315,7 @@ export default function RequestDetailPage({ params }: PageProps) {
         body: JSON.stringify({ cost: parsed }),
       });
       if (response.ok) {
-        const data = await response.json();
-        setProject(data.project);
+        await fetchProject();
       }
     } catch (error) {
       console.error("Failed to set price:", error);
@@ -342,8 +340,7 @@ export default function RequestDetailPage({ params }: PageProps) {
         const error = await response.json();
         throw new Error(error.error || "Failed to save note");
       }
-      const data = await response.json();
-      setProject(data.project);
+      await fetchProject();
     } catch (error) {
       console.error("Failed to save notes:", error);
       alert(error instanceof Error ? error.message : "Failed to save note");
@@ -383,8 +380,7 @@ export default function RequestDetailPage({ params }: PageProps) {
           }),
         });
         if (!patchRes.ok) throw new Error("Failed to save file info");
-        const data = await patchRes.json();
-        setProject(data.project);
+        await fetchProject();
       } else {
         const patchRes = await fetch(
           `/api/projects/${project.id}/steps/${deliverableTarget.stepId}`,
@@ -427,8 +423,7 @@ export default function RequestDetailPage({ params }: PageProps) {
         }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setProject(data.project);
+        await fetchProject();
       }
     } catch (error) {
       console.error("Remove project deliverable failed:", error);
@@ -499,7 +494,10 @@ export default function RequestDetailPage({ params }: PageProps) {
       const createRes = await fetch(`/api/projects/${project.id}/steps`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userLabel: newStepLabel.trim() }),
+        body: JSON.stringify({
+          userLabel: newStepLabel.trim(),
+          userBudgetNote: newStepBudget.trim() || undefined,
+        }),
       });
       if (!createRes.ok) {
         const err = await createRes.json();
@@ -538,6 +536,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       await fetchProject();
       setNewStepLabel("");
       setNewStepFile(null);
+      setNewStepBudget("");
       setShowAddStepModal(false);
     } catch (error) {
       console.error("Add step failed:", error);
@@ -573,8 +572,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       });
 
       if (patchRes.ok) {
-        const data = await patchRes.json();
-        setProject(data.project);
+        await fetchProject();
       }
 
       setVideoFile(null);
@@ -875,7 +873,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-orange-500 rounded-full inline-block" />
-                    {isAdmin ? "Project Steps" : "Your Steps"}
+                    {isAdmin ? "Project Submissions" : "Your Submissions"}
                   </h2>
                   <span className="text-xs text-slate-500 bg-white border border-slate-200 rounded-full px-2.5 py-0.5 font-medium">
                     {1 + (project.steps?.length ?? 0)} step
@@ -884,11 +882,11 @@ export default function RequestDetailPage({ params }: PageProps) {
                 </div>
 
                 <div className="p-4 space-y-4">
-                  {/* ── Initial Submission (project-level fields) ── */}
+                  {/* ── Submission 1 (project-level fields) ── */}
                   <div className="rounded-xl border border-slate-200 overflow-hidden">
                     <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                       <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                        Initial Submission
+                        Submission 1
                       </span>
                       <span className="text-xs text-slate-400">
                         {formatDate(new Date(project.dateUpload))}
@@ -1101,10 +1099,10 @@ export default function RequestDetailPage({ params }: PageProps) {
                     >
                       <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                          Step {step.order} ·{" "}
-                          <span className="text-orange-600 normal-case">
-                            {step.userLabel}
-                          </span>
+                          Submission {step.order + 1}
+                          {step.userLabel && (
+                            <span className="text-orange-600 normal-case font-normal ml-1">· {step.userLabel}</span>
+                          )}
                         </span>
                         <div className="flex items-center gap-2">
                           {step.isPaid && (
@@ -1312,16 +1310,14 @@ export default function RequestDetailPage({ params }: PageProps) {
                     </div>
                   ))}
 
-                  {/* ── Add New Step button (always visible) ── */}
-                  {isAdmin && (
-                    <button
-                      onClick={() => setShowAddStepModal(true)}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Step (on behalf of client)
-                    </button>
-                  )}
+                  {/* ── Add New Step button ── */}
+                  <button
+                    onClick={() => setShowAddStepModal(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50 text-sm font-medium text-slate-500 hover:text-orange-600 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isAdmin ? "Add Step (on behalf of client)" : "Request Additional Step"}
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -1488,26 +1484,12 @@ export default function RequestDetailPage({ params }: PageProps) {
                       </div>
                     </div>
                   )}
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Calendar className="w-4 h-4 text-slate-500" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 font-medium mb-0.5">
-                        Uploaded
-                      </p>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {formatDate(new Date(project.dateUpload))}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* ---- Project Timeline (admin only) ---- */}
-            {isAdmin && (
-              <motion.div
+            {/* ---- Project Timeline ---- */}
+            <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
@@ -1600,8 +1582,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
+            </motion.div>
 
             {/* ---- Summary Stats ---- */}
           </div>
@@ -1757,82 +1738,104 @@ export default function RequestDetailPage({ params }: PageProps) {
       )}
 
       {/* ---- Add New Step Modal ---- */}
-      {isAdmin && (
-        <Modal
-          isOpen={showAddStepModal}
-          onClose={() => {
-            setShowAddStepModal(false);
-            setNewStepLabel("");
-            setNewStepFile(null);
-          }}
-          title="Add New Step"
-        >
-          <div className="space-y-4">
+      <Modal
+        isOpen={showAddStepModal}
+        onClose={() => {
+          setShowAddStepModal(false);
+          setNewStepLabel("");
+          setNewStepFile(null);
+          setNewStepBudget("");
+        }}
+        title={isAdmin ? "Add New Step" : "Request Additional Step"}
+      >
+        <div className="space-y-4">
+          {!isAdmin && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-900">Submit a new step request</p>
+              <p className="mt-1 text-xs text-blue-700">
+                Describe what you need, attach a file if relevant, and indicate your budget. The admin will review and confirm charges.
+              </p>
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-2">
+              Step Label <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={newStepLabel}
+              onChange={(e) => setNewStepLabel(e.target.value)}
+              placeholder="e.g. Level 2 Foundation Plans"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 mb-2">
+              File{" "}
+              <span className="text-slate-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files?.[0]) setNewStepFile(e.target.files[0]);
+              }}
+              className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {newStepFile && (
+              <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-400" />
+                {newStepFile.name} (
+                {(newStepFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
+          {!isAdmin && (
             <div>
               <label className="block text-sm font-medium text-slate-900 mb-2">
-                Step Label <span className="text-red-500">*</span>
+                Additional Notes{" "}
+                <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <Input
                 type="text"
-                value={newStepLabel}
-                onChange={(e) => setNewStepLabel(e.target.value)}
-                placeholder="e.g. Level 2 Foundation Plans"
+                value={newStepBudget}
+                onChange={(e) => setNewStepBudget(e.target.value)}
+                placeholder="Any extra details for this step..."
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-900 mb-2">
-                File{" "}
-                <span className="text-slate-400 font-normal">(optional)</span>
-              </label>
-              <input
-                type="file"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) setNewStepFile(e.target.files[0]);
-                }}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              {newStepFile && (
-                <p className="mt-2 text-sm text-slate-600 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  {newStepFile.name} (
-                  {(newStepFile.size / 1024 / 1024).toFixed(2)} MB)
-                </p>
+          )}
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={() => {
+                setShowAddStepModal(false);
+                setNewStepLabel("");
+                setNewStepFile(null);
+                setNewStepBudget("");
+              }}
+              variant="secondary"
+              className="flex-1"
+              disabled={isCreatingStep}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddStep}
+              disabled={!newStepLabel.trim() || isCreatingStep}
+              className="flex-1 gap-2"
+            >
+              {isCreatingStep ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {isAdmin ? "Adding..." : "Submitting..."}
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  {isAdmin ? "Add Step" : "Submit Request"}
+                </>
               )}
-            </div>
-            <div className="flex gap-3 pt-2">
-              <Button
-                onClick={() => {
-                  setShowAddStepModal(false);
-                  setNewStepLabel("");
-                  setNewStepFile(null);
-                }}
-                variant="secondary"
-                className="flex-1"
-                disabled={isCreatingStep}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddStep}
-                disabled={!newStepLabel.trim() || isCreatingStep}
-                className="flex-1 gap-2"
-              >
-                {isCreatingStep ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    Add Step
-                  </>
-                )}
-              </Button>
-            </div>
+            </Button>
           </div>
-        </Modal>
-      )}
+        </div>
+      </Modal>
 
       {/* ---- Video Upload Modal ---- */}
       {isAdmin && (
