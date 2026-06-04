@@ -70,13 +70,11 @@ export function SiteFooter({ dark = false }: { dark?: boolean }) {
           </span>
           <span className={`text-xs ${label}`}>·</span>
           <span className={`text-xs ${label}`}>A service of</span>
-          <a href="https://vecube.club" target="_blank" rel="noopener noreferrer">
-            <img
-              src="/vecube-logo-white-violet.png"
-              alt="Vecube"
-              className={`h-4 w-auto ${dark ? "opacity-70 hover:opacity-100" : "bg-zinc-900 rounded px-1.5 py-0.5 opacity-80 hover:opacity-100"} transition-opacity`}
-            />
-          </a>
+          <img
+            src="/vecube-logo-white-violet.png"
+            alt="Vecube"
+            className={`h-4 w-auto ${dark ? "opacity-70" : "bg-zinc-900 rounded px-1.5 py-0.5 opacity-80"}`}
+          />
         </div>
         <TermsModal dark={dark} />
       </div>
