@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, subject, message } = await request.json();
+    const { name, email, companyName, designation, subject, message } = await request.json();
 
     // Validate required fields
-    if (!name || !email || !subject || !message) {
+    if (!name || !email || !companyName || !designation || !subject || !message) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -47,8 +47,10 @@ export async function POST(request: NextRequest) {
   <h2 style="color: #E67E00;">New Contact Form Submission</h2>
   
   <div style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-left: 4px solid #E67E00;">
-    <p><strong>From:</strong> ${name}</p>
-    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Official Email:</strong> ${email}</p>
+    <p><strong>Company:</strong> ${companyName}</p>
+    <p><strong>Designation:</strong> ${designation}</p>
     <p><strong>Subject:</strong> ${subject}</p>
   </div>
   

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { HeroNav } from "@/components/hero-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FAQ_SECTIONS = [
@@ -269,44 +270,7 @@ export default function FAQPage() {
         </motion.div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/horizontal.svg"
-              alt="StickModel"
-              className="h-7 w-auto"
-            />
-          </div>
-          <div className="flex gap-8 text-sm text-slate-500">
-            <Link
-              href="/#about"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/pricing"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/faq"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

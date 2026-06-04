@@ -6,6 +6,7 @@ import { Space_Grotesk, Inter } from "next/font/google";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { HeroNav } from "@/components/hero-nav";
+import { SiteFooter } from "@/components/site-footer";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -612,98 +613,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-zinc-900 border-t border-zinc-800">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-8 py-12 flex flex-col md:flex-row gap-10 md:gap-16 justify-between items-center md:items-start">
-          <div className="space-y-5 flex flex-col items-center md:items-start">
-            <Link href="/">
-              <img
-                src="/horizontal.svg"
-                alt="StickModel"
-                className="h-8 w-auto brightness-0 invert"
-              />
-            </Link>
-            <p className="text-zinc-500 text-[11px] uppercase tracking-[0.2em] text-center md:text-left">
-              © {new Date().getFullYear()} StickModel. Precision Engineered.
-            </p>
-            <div className="flex items-center gap-2.5 pt-2 border-t border-zinc-800 w-full">
-              <span className="text-zinc-400 text-[11px] font-bold uppercase tracking-widest">
-                A service of
-              </span>
-              <a href="https://vecube.club" target="_blank" rel="noopener noreferrer">
-                <img
-                  src="/vecube-logo-white-violet.png"
-                  alt="Vecube"
-                  className="h-5 w-auto opacity-80 hover:opacity-100 transition-opacity"
-                />
-              </a>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-10 text-center md:text-left">
-            <div className="flex flex-col space-y-3">
-              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
-                Service
-              </span>
-              <Link
-                href="/about"
-                className="text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                About
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                Pricing
-              </Link>
-            </div>
-            <div className="flex flex-col space-y-3">
-              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
-                Resources
-              </span>
-              <Link
-                href="/faq"
-                className="text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                FAQ
-              </Link>
-              <Link
-                href="/terms"
-                className="text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                Terms
-              </Link>
-              <Link
-                href="/contact"
-                className="text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                Contact
-              </Link>
-            </div>
-            <div className="flex flex-col space-y-3">
-              <span className="text-white font-bold text-[10px] uppercase tracking-widest mb-1">
-                Connect
-              </span>
-              <Link
-                href="/login"
-                className="text-[#E67E00] italic transition-colors text-sm"
-              >
-                Get Started
-              </Link>
-              <a
-                href="https://www.linkedin.com/company/stick-model/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-white transition-colors text-sm flex items-center gap-1.5"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                LinkedIn
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter dark />
     </div>
   );
 }

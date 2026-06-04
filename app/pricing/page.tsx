@@ -8,37 +8,45 @@ import {
   Package,
 } from "lucide-react";
 import { HeroNav } from "@/components/hero-nav";
-import { motion, AnimatePresence } from "framer-motion";
+import { SiteFooter } from "@/components/site-footer";
+import { motion } from "framer-motion";
+
+const USD_RATE = 100; // 1 USD = 100 INR
 
 const PRICING_TIERS = [
   {
-    range: "Up to 250 MT",
-    original: "$1,000",
-    discounted: "$600",
+    range: "Up to 250 TON",
+    originalUSD: 1000,
+    discountedUSD: 600,
   },
   {
-    range: "250 - 500 MT",
-    original: "$1,500",
-    discounted: "$900",
+    range: "250 - 500 TON",
+    originalUSD: 1500,
+    discountedUSD: 900,
   },
   {
-    range: "500 - 1,000 MT",
-    original: "$2,000",
-    discounted: "$1,200",
+    range: "500 - 1,000 TON",
+    originalUSD: 2000,
+    discountedUSD: 1200,
   },
   {
-    range: ">1,000 MT",
-    original: "$2/MT",
-    discounted: "$1.2/MT",
+    range: ">1,000 TON",
+    originalUSD: null,
+    discountedUSD: null,
+    originalPerUnit: 1.8,
+    discountedPerUnit: 1,
   },
 ];
 
-const FEATURES = [];
-
-const FAQS = [];
+function formatPrice(amount: number, curr: "USD" | "INR") {
+  if (curr === "INR") {
+    return "₹" + (amount * USD_RATE).toLocaleString("en-IN");
+  }
+  return "$" + amount.toLocaleString("en-US");
+}
 
 export default function PricingPage() {
-  const [expandedFaq] = useState<number | null>(null);
+  const [currency, setCurrency] = useState<"USD" | "INR">("USD");
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -68,6 +76,22 @@ export default function PricingPage() {
             Simple weight-based pricing. All prices are per project. Pay only
             after you approve the preview.
           </p>
+
+          {/* Currency Toggle */}
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <span className={`text-sm font-semibold ${currency === "USD" ? "text-slate-900" : "text-slate-400"}`}>$ USD</span>
+            <button
+              onClick={() => setCurrency(currency === "USD" ? "INR" : "USD")}
+              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none"
+              style={{ backgroundColor: "#E67E00" }}
+            >
+              <span
+                className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300"
+                style={{ transform: currency === "INR" ? "translateX(28px)" : "translateX(0)" }}
+              />
+            </button>
+            <span className={`text-sm font-semibold ${currency === "INR" ? "text-slate-900" : "text-slate-400"}`}>₹ INR</span>
+          </div>
         </motion.div>
       </section>
 
@@ -93,10 +117,18 @@ export default function PricingPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-slate-400 line-through">
-                        {tier.original}
+                        {tier.originalUSD !== null
+                          ? formatPrice(tier.originalUSD, currency)
+                          : currency === "INR"
+                          ? `₹${(tier.originalPerUnit! * USD_RATE).toLocaleString("en-IN")}/TON`
+                          : `$${tier.originalPerUnit}/TON`}
                       </span>
                       <span className="text-3xl font-bold text-slate-900">
-                        {tier.discounted}
+                        {tier.discountedUSD !== null
+                          ? formatPrice(tier.discountedUSD, currency)
+                          : currency === "INR"
+                          ? `₹${(tier.discountedPerUnit! * USD_RATE).toLocaleString("en-IN")}/TON`
+                          : `$${tier.discountedPerUnit}/TON`}
                       </span>
                     </div>
                   </div>
@@ -139,9 +171,9 @@ export default function PricingPage() {
           <div className="text-right flex-shrink-0">
             <div className="flex items-center justify-end gap-3">
               <span className="text-sm text-slate-400 line-through">
-                $200
+                {formatPrice(200, currency)}
               </span>
-              <span className="text-2xl font-bold text-slate-900">$120</span>
+              <span className="text-2xl font-bold text-slate-900">{formatPrice(120, currency)}</span>
             </div>
             <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">
               Add to any plan
@@ -191,44 +223,7 @@ export default function PricingPage() {
         </motion.div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/horizontal.svg"
-              alt="StickModel"
-              className="h-7 w-auto"
-            />
-          </div>
-          <div className="flex gap-8 text-sm text-slate-500">
-            <Link
-              href="/#about"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/pricing"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/faq"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-[#E67E00] transition-colors"
-            >
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

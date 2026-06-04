@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 
-const publicPaths = ['/', '/login', '/signup', '/about', '/pricing', '/contact', '/faq'];
+const publicPaths = ['/', '/login', '/signup', '/about', '/pricing', '/contact', '/faq', '/terms'];
 const adminPaths = ['/admin'];
 
 export async function middleware(request: NextRequest) {
