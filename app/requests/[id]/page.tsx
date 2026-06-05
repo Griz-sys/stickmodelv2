@@ -60,6 +60,7 @@ interface ProjectStep {
   adminFileSize: number | null;
   adminFileType: string | null;
   cost: number | null;
+  currency: string;
   isPaid: boolean;
   datePayment: string | null;
   createdAt: string;
@@ -73,6 +74,7 @@ interface Project {
   dateConfirmed: string | null;
   dateFinish: string | null;
   cost: number | null;
+  currency: string;
   isPaidInitial: boolean;
   status: string;
   notes: string | null;
@@ -125,12 +127,11 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // PAYMENT DISABLED: these state vars kept to avoid removing refs in admin price/step sections
+  const [payuLoading, setPayuLoading] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  // kept to avoid breaking any remaining admin refs
   const [payingStepId] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [paypalError, setPaypalError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [paypalSuccess, setPaypalSuccess] = useState(false);
 
   // Video upload modal
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -151,6 +152,7 @@ export default function RequestDetailPage({ params }: PageProps) {
 
   // Project-level price (initial submission)
   const [priceInput, setPriceInput] = useState("");
+  const [priceCurrency, setPriceCurrency] = useState<"USD" | "INR">("USD");
   const [isSavingPrice, setIsSavingPrice] = useState(false);
 
   // Unified deliverable upload modal (initial submission OR a step)
@@ -172,9 +174,8 @@ export default function RequestDetailPage({ params }: PageProps) {
   const [isCreatingStep, setIsCreatingStep] = useState(false);
 
   // Per-step price inputs
-  const [stepPriceInputs, setStepPriceInputs] = useState<
-    Record<string, string>
-  >({});
+  const [stepPriceInputs, setStepPriceInputs] = useState<Record<string, string>>({});
+  const [stepCurrencyInputs, setStepCurrencyInputs] = useState<Record<string, "USD" | "INR">>({});
   const [savingStepPrice, setSavingStepPrice] = useState<string | null>(null);
 
   // Remove step deliverable
@@ -185,27 +186,36 @@ export default function RequestDetailPage({ params }: PageProps) {
   useEffect(() => {
     fetchCurrentUser();
     fetchProject();
-    // PAYMENT DISABLED: PayPal redirect handler commented out
-    // const params = new URLSearchParams(window.location.search);
-    // const paypalStatus = params.get("paypal");
-    // if (paypalStatus === "success") { setPaypalSuccess(true); ... }
-    // else if (paypalStatus === "error") { setPaypalError(...); }
-    // else if (paypalStatus === "cancelled") { setPaypalError(...); }
+    const searchParams = new URLSearchParams(window.location.search);
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      setPaymentSuccess(true);
+      window.history.replaceState({}, '', `/requests/${id}`);
+    } else if (paymentStatus === 'failed') {
+      setPaymentError('Payment failed or was cancelled. Please try again.');
+      window.history.replaceState({}, '', `/requests/${id}`);
+    }
   }, [id]);
 
   useEffect(() => {
     if (project?.cost !== undefined && project.cost !== null) {
       setPriceInput(String(project.cost));
     }
+    if (project?.currency) {
+      setPriceCurrency((project.currency as "USD" | "INR") || "USD");
+    }
     setNotesInput(project?.notes ?? "");
     if (project?.steps) {
       const prices: Record<string, string> = {};
+      const currencies: Record<string, "USD" | "INR"> = {};
       for (const s of project.steps) {
         if (s.cost !== null) prices[s.id] = String(s.cost);
+        currencies[s.id] = (s.currency as "USD" | "INR") || "USD";
       }
       setStepPriceInputs(prices);
+      setStepCurrencyInputs(currencies);
     }
-  }, [project?.cost, project?.notes, project?.steps]);
+  }, [project?.cost, project?.currency, project?.notes, project?.steps]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -312,7 +322,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       const response = await fetch(`/api/projects/${project.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cost: parsed }),
+        body: JSON.stringify({ cost: parsed, currency: priceCurrency }),
       });
       if (response.ok) {
         await fetchProject();
@@ -441,6 +451,37 @@ export default function RequestDetailPage({ params }: PageProps) {
     }).catch(() => {});
   };
 
+  const handlePayWithPayU = async (stepId?: string) => {
+    if (!project) return;
+    setPayuLoading(true);
+    try {
+      const res = await fetch('/api/payu/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, stepId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to initiate payment');
+
+      // Submit the form directly to PayU (replaces the current page)
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = data.payuUrl;
+      Object.entries(data.fields as Record<string, string>).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      setPayuLoading(false);
+      setPaymentError(err instanceof Error ? err.message : 'Payment initiation failed');
+    }
+  };
+
   const handleRemoveStepDeliverable = async (stepId: string) => {
     if (!project) return;
     setRemovingStepDeliverable(stepId);
@@ -474,7 +515,7 @@ export default function RequestDetailPage({ params }: PageProps) {
       const res = await fetch(`/api/projects/${project.id}/steps/${stepId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cost: parsed }),
+        body: JSON.stringify({ cost: parsed, currency: stepCurrencyInputs[stepId] || "USD" }),
       });
       if (!res.ok) throw new Error("Failed to save price");
       await fetchProject();
@@ -588,8 +629,6 @@ export default function RequestDetailPage({ params }: PageProps) {
   const isAdmin = currentUser?.role === "admin";
   const backUrl = isAdmin ? "/admin" : "/home";
 
-  // PAYMENT DISABLED: handlePayWithPayPal commented out
-  // const handlePayWithPayPal = async (stepId?: string) => { ... };
 
   const handleLogout = async () => {
     try {
@@ -693,7 +732,34 @@ export default function RequestDetailPage({ params }: PageProps) {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* PAYMENT DISABLED: PayPal return banners hidden */}
+        {/* Payment result banners */}
+        {paymentSuccess && (
+          <div className="mb-6 flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-green-800">Payment successful!</p>
+              <p className="text-xs text-green-700 mt-0.5">Your file is now ready to download below.</p>
+            </div>
+            <button
+              onClick={() => setPaymentSuccess(false)}
+              className="ml-auto text-green-500 hover:text-green-700 text-xs font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        {paymentError && (
+          <div className="mb-6 flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm font-medium text-red-800">{paymentError}</p>
+            <button
+              onClick={() => setPaymentError(null)}
+              className="ml-auto text-red-500 hover:text-red-700 text-xs font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
@@ -972,8 +1038,8 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 </button>
                               </div>
                             </div>
-                          ) : (
-                            /* PAYMENT DISABLED: user sees download directly when deliverable is available */
+                          ) : project.adminFileUrl ? (
+                            /* Paid (or free): show direct download */
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -996,6 +1062,35 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 <Download className="w-3 h-3" />
                                 Download
                               </a>
+                            </div>
+                          ) : (
+                            /* Unpaid: show price + Pay & Download */
+                            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <Lock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <span className="text-sm font-medium text-slate-800 truncate block">
+                                    {project.adminFileName}
+                                  </span>
+                                  {project.cost !== null && (
+                                    <span className="text-xs text-amber-700 font-semibold">
+                                      {project.currency === "INR" ? "₹" : "$"}{project.cost.toLocaleString()} {project.currency} to unlock
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handlePayWithPayU()}
+                                disabled={payuLoading}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold transition-all flex-shrink-0 ml-2"
+                              >
+                                {payuLoading ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <CreditCard className="w-3 h-3" />
+                                )}
+                                Pay & Download
+                              </button>
                             </div>
                           )
                         ) : (
@@ -1032,12 +1127,27 @@ export default function RequestDetailPage({ params }: PageProps) {
                       {isAdmin && (
                         <div>
                           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
-                            Step Price
+                            Price
                           </p>
+                          {/* Currency toggle */}
+                          <div className="flex items-center gap-1 mb-2">
+                            <button
+                              onClick={() => setPriceCurrency("USD")}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${priceCurrency === "USD" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                            >
+                              $ USD
+                            </button>
+                            <button
+                              onClick={() => setPriceCurrency("INR")}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${priceCurrency === "INR" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                            >
+                              ₹ INR
+                            </button>
+                          </div>
                           <div className="flex items-center gap-2">
                             <div className="relative flex-1">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">
-                                $
+                                {priceCurrency === "INR" ? "₹" : "$"}
                               </span>
                               <input
                                 type="number"
@@ -1064,7 +1174,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                           </div>
                           {project.cost !== null && (
                             <p className="mt-1.5 text-xs text-green-700 font-medium">
-                              Current: ${project.cost.toLocaleString()}
+                              Current: {project.currency === "INR" ? "₹" : "$"}{project.cost.toLocaleString()} {project.currency}
                             </p>
                           )}
                         </div>
@@ -1079,7 +1189,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                             <div className="flex items-baseline gap-2 mb-2">
                               <span className="text-2xl font-bold text-slate-900">
-                                ${project.cost.toLocaleString()}
+                                {project.currency === "INR" ? "₹" : "$"}{project.cost.toLocaleString()} <span className="text-sm font-medium text-slate-500">{project.currency}</span>
                               </span>
                             </div>
                             <p className="text-sm text-slate-600">
@@ -1158,7 +1268,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                             Deliverable
                           </p>
                           {step.adminFileName && step.adminFileUrl ? (
-                            /* Deliverable available + PAID → show download */
+                            /* File accessible: paid or free */
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -1202,7 +1312,37 @@ export default function RequestDetailPage({ params }: PageProps) {
                                 )}
                               </div>
                             </div>
-                          ) : ( /* PAYMENT DISABLED: payment gate removed */
+                          ) : step.adminFileName && !step.adminFileUrl ? (
+                            /* File exists but locked behind payment */
+                            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <Lock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <span className="text-sm font-medium text-slate-800 truncate block">
+                                    {step.adminFileName}
+                                  </span>
+                                  {step.cost !== null && (
+                                    <span className="text-xs text-amber-700 font-semibold">
+                                      {step.currency === "INR" ? "₹" : "$"}{step.cost.toLocaleString()} {step.currency} to unlock
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handlePayWithPayU(step.id)}
+                                disabled={payuLoading}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold transition-all flex-shrink-0 ml-2"
+                              >
+                                {payuLoading ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <CreditCard className="w-3 h-3" />
+                                )}
+                                Pay & Download
+                              </button>
+                            </div>
+                          ) : (
+                            /* No deliverable yet */
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                               <span className="text-sm text-slate-400">
                                 No deliverable yet
@@ -1244,10 +1384,25 @@ export default function RequestDetailPage({ params }: PageProps) {
                             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
                               Step Price
                             </p>
+                            {/* Currency toggle */}
+                            <div className="flex items-center gap-1 mb-2">
+                              <button
+                                onClick={() => setStepCurrencyInputs((prev) => ({ ...prev, [step.id]: "USD" }))}
+                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${(stepCurrencyInputs[step.id] ?? "USD") === "USD" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                              >
+                                $ USD
+                              </button>
+                              <button
+                                onClick={() => setStepCurrencyInputs((prev) => ({ ...prev, [step.id]: "INR" }))}
+                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${(stepCurrencyInputs[step.id] ?? "USD") === "INR" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                              >
+                                ₹ INR
+                              </button>
+                            </div>
                             <div className="flex items-center gap-2">
                               <div className="relative flex-1">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">
-                                  $
+                                  {(stepCurrencyInputs[step.id] ?? "USD") === "INR" ? "₹" : "$"}
                                 </span>
                                 <input
                                   type="number"
@@ -1282,7 +1437,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                             </div>
                             {step.cost !== null && (
                               <p className="mt-1.5 text-xs text-green-700 font-medium">
-                                Current: ${step.cost.toLocaleString()}
+                                Current: {step.currency === "INR" ? "₹" : "$"}{step.cost.toLocaleString()} {step.currency}
                               </p>
                             )}
                           </div>
@@ -1297,7 +1452,7 @@ export default function RequestDetailPage({ params }: PageProps) {
                             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                               <div className="flex items-baseline gap-2 mb-2">
                                 <span className="text-2xl font-bold text-slate-900">
-                                  ${step.cost.toLocaleString()}
+                                  {step.currency === "INR" ? "₹" : "$"}{step.cost.toLocaleString()} <span className="text-sm font-medium text-slate-500">{step.currency}</span>
                                 </span>
                               </div>
                               <p className="text-sm text-slate-600">

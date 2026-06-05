@@ -42,9 +42,28 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // PAYMENT DISABLED: always expose download URLs to project owner regardless of payment status
-    // TODO: re-enable payment gating when payment flow is re-activated
-    // if (user.role !== 'admin') { ... strip adminFileUrl based on isPaidInitial / step.isPaid ... }
+    // Payment gating: non-admin users only see adminFileUrl when they have paid (or there's no cost)
+    if (user.role !== 'admin') {
+      let gated = project as Record<string, unknown>;
+
+      if (gated.cost && (gated.cost as number) > 0 && !gated.isPaidInitial) {
+        gated = { ...gated, adminFileUrl: null };
+      }
+
+      if (Array.isArray(gated.steps)) {
+        gated = {
+          ...gated,
+          steps: (gated.steps as Array<Record<string, unknown>>).map((step) => {
+            if (step.cost && (step.cost as number) > 0 && !step.isPaid) {
+              return { ...step, adminFileUrl: null };
+            }
+            return step;
+          }),
+        };
+      }
+
+      return NextResponse.json({ project: gated });
+    }
 
     return NextResponse.json({ project });
   } catch (error) {

@@ -47,6 +47,7 @@ model Project {
   dateFinish    DateTime?
   datePayment   DateTime?
   cost         Float?
+  currency     String   @default("USD") // "USD" | "INR"
   isPaidInitial Boolean  @default(false) // Track if initial submission has been paid
   downloadLink String?
   uploadLink   String?
@@ -96,8 +97,9 @@ model ProjectStep {
   adminFileSize Int?
   adminFileType String?
 
-  // Per-step cost/payment (placeholder)
+  // Per-step cost/payment
   cost        Float?
+  currency    String    @default("USD") // "USD" | "INR"
   isPaid      Boolean   @default(false)
   datePayment DateTime?
 
