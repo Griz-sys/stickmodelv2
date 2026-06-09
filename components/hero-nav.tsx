@@ -15,6 +15,12 @@ export function HeroNav() {
         </Link>
         <div className="hidden md:flex items-center gap-10">
           <Link
+            href="/about"
+            className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
+          >
+            About
+          </Link>
+          <Link
             href="/pricing"
             className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
           >
@@ -71,6 +77,13 @@ export function HeroNav() {
             className="md:hidden bg-white border-t border-stone-100 overflow-hidden"
           >
             <div className="flex flex-col px-6 py-4 gap-4">
+              <Link
+                href="/about"
+                className="text-stone-600 font-medium text-sm uppercase tracking-widest py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
+              </Link>
               <Link
                 href="/pricing"
                 className="text-stone-600 font-medium text-sm uppercase tracking-widest py-2"

@@ -53,7 +53,12 @@ export function AuthenticatedNav() {
     "/contact",
     "/faq",
   ];
-  if (pagesWithoutNav.includes(pathname) || pathname.startsWith("/requests/")) {
+  if (
+    pagesWithoutNav.includes(pathname) ||
+    pathname.startsWith("/requests/") ||
+    pathname.startsWith("/about") ||
+    pathname === "/terms"
+  ) {
     return null;
   }
 
