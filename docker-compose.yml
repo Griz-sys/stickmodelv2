@@ -34,6 +34,9 @@ services:
       - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
       - PAYPAL_SECRET=${PAYPAL_SECRET}
       - NEXT_PUBLIC_PAYPAL_CLIENT_ID=${NEXT_PUBLIC_PAYPAL_CLIENT_ID}
+      - PAYU_ENV=${PAYU_ENV}
+      - PAYU_MERCHANT_KEY=${PAYU_MERCHANT_KEY}
+      - PAYU_MERCHANT_SALT=${PAYU_MERCHANT_SALT}
     volumes:
       - ./uploads:/app/uploads   # For any local uploads if needed
     networks:

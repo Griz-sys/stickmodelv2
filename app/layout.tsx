@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
+import Script from "next/script";
 import { AuthenticatedNav } from "@/components/auth/authenticated-nav";
 import "./globals.css";
 
@@ -29,6 +30,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={beVietnamPro.variable}>
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-WNYVYDR25Z"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-WNYVYDR25Z');
+          `}
+        </Script>
+      </head>
       <body className="antialiased bg-[#fafaf8] min-h-screen">
         {/* Authenticated Navigation (only shows on protected pages) */}
         <AuthenticatedNav />

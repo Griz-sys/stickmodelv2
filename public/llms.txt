@@ -1,0 +1,29 @@
+# StickModel
+
+> StickModel converts 2D structural drawings (DWG or PDF) into accurate wireframe and stick models for construction estimation, BIM workflows, and Tekla PowerFab. Fast turnaround, worldwide service.
+
+## What we do
+
+StickModel is a professional structural modelling service. Clients upload 2D drawings and receive 3D wireframe or estimation models within 24 hours. Output is compatible with BIM, ABM, and Tekla PowerFab pipelines and is used by structural engineers, estimators, and steel fabricators globally.
+
+## Key pages
+
+- [Home](https://stickmodel.com/): Overview of the service
+- [About](https://stickmodel.com/about): How StickModel works and why clients use it
+- [Wireframe models](https://stickmodel.com/about/wireframe-models): Wireframe model creation from structural drawings
+- [Estimation models](https://stickmodel.com/about/estimation-models): Quantity and estimation model service
+- [3D model from 2D drawing](https://stickmodel.com/about/3d-model-from-2d-drawing): Process for converting 2D plans to 3D
+- [BIM & Tekla PowerFab integration](https://stickmodel.com/about/bim-integration): Compatibility with BIM and Tekla PowerFab workflows
+- [Pricing](https://stickmodel.com/pricing): Service tiers and pricing
+- [FAQ](https://stickmodel.com/faq): Common questions about the service
+- [Contact](https://stickmodel.com/contact): Get in touch or request a quote
+- [Terms & Conditions](https://stickmodel.com/terms): Legal policies
+
+## Key facts
+
+- Input formats accepted: DWG, PDF
+- Output: 3D wireframe / stick models (.glb and compatible formats)
+- Typical turnaround: 24 hours
+- Integrations: BIM, ABM, Tekla PowerFab
+- Customers: structural engineers, estimators, steel fabricators
+- Service area: worldwide
