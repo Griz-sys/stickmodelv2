@@ -43,7 +43,7 @@ export function Dropzone({
 
       const droppedFiles = Array.from(e.dataTransfer.files).filter((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        return ext === "pdf" && file.size <= maxSize;
+        return (ext === "pdf" || ext === "zip") && file.size <= maxSize;
       });
 
       // Only take the first file
@@ -88,7 +88,7 @@ export function Dropzone({
         <input
           type="file"
           className="sr-only"
-          accept=".pdf"
+          accept=".pdf,.zip"
           onChange={handleFileInput}
           disabled={disabled}
         />
