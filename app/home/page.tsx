@@ -1134,7 +1134,7 @@ function QueueItem({
       }}
       className="flex items-center gap-2.5 px-3 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm select-none cursor-default hover:border-slate-300 transition-colors group"
       style={{ listStyle: "none" }}
-      whileDrag={{ scale: 1.02, shadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+      whileDrag={{ scale: 1.02, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
     >
       {/* Drag handle */}
       <button
