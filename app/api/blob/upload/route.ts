@@ -34,25 +34,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate content type
-    const allowedContentTypes = [
-      'application/pdf',
-      'application/zip',
-      'application/x-zip-compressed',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'video/mp4',
-      'video/quicktime',
-      'video/x-msvideo',
-      'video/webm',
-    ];
+    const MAX_SIZE = 1024 * 1024 * 1024; // 1GB
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: 'File exceeds the 1 GB size limit' },
+        { status: 413 }
+      );
+    }
 
-    if (!allowedContentTypes.includes(file.type)) {
+    // Validate content type
+    const isAllowed =
+      file.type.startsWith('image/') ||
+      [
+        'application/pdf',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/octet-stream',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'video/mp4',
+        'video/quicktime',
+        'video/x-msvideo',
+        'video/webm',
+      ].includes(file.type);
+
+    if (!isAllowed) {
       return NextResponse.json(
         { error: `Content type ${file.type} not allowed` },
         { status: 400 }

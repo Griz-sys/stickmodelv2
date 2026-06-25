@@ -57,6 +57,7 @@ model Project {
   status       String    @default("waiting_for_confirmation") // waiting_for_confirmation | in_progress | issue | finished
   userId       String?
   notes        String?
+  queueOrder   Int?     // User-defined queue priority (lower = higher priority)
 
   // Initial submission (original upload)
   userFileName String?

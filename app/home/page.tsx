@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,13 +12,13 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { Dropzone } from "@/components/upload/dropzone";
 import { formatRelativeTime, formatFileSize, cn } from "@/lib/utils";
+import JSZip from "jszip";
+import { Reorder, useDragControls } from "framer-motion";
 import {
   ArrowRight,
   ChevronRight,
-  Clock,
   FileStack,
   History,
-  RefreshCw,
   Sparkles,
   Search,
   ArrowUpDown,
@@ -27,6 +27,10 @@ import {
   ExternalLink,
   Loader2,
   LogOut,
+  GripVertical,
+  ListOrdered,
+  Check,
+  Lock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -52,6 +56,7 @@ interface Project {
   notes: string | null;
   userId: string;
   videoUrl: string | null;
+  queueOrder: number | null;
   _count?: {
     submissions: number;
   };
@@ -59,7 +64,6 @@ interface Project {
 
 interface UploadedFile {
   file: File;
-  preview?: string;
 }
 
 const STATUS_FILTERS: { value: RequestStatus | "all"; label: string }[] = [
@@ -69,6 +73,11 @@ const STATUS_FILTERS: { value: RequestStatus | "all"; label: string }[] = [
   { value: "finished", label: "Finished" },
 ];
 
+// Projects that are waiting for confirmation (may be stored as either value)
+function isWaiting(status: string) {
+  return status === "uploaded" || status === "waiting_for_confirmation";
+}
+
 export default function HomePage() {
   const router = useRouter();
 
@@ -77,7 +86,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Upload state
-  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [includeBOM, setIncludeBOM] = useState(false);
@@ -105,6 +114,12 @@ export default function HomePage() {
   >("all");
   const [viewAllPage, setViewAllPage] = useState(1);
 
+  // Queue state
+  const [queueItems, setQueueItems] = useState<Project[]>([]);
+  const [queueSaving, setQueueSaving] = useState(false);
+  const [queueSaved, setQueueSaved] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Fetch projects on mount
   useEffect(() => {
     fetchProjects();
@@ -125,6 +140,60 @@ export default function HomePage() {
     }
   };
 
+  // Derive queue-related project groups
+  const inProgressProjects = useMemo(
+    () => projects.filter((p) => p.status === "in_progress"),
+    [projects],
+  );
+  const waitingProjects = useMemo(
+    () => projects.filter((p) => isWaiting(p.status)),
+    [projects],
+  );
+  const hasQueue = inProgressProjects.length > 0 || waitingProjects.length > 0;
+
+  // Sync queue items whenever the count of waiting projects changes
+  useEffect(() => {
+    const sorted = [...waitingProjects].sort((a, b) => {
+      if (a.queueOrder != null && b.queueOrder != null)
+        return a.queueOrder - b.queueOrder;
+      if (a.queueOrder != null) return -1;
+      if (b.queueOrder != null) return 1;
+      return (
+        new Date(a.dateUpload).getTime() - new Date(b.dateUpload).getTime()
+      );
+    });
+    setQueueItems(sorted);
+  }, [waitingProjects.length]); // Only re-sort when count changes, not on every save
+
+  const saveQueueOrder = useCallback(async (items: Project[]) => {
+    if (items.length === 0) return;
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      setQueueSaving(true);
+      try {
+        await fetch("/api/projects/queue", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderedIds: items.map((p) => p.id) }),
+        });
+        setQueueSaved(true);
+        setTimeout(() => setQueueSaved(false), 2500);
+      } catch (error) {
+        console.error("Failed to save queue order:", error);
+      } finally {
+        setQueueSaving(false);
+      }
+    }, 600);
+  }, []);
+
+  const handleQueueReorder = useCallback(
+    (newItems: Project[]) => {
+      setQueueItems(newItems);
+      saveQueueOrder(newItems);
+    },
+    [saveQueueOrder],
+  );
+
   const activeRequests = projects.filter(
     (r) =>
       r.status !== "finished" ||
@@ -139,21 +208,33 @@ export default function HomePage() {
   );
   const isNewUser = projects.length === 0;
 
-  // Filter and sort requests for main view
-  const filteredAndSortedRequests = useMemo(() => {
-    const requests = activeTab === "active" ? activeRequests : pastRequests;
+  // IDs of queue projects (to exclude from the main list on active tab)
+  const queueProjectIds = useMemo(
+    () =>
+      new Set([
+        ...inProgressProjects.map((p) => p.id),
+        ...waitingProjects.map((p) => p.id),
+      ]),
+    [inProgressProjects, waitingProjects],
+  );
 
-    let filtered = requests;
+  // Filter and sort requests for main view (excludes queue items on active tab)
+  const filteredAndSortedRequests = useMemo(() => {
+    let requests =
+      activeTab === "active"
+        ? activeRequests.filter((r) => !queueProjectIds.has(r.id))
+        : pastRequests;
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = requests.filter(
+      requests = requests.filter(
         (r) =>
           r.name.toLowerCase().includes(query) ||
           r.id.toLowerCase().includes(query),
       );
     }
 
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = [...requests].sort((a, b) => {
       switch (sortBy) {
         case "date-desc":
           return (
@@ -176,7 +257,14 @@ export default function HomePage() {
     });
 
     return sorted;
-  }, [activeTab, activeRequests, pastRequests, searchQuery, sortBy]);
+  }, [
+    activeTab,
+    activeRequests,
+    pastRequests,
+    searchQuery,
+    sortBy,
+    queueProjectIds,
+  ]);
 
   // Filter and sort requests for View All modal
   const viewAllFilteredRequests = useMemo(() => {
@@ -184,12 +272,10 @@ export default function HomePage() {
 
     let filtered = requests;
 
-    // Status filter
     if (viewAllStatusFilter !== "all") {
       filtered = filtered.filter((r) => r.status === viewAllStatusFilter);
     }
 
-    // Search filter
     if (viewAllSearch.trim()) {
       const query = viewAllSearch.toLowerCase();
       filtered = filtered.filter(
@@ -199,7 +285,6 @@ export default function HomePage() {
       );
     }
 
-    // Sort
     const sorted = [...filtered].sort((a, b) => {
       switch (viewAllSort) {
         case "date-desc":
@@ -240,32 +325,29 @@ export default function HomePage() {
   );
 
   const canSubmit =
-    confirmFiles && confirmTerms && projectName.trim() && uploadedFile;
+    confirmFiles && confirmTerms && projectName.trim() && uploadedFiles.length > 0;
 
   const handleFileAdded = useCallback((files: File[]) => {
     if (files.length > 0) {
-      const file = files[0];
-      setUploadedFile({ file });
+      setUploadedFiles((prev) => {
+        // Deduplicate by name
+        const existingNames = new Set(prev.map((f) => f.file.name));
+        const newOnes = files
+          .filter((f) => !existingNames.has(f.name))
+          .map((f) => ({ file: f }));
+        return [...prev, ...newOnes];
+      });
       setShowModal(true);
     }
   }, []);
 
-  const handleReplaceFile = useCallback(() => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".pdf,.dwg,.dxf";
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        setUploadedFile({ file });
-      }
-    };
-    input.click();
+  const handleRemoveFile = useCallback((index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
-    setUploadedFile(null);
+    setUploadedFiles([]);
     setProjectName("");
     setIncludeBOM(false);
     setNotes("");
@@ -274,7 +356,7 @@ export default function HomePage() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!uploadedFile || !canSubmit) return;
+    if (uploadedFiles.length === 0 || !canSubmit) return;
 
     setIsSubmitting(true);
 
@@ -286,12 +368,11 @@ export default function HomePage() {
         body: JSON.stringify({
           name: projectName.trim(),
           notes: notes.trim() || null,
-          tonnage: includeBOM ? 0 : null, // Using tonnage to indicate BOM request
+          tonnage: includeBOM ? 0 : null,
         }),
       });
 
       if (projectResponse.status === 401) {
-        // Not authenticated - send user to home/login
         router.push("/");
         return;
       }
@@ -304,16 +385,32 @@ export default function HomePage() {
 
       const { project } = await projectResponse.json();
 
-      // Step 2: Get presigned URL from server
+      // Step 2: If multiple files, zip them; otherwise upload directly
+      let fileToUpload: File;
+      if (uploadedFiles.length === 1) {
+        fileToUpload = uploadedFiles[0].file;
+      } else {
+        const zip = new JSZip();
+        for (const { file } of uploadedFiles) {
+          zip.file(file.name, file);
+        }
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        fileToUpload = new File(
+          [zipBlob],
+          `${projectName.trim().replace(/[^a-z0-9]/gi, "_")}_files.zip`,
+          { type: "application/zip" },
+        );
+      }
+
+      // Step 3: Upload the file (single or zipped)
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+      formData.append("projectId", project.id);
+      formData.append("isAdminResponse", "false");
+
       const tokenRes = await fetch("/api/blob/upload", {
         method: "POST",
-        body: (() => {
-          const formData = new FormData();
-          formData.append("file", uploadedFile.file);
-          formData.append("projectId", project.id);
-          formData.append("isAdminResponse", "false");
-          return formData;
-        })(),
+        body: formData,
       });
 
       if (!tokenRes.ok) {
@@ -322,14 +419,16 @@ export default function HomePage() {
       }
 
       const { url: publicUrl } = await tokenRes.json();
+
+      // Step 4: Attach file to project
       const updateResponse = await fetch(`/api/projects/${project.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userFileName: uploadedFile.file.name,
+          userFileName: fileToUpload.name,
           userFileUrl: publicUrl,
-          userFileSize: uploadedFile.file.size,
-          userFileType: uploadedFile.file.type || "application/pdf",
+          userFileSize: fileToUpload.size,
+          userFileType: fileToUpload.type || "application/zip",
         }),
       });
 
@@ -340,7 +439,6 @@ export default function HomePage() {
         );
       }
 
-      // Success!
       await fetchProjects();
       handleCloseModal();
       router.push(`/requests/${project.id}`);
@@ -470,60 +568,160 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Search and Sort */}
-            {(activeRequests.length > 0 || pastRequests.length > 0) && (
-              <div className="p-3 border-b border-slate-100 flex gap-2">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search projects..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-charcoal placeholder:text-slate-400"
-                  />
+            {/* ==================== QUEUE SECTION ==================== */}
+            {hasQueue && activeTab === "active" && (
+              <div className="border-b border-slate-200 bg-slate-50/60">
+                {/* Queue header */}
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-2">
+                    <ListOrdered className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Your Queue
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      ({inProgressProjects.length + waitingProjects.length})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 h-5">
+                    {waitingProjects.length > 1 && (
+                      <span className="text-xs text-amber-600 italic">
+                        Drag to rearrange by priority
+                      </span>
+                    )}
+                    {queueSaving && (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                    )}
+                    {queueSaved && !queueSaving && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600">
+                        <Check className="w-3 h-3" />
+                        Saved
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSortMenu(!showSortMenu)}
-                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-colors"
+                {/* Subtitle */}
+                {waitingProjects.length > 1 && (
+                  <p className="px-4 pb-2 text-xs text-slate-500">
+                    Rearrange your pending projects to tell us which one to work on first.
+                  </p>
+                )}
+
+                {/* In-progress project — locked at top */}
+                {inProgressProjects.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/requests/${project.id}`}
+                    className="flex items-center gap-3 mx-3 mb-2 px-3 py-2.5 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100/80 transition-colors group"
                   >
-                    <ArrowUpDown className="w-4 h-4 text-slate-500" />
-                    <span className="hidden sm:inline">Sort</span>
-                    <ChevronDown className="w-3 h-3 text-slate-500" />
-                  </button>
-
-                  {showSortMenu && (
-                    <>
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 flex-shrink-0">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-orange-700 mb-0.5">
+                        Currently Processing
+                      </p>
+                      <p className="text-sm font-medium text-slate-800 truncate group-hover:text-orange-700 transition-colors">
+                        {project.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <div
-                        className="fixed inset-0 z-10"
-                        onClick={() => setShowSortMenu(false)}
-                      />
-                      <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
-                        {sortOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={() => {
-                              setSortBy(option.value);
-                              setShowSortMenu(false);
-                            }}
-                            className={cn(
-                              "w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors",
-                              sortBy === option.value
-                                ? "text-amber-600 bg-amber-50"
-                                : "text-slate-700",
-                            )}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
+                        className="flex items-center gap-1 text-xs text-orange-400"
+                        title="Cannot be reordered while processing"
+                      >
+                        <Lock className="w-3 h-3" />
                       </div>
-                    </>
-                  )}
-                </div>
+                      <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
+                    </div>
+                  </Link>
+                ))}
+
+                {/* Waiting projects — draggable */}
+                {queueItems.length > 0 && (
+                  <div className="px-3 pb-3">
+                    {inProgressProjects.length > 0 && (
+                      <p className="text-xs text-slate-400 mb-2 pl-1">
+                        Next up — drag to change order
+                      </p>
+                    )}
+                    <Reorder.Group
+                      axis="y"
+                      values={queueItems}
+                      onReorder={handleQueueReorder}
+                      className="space-y-1.5"
+                    >
+                      {queueItems.map((project, index) => (
+                        <QueueItem
+                          key={project.id}
+                          project={project}
+                          position={inProgressProjects.length + index + 1}
+                          router={router}
+                        />
+                      ))}
+                    </Reorder.Group>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Search and Sort — only show when there are non-queue active items or on past tab */}
+            {(filteredAndSortedRequests.length > 0 ||
+              searchQuery ||
+              activeTab === "past") &&
+              (activeRequests.length > 0 || pastRequests.length > 0) && (
+                <div className="p-3 border-b border-slate-100 flex gap-2">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search projects..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-charcoal placeholder:text-slate-400"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSortMenu(!showSortMenu)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100 transition-colors"
+                    >
+                      <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                      <span className="hidden sm:inline">Sort</span>
+                      <ChevronDown className="w-3 h-3 text-slate-500" />
+                    </button>
+
+                    {showSortMenu && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setShowSortMenu(false)}
+                        />
+                        <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
+                          {sortOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                setSortBy(option.value);
+                                setShowSortMenu(false);
+                              }}
+                              className={cn(
+                                "w-full text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors",
+                                sortBy === option.value
+                                  ? "text-amber-600 bg-amber-50"
+                                  : "text-slate-700",
+                              )}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
 
             {/* Request List */}
             <div className="divide-y divide-slate-100 flex-1 overflow-y-auto">
@@ -534,6 +732,9 @@ export default function HomePage() {
                       No projects match &quot;{searchQuery}&quot;
                     </p>
                   </div>
+                ) : activeTab === "active" && hasQueue ? (
+                  // All active projects are in the queue — no need for empty state
+                  null
                 ) : (
                   <EmptyState
                     isNewUser={isNewUser && activeTab === "active"}
@@ -783,27 +984,23 @@ export default function HomePage() {
           className="max-w-2xl"
         >
           <div className="p-8 space-y-6">
-            {uploadedFile && (
-              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900 truncate">
-                      {uploadedFile.file.name}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatFileSize(uploadedFile.file.size)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleReplaceFile}
-                    className="flex items-center gap-1.5 ml-4 px-3 py-2 text-xs font-medium text-amber-700 bg-white hover:bg-amber-50 rounded-md border border-amber-200 transition-colors whitespace-nowrap"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    Replace
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* File picker — shows selected files + allows adding more */}
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-slate-700">
+                Files to upload
+                {uploadedFiles.length > 1 && (
+                  <span className="ml-2 text-xs font-normal text-amber-600">
+                    ({uploadedFiles.length} files · will be zipped into one)
+                  </span>
+                )}
+              </p>
+              <Dropzone
+                onFilesAdded={handleFileAdded}
+                multiple
+                selectedFiles={uploadedFiles.map((f) => f.file)}
+                onRemoveFile={handleRemoveFile}
+              />
+            </div>
 
             <div className="space-y-2">
               <Input
@@ -893,7 +1090,11 @@ export default function HomePage() {
                 isLoading={isSubmitting}
                 disabled={!canSubmit}
               >
-                {isSubmitting ? "Creating Project..." : "Create Project"}
+                {isSubmitting
+                  ? uploadedFiles.length > 1
+                    ? "Zipping & Uploading..."
+                    : "Creating Project..."
+                  : "Create Project"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -904,6 +1105,84 @@ export default function HomePage() {
   );
 }
 
+// ==================== QUEUE ITEM (draggable) ====================
+function QueueItem({
+  project,
+  position,
+  router,
+}: {
+  project: Project;
+  position: number;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const controls = useDragControls();
+  const isDraggingRef = useRef(false);
+
+  return (
+    <Reorder.Item
+      value={project}
+      dragListener={false}
+      dragControls={controls}
+      onDragStart={() => {
+        isDraggingRef.current = true;
+      }}
+      onDragEnd={() => {
+        // Small delay so click handler sees the drag state
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 50);
+      }}
+      className="flex items-center gap-2.5 px-3 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm select-none cursor-default hover:border-slate-300 transition-colors group"
+      style={{ listStyle: "none" }}
+      whileDrag={{ scale: 1.02, shadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+    >
+      {/* Drag handle */}
+      <button
+        className="touch-none cursor-grab active:cursor-grabbing p-0.5 rounded text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          controls.start(e);
+        }}
+        title="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+
+      {/* Position number */}
+      <span className="w-5 text-center text-xs font-mono font-semibold text-slate-400 flex-shrink-0">
+        {position}
+      </span>
+
+      {/* Project info — click to navigate */}
+      <div
+        className="flex-1 min-w-0 cursor-pointer"
+        onClick={() => {
+          if (!isDraggingRef.current) {
+            router.push(`/requests/${project.id}`);
+          }
+        }}
+      >
+        <p className="text-sm font-medium text-charcoal truncate group-hover:text-amber-700 transition-colors">
+          {project.name}
+        </p>
+        <p className="text-xs text-slate-400">
+          {formatRelativeTime(new Date(project.dateUpload))}
+        </p>
+      </div>
+
+      {/* Status + arrow */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <StatusBadge status={project.status} />
+        <ChevronRight
+          className="w-4 h-4 text-slate-300 group-hover:text-amber-500 transition-colors cursor-pointer"
+          onClick={() => router.push(`/requests/${project.id}`)}
+        />
+      </div>
+    </Reorder.Item>
+  );
+}
+
+// ==================== EMPTY STATE ====================
 function EmptyState({
   isNewUser,
   type,
@@ -943,6 +1222,7 @@ function EmptyState({
   );
 }
 
+// ==================== REQUEST ITEM (non-queue) ====================
 function RequestItem({ project, index }: { project: Project; index: number }) {
   return (
     <Link
