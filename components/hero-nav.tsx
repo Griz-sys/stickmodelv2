@@ -27,6 +27,12 @@ export function HeroNav() {
             Pricing
           </Link>
           <Link
+            href="/blog"
+            className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
             href="/faq"
             className="text-stone-500 hover:text-stone-900 font-medium text-[13px] tracking-widest uppercase transition-colors"
           >
@@ -90,6 +96,13 @@ export function HeroNav() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link
+                href="/blog"
+                className="text-stone-600 font-medium text-sm uppercase tracking-widest py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
               </Link>
               <Link
                 href="/faq"

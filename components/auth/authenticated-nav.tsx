@@ -53,8 +53,18 @@ export function AuthenticatedNav() {
     "/contact",
     "/faq",
   ];
+
+  // /blog and /blog/[slug] are public pages with their own HeroNav.
+  // /blog/new and /blog/[slug]/edit are admin pages that use this nav.
+  const isPublicBlogPage =
+    pathname === "/blog" ||
+    (pathname.startsWith("/blog/") &&
+      !pathname.endsWith("/edit") &&
+      pathname !== "/blog/new");
+
   if (
     pagesWithoutNav.includes(pathname) ||
+    isPublicBlogPage ||
     pathname.startsWith("/requests/") ||
     pathname.startsWith("/about") ||
     pathname === "/terms"
@@ -103,6 +113,12 @@ export function AuthenticatedNav() {
             className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md transition-colors"
           >
             Pricing
+          </Link>
+          <Link
+            href="/blog"
+            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md transition-colors"
+          >
+            Blog
           </Link>
           <Link
             href="/contact"

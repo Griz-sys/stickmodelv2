@@ -35,6 +35,15 @@ const navItems: CardNavItem[] = [
     ],
   },
   {
+    label: "Blog",
+    bgColor: "#1A1400",
+    textColor: "#fff",
+    links: [
+      { label: "Engineering Blog", href: "/blog", ariaLabel: "StickModel Engineering Blog" },
+      { label: "Latest Insights", href: "/blog", ariaLabel: "Latest engineering insights" },
+    ],
+  },
+  {
     label: "Contact",
     bgColor: "#271E37",
     textColor: "#fff",

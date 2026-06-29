@@ -33,6 +33,7 @@ model User {
   referralDetail       String?
 
   projects    Project[]
+  blogPosts   BlogPost[]
 
   @@index([email])
   @@map("users")
@@ -110,6 +111,27 @@ model ProjectStep {
 
   @@index([projectId])
   @@map("project_steps")
+}
+
+model BlogPost {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  title       String
+  excerpt     String
+  body        String    @db.Text
+  coverImage  String
+  category    String    @default("Engineering")
+  status      String    @default("draft") // "draft" | "published"
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([createdAt])
+  @@map("blog_posts")
 }
 
 model OtpVerification {

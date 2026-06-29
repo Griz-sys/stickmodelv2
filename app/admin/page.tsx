@@ -436,7 +436,7 @@ export default function AdminPage() {
       </nav>
 
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-10 flex items-start justify-between">
+        <div className="mb-10 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">
               Admin Dashboard
@@ -444,6 +444,22 @@ export default function AdminPage() {
             <p className="mt-2 text-base font-medium text-slate-500">
               Manage users and projects with full edit and delete access.
             </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/blog"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors"
+            >
+              <FolderKanban className="h-4 w-4" />
+              View Blog
+            </Link>
+            <Link
+              href="/blog/new"
+              className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              New Blog Post
+            </Link>
           </div>
         </div>
 
