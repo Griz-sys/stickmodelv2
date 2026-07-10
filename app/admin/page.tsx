@@ -19,11 +19,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatusBadge } from "@/components/ui/badge";
 import { StatCard, InfoPair, EmptyState } from "@/components/admin/admin-ui";
 import {
   ClientFormModal,
   type Client,
 } from "@/components/admin/client-form-modal";
+
+type ViewMode = "clients" | "projects";
 
 interface Project {
   id: string;
@@ -38,6 +41,7 @@ interface Project {
     id: string;
     name: string;
     email: string;
+    companyName: string | null;
   } | null;
 }
 
@@ -47,10 +51,14 @@ export default function AdminPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("clients");
 
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDeletingClientId, setIsDeletingClientId] = useState<string | null>(
+    null,
+  );
+  const [isDeletingProjectId, setIsDeletingProjectId] = useState<string | null>(
     null,
   );
 
@@ -132,6 +140,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteProject = async (project: Project) => {
+    const confirmed = window.confirm(
+      `Delete project "${project.name}"? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setIsDeletingProjectId(project.id);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.error || "Failed to delete project");
+        return;
+      }
+
+      setProjects((prev) => prev.filter((item) => item.id !== project.id));
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project");
+    } finally {
+      setIsDeletingProjectId(null);
+    }
+  };
+
   const clientRows = useMemo(() => {
     return clients
       .map((client) => {
@@ -182,6 +216,24 @@ export default function AdminPage() {
         );
       }),
     [clientRows, searchQuery],
+  );
+
+  const filteredProjects = useMemo(
+    () =>
+      projects
+        .filter((project) => {
+          const query = searchQuery.toLowerCase();
+          return (
+            project.name.toLowerCase().includes(query) ||
+            (project.user?.name || "").toLowerCase().includes(query) ||
+            (project.user?.email || "").toLowerCase().includes(query)
+          );
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.dateUpload).getTime() - new Date(a.dateUpload).getTime(),
+        ),
+    [projects, searchQuery],
   );
 
   const stats = {
@@ -273,10 +325,35 @@ export default function AdminPage() {
           />
         </div>
 
+        <div className="mb-6 flex gap-2 rounded-xl bg-slate-100 p-1 w-fit">
+          {(["clients", "projects"] as ViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                viewMode === mode
+                  ? "bg-white text-orange-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {mode === "clients" ? (
+                <Users className="h-4 w-4" />
+              ) : (
+                <FolderKanban className="h-4 w-4" />
+              )}
+              {mode === "clients" ? "Client View" : "Project View"}
+            </button>
+          ))}
+        </div>
+
         <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <Users className="h-5 w-5" />
-            Clients
+            {viewMode === "clients" ? (
+              <Users className="h-5 w-5" />
+            ) : (
+              <FolderKanban className="h-5 w-5" />
+            )}
+            {viewMode === "clients" ? "Clients" : "Projects"}
           </h2>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -284,19 +361,25 @@ export default function AdminPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 type="text"
-                placeholder="Search clients..."
+                placeholder={
+                  viewMode === "clients"
+                    ? "Search clients..."
+                    : "Search projects..."
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-slate-50 pl-9"
               />
             </div>
-            <Button
-              onClick={() => setModalMode("create")}
-              className="gap-2 bg-green-600 hover:bg-green-700"
-            >
-              <Plus className="h-4 w-4" />
-              Create Client
-            </Button>
+            {viewMode === "clients" && (
+              <Button
+                onClick={() => setModalMode("create")}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4" />
+                Create Client
+              </Button>
+            )}
             <Button onClick={fetchData} variant="secondary" className="gap-2">
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -307,6 +390,103 @@ export default function AdminPage() {
         {isLoading ? (
           <div className="flex justify-center py-24">
             <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
+          </div>
+        ) : viewMode === "projects" ? (
+          <div className="space-y-3">
+            {filteredProjects.length === 0 ? (
+              <EmptyState
+                icon={<FolderKanban className="h-12 w-12 text-slate-300" />}
+                message={searchQuery ? "No projects found" : "No projects yet"}
+              />
+            ) : (
+              filteredProjects.map((project) => (
+                <div
+                  key={project.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-3 flex flex-wrap items-center gap-3">
+                        <h3 className="truncate text-lg font-semibold text-slate-900">
+                          {project.name}
+                        </h3>
+                        <StatusBadge status={project.status as never} />
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-5">
+                        <InfoPair
+                          label="Company"
+                          value={project.user?.companyName || "Not provided"}
+                        />
+                        <InfoPair
+                          label="Client"
+                          value={project.user?.name || "Unassigned"}
+                        />
+                        <InfoPair
+                          label="Email"
+                          value={project.user?.email || "No email"}
+                        />
+                        <InfoPair
+                          label="Cost"
+                          value={
+                            project.cost !== null
+                              ? `$${project.cost.toLocaleString()}`
+                              : "Not set"
+                          }
+                        />
+                        <InfoPair
+                          label="Uploaded"
+                          value={new Date(project.dateUpload).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric", year: "numeric" },
+                          )}
+                        />
+                      </div>
+                      {project.notes && (
+                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Additional Note
+                          </p>
+                          <p className="text-sm leading-relaxed text-slate-700">
+                            {project.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 lg:min-w-[140px] lg:items-stretch">
+                      {project.user?.id && (
+                        <Link href={`/admin/clients/${project.user.id}`}>
+                          <Button
+                            variant="secondary"
+                            className="w-full gap-2"
+                          >
+                            <Users className="h-4 w-4" />
+                            Client
+                          </Button>
+                        </Link>
+                      )}
+                      <Link href={`/requests/${project.id}`}>
+                        <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                          Open
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="secondary"
+                        className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => handleDeleteProject(project)}
+                        disabled={isDeletingProjectId === project.id}
+                      >
+                        {isDeletingProjectId === project.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -329,20 +509,27 @@ export default function AdminPage() {
                       >
                         <div className="mb-3 flex flex-wrap items-center gap-3">
                           <h3 className="truncate text-lg font-semibold text-slate-900">
-                            {client.name}
+                            {client.companyName || client.name}
                           </h3>
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                          {client.companyName && (
+                            <span className="truncate rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+                              {client.name}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mb-3 flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-700">
+                          <span>
                             {projectCount}{" "}
-                            {projectCount === 1 ? "project" : "projects"}
+                            {projectCount === 1 ? "Project" : "Projects"} Total
                           </span>
                           {activeCount > 0 && (
-                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                              {activeCount} current
+                            <span className="text-blue-600">
+                              {activeCount} Ongoing
                             </span>
                           )}
                           {finishedCount > 0 && (
-                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                              {finishedCount} done
+                            <span className="text-emerald-600">
+                              {finishedCount} Done
                             </span>
                           )}
                         </div>

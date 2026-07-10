@@ -201,17 +201,14 @@ export default function AdminClientDetailPage() {
             <div className="mb-10 flex items-start justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-                  {client.name}
+                  {client.companyName || client.name}
                 </h1>
                 <p className="mt-2 text-base font-medium text-slate-500">
-                  {client.companyName || client.email}
+                  {client.companyName ? client.name : client.email}
                 </p>
                 <div className="mt-4 grid grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-3 max-w-2xl">
+                  <InfoPair label="Contact Name" value={client.name} />
                   <InfoPair label="Email" value={client.email} />
-                  <InfoPair
-                    label="Company"
-                    value={client.companyName || "Not provided"}
-                  />
                   <InfoPair
                     label="Projects"
                     value={`${client._count.projects} total`}
