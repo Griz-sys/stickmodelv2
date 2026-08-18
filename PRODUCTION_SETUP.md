@@ -127,7 +127,49 @@ cat .env | grep -i "mail\|email"
 # ADMIN_EMAIL_RECIPIENTS=...@...,...@...
 ```
 
+
 ---
+
+### File Upload Webhook (optional)
+
+To notify an external pipeline (e.g. an AI/processing service) whenever a client or admin uploads a project file, set:
+
+```bash
+FILE_UPLOAD_WEBHOOK_URL="https://your-pipeline.example.com/webhooks/stickmodel-upload"
+FILE_UPLOAD_WEBHOOK_SECRET="<long-random-string>"
+```
+
+Both variables must be in the server's `.env` — `docker-compose.yml` passes them into the container automatically. If `FILE_UPLOAD_WEBHOOK_URL` is unset, no webhook is sent (no-op). When set, every project/step file upload fires a `POST` with a JSON body describing the event, project/step, file, and uploader — see `lib/webhook.ts`.
+
+**Security requirements (enforced by `lib/webhook.ts`):**
+
+- **HTTPS only in production.** `FILE_UPLOAD_WEBHOOK_URL` must be `https://` in production; plain `http://` is rejected unless the host is `localhost`/`127.0.0.1` (dev/test only). URLs with embedded credentials (`https://user:pass@host/`) are always rejected. An invalid URL skips the webhook and logs an error.
+- **Secret required in production.** If `FILE_UPLOAD_WEBHOOK_SECRET` is missing, the webhook is skipped with a loud error (fail-closed) — an unauthenticated request is never sent in production. In dev, a warning is logged and the request is sent unsigned.
+- **Signature headers sent on every authenticated request:**
+  - `X-Webhook-Signature: sha256=<hex>` — HMAC-SHA256 of the **exact raw request body** using `FILE_UPLOAD_WEBHOOK_SECRET`
+  - `X-Webhook-Timestamp: <unix seconds>` — send time, for replay protection
+  - `X-Webhook-Secret: <secret>` — legacy header, kept for backward compatibility
+
+**Receiver verification (recommended):** recompute the signature over the raw body and compare in constant time, and reject timestamps older than ~5 minutes:
+
+```js
+// Node.js example — receiver side
+const crypto = require('crypto');
+
+function verify(req, rawBody, secret) {
+  const sig = req.headers['x-webhook-signature'];      // "sha256=<hex>"
+  const ts  = Number(req.headers['x-webhook-timestamp']);
+  if (!sig || !sig.startsWith('sha256=') || !Number.isFinite(ts)) return false;
+  if (Math.abs(Math.floor(Date.now() / 1000) - ts) > 300) return false; // stale/replay
+
+  const expected = crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex');
+  const a = Buffer.from(sig.slice('sha256='.length), 'utf8');
+  const b = Buffer.from(expected, 'utf8');
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+```
+
+The mock receiver (`scripts/mock-webhook-server.js`) implements this verification and returns `401` on invalid requests — run it with `--secret=<secret>` to test.
 
 ## How to Update the Application
 
@@ -206,6 +248,10 @@ ADMIN_EMAIL_RECIPIENTS="aryan@vecube.club,other@example.com"
 DO_SPACES_BUCKET="stickmodel"
 DO_SPACES_ACCESS_KEY_ID="YOUR_KEY"
 DO_SPACES_SECRET_ACCESS_KEY="YOUR_KEY"
+
+# File Upload Webhook (optional — notifies an external pipeline on every upload)
+FILE_UPLOAD_WEBHOOK_URL="https://your-pipeline.example.com/webhooks/stickmodel-upload"
+FILE_UPLOAD_WEBHOOK_SECRET="YOUR_SECRET"
 
 # URLs (IMPORTANT: Must be HTTPS in production)
 NEXT_PUBLIC_APP_URL="https://stickmodel.com"

@@ -37,6 +37,8 @@ services:
       - PAYU_ENV=${PAYU_ENV}
       - PAYU_MERCHANT_KEY=${PAYU_MERCHANT_KEY}
       - PAYU_MERCHANT_SALT=${PAYU_MERCHANT_SALT}
+      - FILE_UPLOAD_WEBHOOK_URL=${FILE_UPLOAD_WEBHOOK_URL}
+      - FILE_UPLOAD_WEBHOOK_SECRET=${FILE_UPLOAD_WEBHOOK_SECRET}
     volumes:
       - ./uploads:/app/uploads   # For any local uploads if needed
     networks:

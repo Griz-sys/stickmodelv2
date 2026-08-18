@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { sendUserFileUploadNotification, sendDeliverableUploadNotification, sendProjectFinishedNotification, sendNoteAddedNotification } from '@/lib/email';
+import { notifyFileUploadWebhook } from '@/lib/webhook';
 
 // Get a single project
 export async function GET(
@@ -143,6 +144,22 @@ export async function PATCH(
         }
       }
 
+      // Notify external pipeline of admin deliverable upload
+      if (projectData.adminFileName && projectData.adminFileUrl) {
+        notifyFileUploadWebhook({
+          event: 'admin_deliverable_upload',
+          projectId: existing.id,
+          projectName: existing.name,
+          stepLabel: 'Initial Submission',
+          fileName: projectData.adminFileName,
+          fileUrl: projectData.adminFileUrl,
+          fileSize: projectData.adminFileSize ?? null,
+          fileType: projectData.adminFileType ?? null,
+          uploadedBy: { id: user.id, name: user.name, email: user.email },
+          uploadedAt: new Date().toISOString(),
+        });
+      }
+
       return NextResponse.json({ project });
     }
 
@@ -187,6 +204,22 @@ export async function PATCH(
         body.userFileName,
         'Initial Submission'
       );
+    }
+
+    // Notify external pipeline of user file upload
+    if (body.userFileName && body.userFileUrl && userInfo) {
+      notifyFileUploadWebhook({
+        event: 'user_file_upload',
+        projectId: existing.id,
+        projectName: existing.name,
+        stepLabel: 'Initial Submission',
+        fileName: body.userFileName,
+        fileUrl: body.userFileUrl,
+        fileSize: body.userFileSize ?? null,
+        fileType: body.userFileType ?? null,
+        uploadedBy: { id: userInfo.id, name: userInfo.name, email: userInfo.email },
+        uploadedAt: new Date().toISOString(),
+      });
     }
 
     // Send email to admins if user added/updated a note

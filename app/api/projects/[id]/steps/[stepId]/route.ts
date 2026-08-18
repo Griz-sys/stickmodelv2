@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { sendDeliverableUploadNotification } from '@/lib/email';
+import { notifyFileUploadWebhook } from '@/lib/webhook';
 
 // PATCH - update a step (admin only)
 export async function PATCH(
@@ -41,6 +42,22 @@ export async function PATCH(
             stepLabel,
             body.cost
           );
+
+          if (body.adminFileUrl) {
+            notifyFileUploadWebhook({
+              event: 'admin_deliverable_upload',
+              projectId: project.id,
+              projectName: project.name,
+              stepId,
+              stepLabel,
+              fileName: body.adminFileName,
+              fileUrl: body.adminFileUrl,
+              fileSize: body.adminFileSize ?? null,
+              fileType: body.adminFileType ?? null,
+              uploadedBy: { id: user.id, name: user.name, email: user.email },
+              uploadedAt: new Date().toISOString(),
+            });
+          }
         }
       }
 
@@ -62,6 +79,24 @@ export async function PATCH(
     }
 
     const updated = await prisma.projectStep.update({ where: { id: stepId }, data: updateData });
+
+    // Notify external pipeline of user file upload
+    if (body.userFileName && body.userFileUrl) {
+      notifyFileUploadWebhook({
+        event: 'user_file_upload',
+        projectId: project.id,
+        projectName: project.name,
+        stepId,
+        stepLabel: step.userLabel,
+        fileName: body.userFileName,
+        fileUrl: body.userFileUrl,
+        fileSize: body.userFileSize ?? null,
+        fileType: body.userFileType ?? null,
+        uploadedBy: { id: user.id, name: user.name, email: user.email },
+        uploadedAt: new Date().toISOString(),
+      });
+    }
+
     return NextResponse.json({ step: updated });
   } catch (error) {
     console.error('Update step error:', error);
