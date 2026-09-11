@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-bullseye AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -23,14 +23,14 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-bullseye
+FROM node:20-slim
 
 WORKDIR /app
 
 # Install required system libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
-    libssl1.1 \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
