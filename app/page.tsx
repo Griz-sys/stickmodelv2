@@ -1,32 +1,27 @@
 import type { Metadata } from "next";
 import LandingPage from "./landing-client";
 
-export const metadata: Metadata = {
-  title: "StickModel — Wireframe & Estimation Models from 2D Structural Drawings",
-  description:
-    "Convert your 2D structural drawings into accurate wireframe and stick models for construction estimation. Fast, affordable, and BIM-compatible.",
-  alternates: { canonical: "https://stickmodel.com/" },
-};
+const TITLE = "StickModel — Wireframe & Estimation Models from 2D Structural Drawings";
+const DESCRIPTION =
+  "Convert your 2D structural drawings into accurate wireframe and stick models for construction estimation. Fast, affordable, and BIM-compatible.";
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "StickModel",
-  url: "https://stickmodel.com",
-  description:
-    "StickModel converts 2D structural drawings into wireframe and stick models for construction estimation, BIM workflows, and Tekla PowerFab.",
-  serviceType: "Structural modelling and estimation",
-  areaServed: "Worldwide",
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "https://stickmodel.com/" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://stickmodel.com/",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function Page() {
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <LandingPage />
-    </>
-  );
+  return <LandingPage />;
 }

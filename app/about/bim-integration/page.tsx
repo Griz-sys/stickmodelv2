@@ -2,13 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+import { JsonLd } from "@/components/json-ld";
+import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
+
+const TITLE = "BIM & ABM Compatible Stick Models — StickModel";
+const DESCRIPTION =
+  "StickModel outputs are compatible with BIM workflows, ABM processes, and Tekla PowerFab. Integrate directly into your existing estimation pipeline.";
+const PAGE_URL = `${SITE_URL}/about/bim-integration`;
 
 export const metadata: Metadata = {
-  title: "BIM & ABM Compatible Stick Models — StickModel",
-  description:
-    "StickModel outputs are compatible with BIM workflows, ABM processes, and Tekla PowerFab. Integrate directly into your existing estimation pipeline.",
-  alternates: { canonical: "https://stickmodel.com/about/bim-integration" },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: PAGE_URL, type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
+
+const BIM_FAQS = [
+  {
+    question: "Does StickModel replace full BIM modeling?",
+    answer:
+      "No. A StickModel wireframe serves as the geometric foundation for a BIM workflow, providing accurate structural geometry before full LOD modelling begins. This is particularly useful in early-stage estimation where a full BIM model isn't yet warranted but accurate quantities are already needed.",
+  },
+  {
+    question: "Which platforms are supported besides Tekla PowerFab?",
+    answer:
+      "Beyond Tekla PowerFab, our outputs are compatible with Tekla Structures, Revit (via IFC), AutoCAD (DWG 3D), and SDS/2. If you use a platform not listed, contact us and we'll confirm compatibility before you commit to a project.",
+  },
+  {
+    question: "How does the ABM workflow integration work?",
+    answer:
+      "ABM (Advanced Bill of Material) outputs are structured to support fabrication and estimation workflows: members are logically grouped, connection points are accurately located, and section data is embedded where required, so estimators and fabricators can begin assembly-level quantity extraction without rework.",
+  },
+];
 
 export default function BimIntegrationPage() {
   return (
@@ -116,6 +144,16 @@ export default function BimIntegrationPage() {
           </Link>
         </div>
       </main>
+
+      <FaqSection faqs={BIM_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={BIM_FAQS} />
+      <JsonLd
+        data={serviceJsonLd({
+          name: "BIM and ABM Integration",
+          description: DESCRIPTION,
+          url: PAGE_URL,
+        })}
+      />
 
       <SiteFooter />
     </div>

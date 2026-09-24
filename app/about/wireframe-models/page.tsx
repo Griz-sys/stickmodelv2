@@ -2,13 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+import { JsonLd } from "@/components/json-ld";
+import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
+
+const TITLE = "Wireframe Models for Construction — StickModel";
+const DESCRIPTION =
+  "Professional wireframe models built from your structural drawings. Used for construction planning, material takeoff, and project visualisation.";
+const PAGE_URL = `${SITE_URL}/about/wireframe-models`;
 
 export const metadata: Metadata = {
-  title: "Wireframe Models for Construction — StickModel",
-  description:
-    "Professional wireframe models built from your structural drawings. Used for construction planning, material takeoff, and project visualisation.",
-  alternates: { canonical: "https://stickmodel.com/about/wireframe-models" },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: PAGE_URL, type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
+
+const WIREFRAME_FAQS = [
+  {
+    question: "What's the difference between a wireframe model and a full BIM model?",
+    answer:
+      "A wireframe model shows the skeleton of a structure — beams, columns, connections, and geometry — as 3D lines without surface fills or materials. Unlike a full BIM model, a wireframe is lightweight, fast to produce, and purpose-built for estimation and material takeoff rather than detailed fabrication drawings.",
+  },
+  {
+    question: "Who uses StickModel's wireframe models?",
+    answer:
+      "Estimators building material schedules, detailers building connection models, steel fabricators preparing shop drawings, and structural engineers validating design geometry all use our wireframe models.",
+  },
+  {
+    question: "What formats are wireframe models delivered in?",
+    answer:
+      "Models are delivered as a clean 3D line model, including an IFC export, ready for review, estimation, or import into your existing detailing or BIM workflow.",
+  },
+];
 
 export default function WireframeModelsPage() {
   return (
@@ -94,6 +122,16 @@ export default function WireframeModelsPage() {
           </Link>
         </div>
       </main>
+
+      <FaqSection faqs={WIREFRAME_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={WIREFRAME_FAQS} />
+      <JsonLd
+        data={serviceJsonLd({
+          name: "Wireframe Models for Construction",
+          description: DESCRIPTION,
+          url: PAGE_URL,
+        })}
+      />
 
       <SiteFooter />
     </div>

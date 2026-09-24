@@ -7,6 +7,36 @@ import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+
+const HOMEPAGE_FAQS = [
+  {
+    question: "What does StickModel do?",
+    answer:
+      "StickModel converts your 2D structural drawings (DWG or PDF) into accurate 3D wireframe and stick models, delivered as an IFC file within 24 hours. The model is used for construction estimation, material takeoff, BIM coordination, and is ready for direct import into Tekla Structures and Tekla PowerFab.",
+  },
+  {
+    question: "How does the process work?",
+    answer:
+      "You upload your 2D structural drawings through our encrypted portal. Our team then generates the 3D wireframe, runs a geometric audit against your original documentation to validate accuracy, and delivers the completed, constructible wireframe package within 24 hours.",
+  },
+  {
+    question: "How much does it cost?",
+    answer:
+      "Pricing is weight-based per project, starting at $600 for up to 250 MT (a 40% launch discount off the normal $1,000, valid till October 2026). Larger tonnage tiers and an optional Advanced Bill of Materials (ABM) add-on are available — see the full pricing table on our Pricing page.",
+  },
+  {
+    question: "Who is StickModel for?",
+    answer:
+      "StickModel is built for structural engineers, estimators, steel fabricators, and construction managers who need reliable 3D geometry fast, without the time and cost of full BIM modelling.",
+  },
+  {
+    question: "How do I get started?",
+    answer:
+      "Click \"Get Started\" to create an account and upload your drawings through the secure portal. You only pay after you've reviewed and approved a preview of the model. You can also reach out via the Contact page first if you have questions.",
+  },
+];
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -612,6 +642,14 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+
+      <FaqSection
+        faqs={HOMEPAGE_FAQS}
+        heading="Frequently Asked Questions"
+        description="Quick answers about what StickModel does, how it works, and how to get started. See the full FAQ page for more."
+        dark
+      />
+      <FaqJsonLd faqs={HOMEPAGE_FAQS} />
 
       <SiteFooter dark />
     </div>

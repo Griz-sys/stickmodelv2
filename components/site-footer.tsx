@@ -49,7 +49,7 @@ export function SiteFooter({ dark = false }: { dark?: boolean }) {
         <div className="flex flex-col gap-3">
           <p className={`text-[10px] font-bold uppercase tracking-widest ${heading} mb-1`}>Get in Touch</p>
           <a href="tel:+919999503168" className={`text-sm ${link}`}>+91 9999503168</a>
-          <a href="mailto:shubhu@stickmodel.com" className={`text-sm ${link}`}>shubhu@stickmodel.com</a>
+          <a href="mailto:info@stickmodel.com" className={`text-sm ${link}`}>info@stickmodel.com</a>
           <a
             href="https://www.linkedin.com/company/stick-model/"
             target="_blank"

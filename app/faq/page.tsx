@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqJsonLd } from "@/components/faq-json-ld";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FAQ_SECTIONS = [
@@ -24,7 +25,7 @@ const FAQ_SECTIONS = [
       {
         question: "What is the Advanced Bill of Materials (ABM) add-on?",
         answer:
-          "The ABM is an optional add-on ($200 per project) that provides detailed material quantities and specifications derived from the model. It is particularly useful for fabricators who need preliminary material take-offs before full detailing is complete.",
+          "The ABM is an optional add-on ($120 per project with the current launch discount, normally $200) that provides detailed material quantities and specifications derived from the model. It is particularly useful for fabricators who need preliminary material take-offs before full detailing is complete.",
       },
     ],
   },
@@ -89,7 +90,7 @@ const FAQ_SECTIONS = [
       {
         question: "How is pricing calculated?",
         answer:
-          "Pricing is weight-based, per project. A 40% launch discount is currently active for a limited time: Up to 250 MT: $600 (normally $1,000) | 250–500 MT: $900 (normally $1,500) | 500–1,000 MT: $1,200 (normally $2,000) | Over 1,000 MT: $1.20/MT (normally $2.00/MT)",
+          "Pricing is weight-based, per project. A 40% launch discount is currently active for a limited time: Up to 250 MT: $600 (normally $1,000) | 250–500 MT: $900 (normally $1,500) | 500–1,000 MT: $1,200 (normally $2,000) | Over 1,000 MT: $1.00/MT (normally $1.80/MT)",
       },
       {
         question: "When do I pay?",
@@ -140,6 +141,8 @@ const FAQ_SECTIONS = [
   },
 ];
 
+const ALL_FAQS = FAQ_SECTIONS.flatMap((section) => section.faqs);
+
 export default function FAQPage() {
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
@@ -149,6 +152,7 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <FaqJsonLd faqs={ALL_FAQS} />
       <HeroNav />
 
       {/* ── HERO ── */}

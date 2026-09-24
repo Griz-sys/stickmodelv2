@@ -9,7 +9,54 @@ import {
 } from "lucide-react";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+import { JsonLd } from "@/components/json-ld";
+import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
 import { motion } from "framer-motion";
+
+const PRICING_FAQS = [
+  {
+    question: "How is pricing calculated?",
+    answer:
+      "Pricing is weight-based, per project. A 40% launch discount is currently active for a limited time (valid till October 2026): up to 250 MT is $600 (normally $1,000); 250–500 MT is $900 (normally $1,500); 500–1,000 MT is $1,200 (normally $2,000); over 1,000 MT is $1.00/MT (normally $1.80/MT).",
+  },
+  {
+    question: "When do I pay?",
+    answer:
+      "You pay only after you approve a preview of the model. You will not be charged until you have reviewed the wireframe and confirmed it meets your requirements.",
+  },
+  {
+    question: "What does the Advanced Bill of Materials (ABM) add-on cost?",
+    answer:
+      "The ABM add-on is $120 with the current launch discount (normally $200) and can be added to any pricing tier. It provides detailed material quantities and specifications derived from the model.",
+  },
+  {
+    question: "What if I need revisions after delivery?",
+    answer:
+      "Revisions up to a certain level are accommodated at no extra charge. Beyond that, pricing is based on the tonnage affected: $2/T for 20%–80% of the initial tonnage, no added cost for under 20%, and over 80% is treated as a new project.",
+  },
+  {
+    question: "Do you offer volume discounts for regular fabricators or detailing firms?",
+    answer:
+      "Yes, volume discounts are available for a steady pipeline of projects. Reach out through the Contact page to discuss a recurring arrangement.",
+  },
+];
+
+const PRICING_SERVICE_JSON_LD = {
+  ...serviceJsonLd({
+    name: "StickModel Wireframe & Stick Model Generation",
+    description:
+      "Weight-based pricing for converting 2D structural drawings into 3D wireframe and stick models, delivered within 24 hours.",
+    url: `${SITE_URL}/pricing`,
+  }),
+  offers: [
+    { "@type": "Offer", name: "Up to 250 MT", price: "600", priceCurrency: "USD", url: `${SITE_URL}/pricing` },
+    { "@type": "Offer", name: "250 - 500 MT", price: "900", priceCurrency: "USD", url: `${SITE_URL}/pricing` },
+    { "@type": "Offer", name: "500 - 1,000 MT", price: "1200", priceCurrency: "USD", url: `${SITE_URL}/pricing` },
+    { "@type": "Offer", name: "Advanced Bill of Materials add-on", price: "120", priceCurrency: "USD", url: `${SITE_URL}/pricing` },
+  ],
+};
 
 const USD_RATE = 100; // 1 USD = 100 INR
 
@@ -222,6 +269,14 @@ export default function PricingPage() {
           </Link>
         </motion.div>
       </section>
+
+      <FaqSection
+        faqs={PRICING_FAQS}
+        heading="Pricing FAQs"
+        description="Common questions about how StickModel pricing, payment timing, and revisions work."
+      />
+      <FaqJsonLd faqs={PRICING_FAQS} />
+      <JsonLd data={PRICING_SERVICE_JSON_LD} />
 
       <SiteFooter />
     </div>

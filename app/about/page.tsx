@@ -2,13 +2,43 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+
+const TITLE = "About StickModel — Structural Drawing to Stick Model Conversion";
+const DESCRIPTION =
+  "Learn how StickModel converts 2D structural drawings into wireframe and estimation models for construction, BIM workflows, and Tekla PowerFab.";
 
 export const metadata: Metadata = {
-  title: "About StickModel — Structural Drawing to Stick Model Conversion",
-  description:
-    "Learn how StickModel converts 2D structural drawings into wireframe and estimation models for construction, BIM workflows, and Tekla PowerFab.",
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: "https://stickmodel.com/about" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "https://stickmodel.com/about", type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
+
+const ABOUT_FAQS = [
+  {
+    question: "What is StickModel?",
+    answer:
+      "StickModel is a specialist conversion service that transforms 2D structural drawings into accurate 3D stick and wireframe models. We work with structural engineers, estimators, steel fabricators, and construction managers who need reliable 3D geometry fast, without the time and cost of full BIM modelling.",
+  },
+  {
+    question: "What services does StickModel offer?",
+    answer:
+      "StickModel offers wireframe models for construction, structural estimation models, 3D model conversion from 2D drawings, and BIM/Tekla PowerFab integration. Each service takes your 2D structural drawings and returns a precise 3D line model within 24 hours.",
+  },
+  {
+    question: "Why choose StickModel?",
+    answer:
+      "StickModel offers a 24-hour turnaround on most projects, works from any drawing format including DWG or PDF, is compatible with BIM, ABM, and Tekla PowerFab workflows, and is used by structural engineers, estimators, and steel fabricators across the industry.",
+  },
+  {
+    question: "What software is StickModel compatible with?",
+    answer:
+      "Our models are compatible with Tekla PowerFab, Tekla Structures, Revit, and all major BIM platforms, delivered as an IFC file ready for direct import into your detailing software.",
+  },
+];
 
 const services = [
   {
@@ -94,6 +124,9 @@ export default function AboutPage() {
           ))}
         </ul>
       </main>
+
+      <FaqSection faqs={ABOUT_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={ABOUT_FAQS} />
 
       <SiteFooter />
     </div>

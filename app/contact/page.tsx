@@ -8,6 +8,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageSquare, Clock, Send, CheckCircle2 } from "lucide-react";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+
+const CONTACT_FAQS = [
+  {
+    question: "How quickly will StickModel respond?",
+    answer:
+      "We respond within 24 hours. Live chat is also available 9am–6pm EST for quicker questions.",
+  },
+  {
+    question: "What information should I include when reaching out?",
+    answer:
+      "Include your name, company, designation, and a brief description of your project or question — if you already have drawings ready, you can also start a project directly by signing up and uploading through the secure portal.",
+  },
+  {
+    question: "How do I get a custom quote?",
+    answer:
+      "Use the contact form to describe your project, or check the Pricing page for our standard weight-based tiers. For recurring or high-volume work, mention it in your message and we'll discuss a volume discount arrangement.",
+  },
+];
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -216,6 +236,9 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection faqs={CONTACT_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={CONTACT_FAQS} />
 
       <SiteFooter />
     </div>

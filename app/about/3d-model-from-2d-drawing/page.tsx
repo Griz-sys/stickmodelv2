@@ -2,15 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+import { JsonLd } from "@/components/json-ld";
+import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
+
+const TITLE = "3D Model from 2D Drawing — StickModel Conversion Service";
+const DESCRIPTION =
+  "Send us your 2D structural drawings and receive an accurate 3D stick or wireframe model within 24 hours. Supports DWG and PDF formats.";
+const PAGE_URL = `${SITE_URL}/about/3d-model-from-2d-drawing`;
 
 export const metadata: Metadata = {
-  title: "3D Model from 2D Drawing — StickModel Conversion Service",
-  description:
-    "Send us your 2D structural drawings and receive an accurate 3D stick or wireframe model within 24 hours. Supports DWG and PDF formats.",
-  alternates: {
-    canonical: "https://stickmodel.com/about/3d-model-from-2d-drawing",
-  },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: PAGE_URL, type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
+
+const CONVERSION_FAQS = [
+  {
+    question: "What file formats does StickModel accept and deliver?",
+    answer:
+      "We accept 2D drawings in DWG (AutoCAD), DXF, or PDF format. 3D model outputs are delivered in your preferred format, including DWG 3D, IFC, and our native format compatible with Tekla PowerFab and other estimation platforms.",
+  },
+  {
+    question: "How long does the 2D to 3D conversion take?",
+    answer:
+      "Standard turnaround is 24 hours from drawing submission. For large or complex structures, we confirm timing at the point of upload. Every model is checked against the source drawings before delivery.",
+  },
+  {
+    question: "What structure types are supported?",
+    answer:
+      "We handle all structural types, including steel frames, trusses, portal frames, space frames, roof structures, and mixed-material systems.",
+  },
+];
 
 export default function ThreeDModelPage() {
   return (
@@ -104,6 +130,16 @@ export default function ThreeDModelPage() {
           </Link>
         </div>
       </main>
+
+      <FaqSection faqs={CONVERSION_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={CONVERSION_FAQS} />
+      <JsonLd
+        data={serviceJsonLd({
+          name: "3D Model from 2D Drawing Conversion",
+          description: DESCRIPTION,
+          url: PAGE_URL,
+        })}
+      />
 
       <SiteFooter />
     </div>

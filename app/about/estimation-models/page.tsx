@@ -2,13 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroNav } from "@/components/hero-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { FaqSection } from "@/components/faq-section";
+import { FaqJsonLd } from "@/components/faq-json-ld";
+import { JsonLd } from "@/components/json-ld";
+import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
+
+const TITLE = "Estimation Models for Structural Projects — StickModel";
+const DESCRIPTION =
+  "Accurate estimation models and esti-models built from 2D structural drawings. Reduce takeoff time and improve material trade-off decisions.";
+const PAGE_URL = `${SITE_URL}/about/estimation-models`;
 
 export const metadata: Metadata = {
-  title: "Estimation Models for Structural Projects — StickModel",
-  description:
-    "Accurate estimation models and esti-models built from 2D structural drawings. Reduce takeoff time and improve material trade-off decisions.",
-  alternates: { canonical: "https://stickmodel.com/about/estimation-models" },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: PAGE_URL, type: "website" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
+
+const ESTIMATION_FAQS = [
+  {
+    question: "What is an \"esti-model\"?",
+    answer:
+      "An esti-model is another name for a structural estimation model — a simplified 3D stick or wireframe representation built specifically to support quantity takeoff and cost estimation, capturing every structural member's length, section type, and connectivity.",
+  },
+  {
+    question: "How does an estimation model speed up takeoff compared to manual methods?",
+    answer:
+      "Quantities are extracted directly from accurate 3D geometry instead of being scaled manually from flat drawings. Traditional manual takeoff can take days; a StickModel estimation model can be ready in 24 hours, letting your estimating team begin quantity extraction immediately.",
+  },
+  {
+    question: "What do I receive with an estimation model?",
+    answer:
+      "You receive the 3D line model and, if required, a complete member schedule sorted by type and length in your preferred format, ready for pricing.",
+  },
+];
 
 export default function EstimationModelsPage() {
   return (
@@ -96,6 +124,16 @@ export default function EstimationModelsPage() {
           </Link>
         </div>
       </main>
+
+      <FaqSection faqs={ESTIMATION_FAQS} heading="Frequently Asked Questions" />
+      <FaqJsonLd faqs={ESTIMATION_FAQS} />
+      <JsonLd
+        data={serviceJsonLd({
+          name: "Structural Estimation Models",
+          description: DESCRIPTION,
+          url: PAGE_URL,
+        })}
+      />
 
       <SiteFooter />
     </div>
