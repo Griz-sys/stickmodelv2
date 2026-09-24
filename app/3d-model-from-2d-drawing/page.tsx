@@ -5,12 +5,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { FaqSection } from "@/components/faq-section";
 import { FaqJsonLd } from "@/components/faq-json-ld";
 import { JsonLd } from "@/components/json-ld";
+import { WireframeArt } from "@/components/wireframe-art";
 import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
 
 const TITLE = "3D Model from 2D Drawing — StickModel Conversion Service";
 const DESCRIPTION =
   "Send us your 2D structural drawings and receive an accurate 3D stick or wireframe model within 24 hours. Supports DWG and PDF formats.";
-const PAGE_URL = `${SITE_URL}/about/3d-model-from-2d-drawing`;
+const PAGE_URL = `${SITE_URL}/3d-model-from-2d-drawing`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -62,6 +63,8 @@ export default function ThreeDModelPage() {
           your 2D drawing within 24 hours. The resulting model can be used for
           estimation, material takeoff, BIM coordination, or structural review.
         </p>
+
+        <WireframeArt variant="convert" className="mb-16" />
 
         <h2 className="text-3xl font-semibold mb-5">
           How the 2D to 3D conversion works
@@ -121,12 +124,18 @@ export default function ThreeDModelPage() {
           paper. Coordination happens in three dimensions, not two.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Send us your drawings
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

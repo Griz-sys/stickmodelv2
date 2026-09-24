@@ -5,12 +5,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { FaqSection } from "@/components/faq-section";
 import { FaqJsonLd } from "@/components/faq-json-ld";
 import { JsonLd } from "@/components/json-ld";
+import { WireframeArt } from "@/components/wireframe-art";
 import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
 
 const TITLE = "Wireframe Models for Construction — StickModel";
 const DESCRIPTION =
   "Professional wireframe models built from your structural drawings. Used for construction planning, material takeoff, and project visualisation.";
-const PAGE_URL = `${SITE_URL}/about/wireframe-models`;
+const PAGE_URL = `${SITE_URL}/wireframe-models`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -64,6 +65,8 @@ export default function WireframeModelsPage() {
           your drawings exactly — no guesswork, no approximation.
         </p>
 
+        <WireframeArt variant="skeleton" className="mb-16" />
+
         <h2 className="text-3xl font-semibold mb-5">
           What is a construction wireframe model?
         </h2>
@@ -113,12 +116,18 @@ export default function WireframeModelsPage() {
           communicate — a wireframe model is the fastest route there.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Start your wireframe project
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

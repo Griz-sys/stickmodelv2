@@ -5,12 +5,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { FaqSection } from "@/components/faq-section";
 import { FaqJsonLd } from "@/components/faq-json-ld";
 import { JsonLd } from "@/components/json-ld";
+import { WireframeArt } from "@/components/wireframe-art";
 import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
 
 const TITLE = "Estimation Models for Structural Projects — StickModel";
 const DESCRIPTION =
   "Accurate estimation models and esti-models built from 2D structural drawings. Reduce takeoff time and improve material trade-off decisions.";
-const PAGE_URL = `${SITE_URL}/about/estimation-models`;
+const PAGE_URL = `${SITE_URL}/estimation-models`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -65,6 +66,8 @@ export default function EstimationModelsPage() {
           reliable cost schedules faster than working from flat drawings alone.
         </p>
 
+        <WireframeArt variant="schedule" className="mb-16" />
+
         <h2 className="text-3xl font-semibold mb-5">
           What is a structural estimation model?
         </h2>
@@ -115,12 +118,18 @@ export default function EstimationModelsPage() {
           that routinely cause budget overruns and re-quotes.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Get an estimation model
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

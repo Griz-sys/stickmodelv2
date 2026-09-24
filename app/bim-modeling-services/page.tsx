@@ -102,18 +102,24 @@ export default function BimModelingServicesPage() {
         <p className="text-lg text-slate-600 leading-relaxed mb-16">
           Our IFC exports are compatible with Tekla Structures, Tekla
           PowerFab, Revit, and all major BIM platforms — see our{" "}
-          <Link href="/about/bim-integration" className="text-[#E67E00] hover:underline">
+          <Link href="/bim-integration" className="text-[#E67E00] hover:underline">
             BIM and ABM integration
           </Link>{" "}
           page for the full platform list.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Start your BIM model
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

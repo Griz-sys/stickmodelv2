@@ -43,19 +43,19 @@ const ABOUT_FAQS = [
 const services = [
   {
     title: "Wireframe models for construction",
-    href: "/about/wireframe-models",
+    href: "/wireframe-models",
   },
   {
     title: "Structural estimation models",
-    href: "/about/estimation-models",
+    href: "/estimation-models",
   },
   {
     title: "3D model from 2D drawing",
-    href: "/about/3d-model-from-2d-drawing",
+    href: "/3d-model-from-2d-drawing",
   },
   {
     title: "BIM and Tekla PowerFab integration",
-    href: "/about/bim-integration",
+    href: "/bim-integration",
   },
 ];
 

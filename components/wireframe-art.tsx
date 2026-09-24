@@ -1,4 +1,15 @@
-type Variant = "frame" | "grid" | "truss" | "nodes" | "list" | "cube" | "stick";
+type Variant =
+  | "frame"
+  | "grid"
+  | "truss"
+  | "nodes"
+  | "list"
+  | "cube"
+  | "stick"
+  | "skeleton"
+  | "schedule"
+  | "convert"
+  | "layers";
 
 const ACCENT = "#E67E00";
 
@@ -30,6 +41,10 @@ export function WireframeArt({
         {variant === "list" && <ListArt line={line} dim={dim} />}
         {variant === "cube" && <CubeArt line={line} />}
         {variant === "stick" && <StickArt line={line} dim={dim} />}
+        {variant === "skeleton" && <SkeletonArt line={line} />}
+        {variant === "schedule" && <ScheduleArt line={line} dim={dim} />}
+        {variant === "convert" && <ConvertArt line={line} dim={dim} />}
+        {variant === "layers" && <LayersArt line={line} dim={dim} />}
       </svg>
     </div>
   );
@@ -172,6 +187,99 @@ function StickArt({ line, dim }: { line: string; dim: string }) {
       ].map(([x, y]) => (
         <circle key={`${x}-${y}`} cx={x} cy={y} r="4" fill={line} />
       ))}
+    </g>
+  );
+}
+
+// Multi-storey building elevation skeleton — wireframe models service page
+function SkeletonArt({ line }: { line: string }) {
+  const cols = [100, 165, 230, 295];
+  const rows = [200, 155, 110, 65];
+  return (
+    <g strokeWidth="2">
+      {cols.map((x) => (
+        <line key={`c${x}`} x1={x} y1={rows[0]} x2={x} y2={rows[rows.length - 1]} stroke={ACCENT} strokeLinecap="round" />
+      ))}
+      {rows.map((y) => (
+        <line key={`r${y}`} x1={cols[0]} y1={y} x2={cols[cols.length - 1]} y2={y} stroke={line} />
+      ))}
+      {cols.map((x) =>
+        rows.map((y) => <circle key={`${x}-${y}`} cx={x} cy={y} r="3.5" fill={line} />),
+      )}
+    </g>
+  );
+}
+
+// Member schedule beside a small line model — estimation models service page
+function ScheduleArt({ line, dim }: { line: string; dim: string }) {
+  return (
+    <g>
+      <g strokeWidth="2" stroke={ACCENT}>
+        <path d="M60 190L60 110L120 70L120 190" strokeLinecap="round" />
+        <path d="M60 150H120" stroke={line} />
+      </g>
+      <g strokeWidth="1.4" stroke={dim}>
+        {[70, 95, 120, 145, 170].map((y, i) => (
+          <g key={y}>
+            <line x1="160" y1={y} x2={160 + 40 + i * 25} y2={y} stroke={ACCENT} strokeWidth="3" />
+            <line x1={160 + 55 + i * 25} y1={y} x2="340" y2={y} strokeDasharray="2 4" />
+          </g>
+        ))}
+      </g>
+    </g>
+  );
+}
+
+// 2D plan morphing into a 3D frame — 2D-to-3D conversion service page
+function ConvertArt({ line, dim }: { line: string; dim: string }) {
+  return (
+    <g strokeWidth="2">
+      <rect x="40" y="70" width="110" height="100" stroke={dim} />
+      <path d="M60 90H130M60 110H130M60 130H130M60 150H130" stroke={dim} strokeWidth="1.2" />
+      <path d="M170 120H210" stroke={ACCENT} strokeLinecap="round" markerEnd="url(#arrow)" />
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0 0L8 4L0 8Z" fill={ACCENT} />
+        </marker>
+      </defs>
+      <path
+        d="M240 170V90H320V170ZM240 90L260 70H340L320 90M320 90V170M320 170L340 150V70"
+        stroke={ACCENT}
+      />
+      {[
+        [240, 90],
+        [320, 90],
+        [240, 170],
+        [320, 170],
+        [260, 70],
+        [340, 70],
+        [340, 150],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="3.5" fill={line} />
+      ))}
+    </g>
+  );
+}
+
+// Stacked, connected platform layers — BIM/Tekla PowerFab integration page
+function LayersArt({ line, dim }: { line: string; dim: string }) {
+  const layers = [
+    { y: 70, w: 220, active: true },
+    { y: 120, w: 190, active: false },
+    { y: 170, w: 160, active: false },
+  ];
+  return (
+    <g strokeWidth="2">
+      {layers.map((l, i) => (
+        <g key={i}>
+          <path
+            d={`M${200 - l.w / 2} ${l.y}L${200 + l.w / 2} ${l.y}L${200 + l.w / 2 - 20} ${l.y + 20}L${200 - l.w / 2 + 20} ${l.y + 20}Z`}
+            stroke={l.active ? ACCENT : dim}
+            strokeWidth={l.active ? 2.2 : 1.4}
+          />
+        </g>
+      ))}
+      <path d="M200 90V170" stroke={line} strokeDasharray="3 5" />
     </g>
   );
 }

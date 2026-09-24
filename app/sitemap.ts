@@ -36,22 +36,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${base}/about/wireframe-models`,
+      url: `${base}/wireframe-models`,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${base}/about/estimation-models`,
+      url: `${base}/estimation-models`,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${base}/about/3d-model-from-2d-drawing`,
+      url: `${base}/3d-model-from-2d-drawing`,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${base}/about/bim-integration`,
+      url: `${base}/bim-integration`,
       changeFrequency: "monthly",
       priority: 0.8,
     },

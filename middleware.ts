@@ -2,7 +2,29 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 
-const publicPaths = ['/', '/login', '/signup', '/about', '/pricing', '/contact', '/faq', '/terms'];
+const publicPaths = [
+  '/',
+  '/login',
+  '/signup',
+  '/about',
+  '/pricing',
+  '/contact',
+  '/faq',
+  '/terms',
+  '/structural-steel-detailing',
+  '/bim-modeling-services',
+  '/steel-takeoff',
+  '/material-takeoff',
+  '/bill-of-materials-steel',
+  '/wireframe',
+  '/stick-model',
+  '/wireframe-models',
+  '/estimation-models',
+  '/3d-model-from-2d-drawing',
+  '/bim-integration',
+];
+// Prefixes whose entire subtree is public (kept for any future /about/* pages).
+const publicPathPrefixes = ['/about/'];
 const adminPaths = ['/admin', '/blog/new'];
 
 function isPublicBlogPath(pathname: string): boolean {
@@ -18,6 +40,11 @@ export async function middleware(request: NextRequest) {
 
   // Allow exact public paths
   if (publicPaths.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Allow entire public path subtrees (e.g. /about/*)
+  if (publicPathPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     return NextResponse.next();
   }
 

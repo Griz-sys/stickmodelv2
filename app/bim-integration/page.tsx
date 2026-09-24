@@ -5,12 +5,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { FaqSection } from "@/components/faq-section";
 import { FaqJsonLd } from "@/components/faq-json-ld";
 import { JsonLd } from "@/components/json-ld";
+import { WireframeArt } from "@/components/wireframe-art";
 import { serviceJsonLd, SITE_URL } from "@/lib/site-schema";
 
 const TITLE = "BIM & ABM Compatible Stick Models — StickModel";
 const DESCRIPTION =
   "StickModel outputs are compatible with BIM workflows, ABM processes, and Tekla PowerFab. Integrate directly into your existing estimation pipeline.";
-const PAGE_URL = `${SITE_URL}/about/bim-integration`;
+const PAGE_URL = `${SITE_URL}/bim-integration`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -63,6 +64,8 @@ export default function BimIntegrationPage() {
           slot into your existing pipeline without requiring changes to your
           process.
         </p>
+
+        <WireframeArt variant="layers" className="mb-16" />
 
         <h2 className="text-3xl font-semibold mb-5">
           What is BIM and how StickModel fits in
@@ -131,16 +134,25 @@ export default function BimIntegrationPage() {
           ))}
         </ul>
         <p className="text-lg text-slate-600 leading-relaxed mb-16">
-          If you use a platform not listed here, contact us and we will confirm
-          compatibility before you commit to a project.
+          If you use a platform not listed here,{" "}
+          <Link href="/contact" className="text-[#E67E00] hover:underline">
+            contact us
+          </Link>{" "}
+          and we will confirm compatibility before you commit to a project.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Check compatibility for your workflow
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

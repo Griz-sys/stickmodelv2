@@ -10,10 +10,17 @@ StickModel is a professional structural modelling service. Clients upload 2D dra
 
 - [Home](https://stickmodel.com/): Overview of the service
 - [About](https://stickmodel.com/about): How StickModel works and why clients use it
-- [Wireframe models](https://stickmodel.com/about/wireframe-models): Wireframe model creation from structural drawings
-- [Estimation models](https://stickmodel.com/about/estimation-models): Quantity and estimation model service
-- [3D model from 2D drawing](https://stickmodel.com/about/3d-model-from-2d-drawing): Process for converting 2D plans to 3D
-- [BIM & Tekla PowerFab integration](https://stickmodel.com/about/bim-integration): Compatibility with BIM and Tekla PowerFab workflows
+- [Wireframe models](https://stickmodel.com/wireframe-models): Wireframe model creation from structural drawings
+- [Estimation models](https://stickmodel.com/estimation-models): Quantity and estimation model service
+- [3D model from 2D drawing](https://stickmodel.com/3d-model-from-2d-drawing): Process for converting 2D plans to 3D
+- [BIM & Tekla PowerFab integration](https://stickmodel.com/bim-integration): Compatibility with BIM and Tekla PowerFab workflows
+- [Structural steel detailing](https://stickmodel.com/structural-steel-detailing): Wireframe geometry support for detailing workflows
+- [BIM modeling services](https://stickmodel.com/bim-modeling-services): BIM modeling service overview
+- [Steel takeoff](https://stickmodel.com/steel-takeoff): Steel quantity takeoff from 2D drawings
+- [Material takeoff (MTO)](https://stickmodel.com/material-takeoff): Material takeoff service
+- [Bill of materials (BOM)](https://stickmodel.com/bill-of-materials-steel): Advanced Bill of Materials add-on
+- [What is a wireframe model?](https://stickmodel.com/wireframe): Glossary definition
+- [What is a stick model?](https://stickmodel.com/stick-model): Glossary definition
 - [Pricing](https://stickmodel.com/pricing): Service tiers and pricing
 - [FAQ](https://stickmodel.com/faq): Common questions about the service
 - [Contact](https://stickmodel.com/contact): Get in touch or request a quote

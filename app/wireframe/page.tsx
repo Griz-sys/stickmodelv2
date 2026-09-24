@@ -96,20 +96,25 @@ export default function WireframeGlossaryPage() {
           StickModel converts your 2D structural drawings into a wireframe
           model within 24 hours, delivered as an IFC file ready for import
           into Tekla Structures, Tekla PowerFab, Revit, and other major
-          detailing and BIM platforms. For the full service details and
-          pricing, see{" "}
-          <Link href="/about/wireframe-models" className="text-[#E67E00] hover:underline">
+          detailing and BIM platforms. For the full service details, see{" "}
+          <Link href="/wireframe-models" className="text-[#E67E00] hover:underline">
             wireframe models for construction
           </Link>
           .
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
-            href="/about/wireframe-models"
+            href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Get a wireframe model built
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>

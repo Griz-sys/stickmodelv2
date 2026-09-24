@@ -100,8 +100,11 @@ export default function BillOfMaterialsSteelPage() {
           How to add it to your project
         </h2>
         <p className="text-lg text-slate-600 leading-relaxed mb-16">
-          Select the ABM add-on when creating a new project, or contact us to
-          add it to an existing one. It can be added to any pricing tier —
+          Select the ABM add-on when creating a new project, or{" "}
+          <Link href="/contact" className="text-[#E67E00] hover:underline">
+            contact us
+          </Link>{" "}
+          to add it to an existing one. It can be added to any pricing tier —
           see the full{" "}
           <Link href="/pricing" className="text-[#E67E00] hover:underline">
             pricing page
@@ -109,12 +112,18 @@ export default function BillOfMaterialsSteelPage() {
           for details.
         </p>
 
-        <div className="border-t border-slate-200 pt-10">
+        <div className="border-t border-slate-200 pt-10 flex flex-wrap gap-4">
           <Link
             href="/contact"
             className="inline-block bg-[#E67E00] text-white px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#d66c00] transition-colors"
           >
             Add a bill of materials
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-block border-2 border-[#E67E00] text-[#E67E00] px-8 py-3 font-bold text-sm tracking-wide hover:bg-[#E67E00] hover:text-white transition-colors"
+          >
+            View Pricing
           </Link>
         </div>
       </main>
