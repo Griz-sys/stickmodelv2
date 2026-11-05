@@ -25,6 +25,7 @@ import {
   ClientFormModal,
   type Client,
 } from "@/components/admin/client-form-modal";
+import { ServiceStatusEditor } from "@/components/admin/service-status-editor";
 
 type ViewMode = "clients" | "projects";
 
@@ -324,6 +325,8 @@ export default function AdminPage() {
             color="green"
           />
         </div>
+
+        <ServiceStatusEditor />
 
         <div className="mb-6 flex gap-2 rounded-xl bg-slate-100 p-1 w-fit">
           {(["clients", "projects"] as ViewMode[]).map((mode) => (

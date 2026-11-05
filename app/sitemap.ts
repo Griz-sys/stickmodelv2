@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 
+// Runs per-request rather than at build time, so blog post URLs reflect live
+// data and the Docker build's static-generation pass never needs Prisma
+// (the builder stage has no working query engine).
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://stickmodel.com";
 

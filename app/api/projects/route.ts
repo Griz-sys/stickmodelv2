@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { sanitizeProjectOptions } from '@/lib/project-options';
 
 // Get all projects (admin) or user's projects
 export async function GET(request: NextRequest) {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, tonnage, cost, notes } = body;
+    const { name, tonnage, cost, notes, options } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
         tonnage,
         cost,
         notes: notes || null,
+        options: sanitizeProjectOptions(options),
         uploadedBy: dbUser.name,
         userId: dbUser.id,
         status: 'waiting_for_confirmation',

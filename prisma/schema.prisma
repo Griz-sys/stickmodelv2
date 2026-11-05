@@ -58,6 +58,7 @@ model Project {
   status       String    @default("waiting_for_confirmation") // waiting_for_confirmation | in_progress | issue | finished
   userId       String?
   notes        String?
+  options      String[] @default([]) // Optional add-on ids chosen at creation (see lib/project-options.ts)
   queueOrder   Int?     // User-defined queue priority (lower = higher priority)
 
   // Initial submission (original upload)
@@ -158,4 +159,17 @@ model OtpVerification {
 
   @@index([email])
   @@map("otp_verifications")
+}
+
+// Single-row table (id = "global") holding the delivery status shown on the client dashboard
+model ServiceStatus {
+  id         String    @id @default("global")
+  mode       String    @default("standard") // standard | off | busy_standard | busy_discount
+  resumeDate DateTime? // mode = off
+  waitDays   Int? // mode = busy_standard | busy_discount
+  customRate String? // mode = busy_discount, e.g. "20% off" or "$150 / model"
+  note       String? // optional extra message from admin
+  updatedAt  DateTime  @updatedAt
+
+  @@map("service_status")
 }

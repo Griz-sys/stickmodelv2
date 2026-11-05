@@ -7,6 +7,11 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+// Queries the DB per-request (admin status + post visibility depend on the
+// session cookie); also keeps Prisma out of the Docker build's static-generation
+// pass, which runs in a builder stage without a working query engine.
+export const dynamic = "force-dynamic";
+
 const TITLE = "Engineering Blog — StickModel Insights";
 const DESCRIPTION =
   "Structural perspectives from the StickModel team — BIM, detailing, and delivery insights for engineers, estimators, and fabricators.";

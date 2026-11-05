@@ -28,12 +28,14 @@ import {
   Calendar,
   Hash,
   Weight,
+  ListChecks,
   LogOut,
   Plus,
   Trash2,
   Lock,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { formatOptionRate, getProjectOption } from "@/lib/project-options";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -78,6 +80,7 @@ interface Project {
   isPaidInitial: boolean;
   status: string;
   notes: string | null;
+  options: string[];
   videoUrl: string | null;
   userId: string;
   userFileName?: string | null;
@@ -1636,6 +1639,36 @@ export default function RequestDetailPage({ params }: PageProps) {
                             ? "Requested"
                             : `${project.tonnage} tons`}
                         </p>
+                      </div>
+                    </div>
+                  )}
+                  {project.options?.length > 0 && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <ListChecks className="w-4 h-4 text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium mb-0.5">
+                          Add-ons
+                        </p>
+                        <ul className="space-y-0.5">
+                          {project.options.map((id) => {
+                            const option = getProjectOption(id);
+                            return (
+                              <li
+                                key={id}
+                                className="text-sm font-semibold text-slate-900"
+                              >
+                                {option?.label ?? id}
+                                {option && (
+                                  <span className="ml-1.5 text-xs font-normal text-slate-500">
+                                    {formatOptionRate(option)}
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
                       </div>
                     </div>
                   )}

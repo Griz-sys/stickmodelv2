@@ -10,6 +10,11 @@ import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { PostAdminControls } from "./post-admin-controls";
 
+// Queries the DB per-request (admin/draft visibility depends on the session
+// cookie); also keeps Prisma out of the Docker build's static-generation
+// pass, which runs in a builder stage without a working query engine.
+export const dynamic = "force-dynamic";
+
 function formatDate(date: Date) {
   return date.toLocaleDateString("en-US", {
     month: "long",

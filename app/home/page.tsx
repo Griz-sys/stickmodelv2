@@ -4,18 +4,12 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
-import { Dropzone } from "@/components/upload/dropzone";
+import { ServiceStatusBar } from "@/components/ServiceStatusBar";
 import { formatRelativeTime, formatFileSize, cn } from "@/lib/utils";
-import JSZip from "jszip";
 import { Reorder, useDragControls } from "framer-motion";
 import {
-  ArrowRight,
   ChevronRight,
   FileStack,
   History,
@@ -31,6 +25,8 @@ import {
   ListOrdered,
   Check,
   Lock,
+  Plus,
+  Upload,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -62,10 +58,6 @@ interface Project {
   };
 }
 
-interface UploadedFile {
-  file: File;
-}
-
 const STATUS_FILTERS: { value: RequestStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "uploaded", label: "Uploaded" },
@@ -84,16 +76,6 @@ export default function HomePage() {
   // Projects state
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Upload state
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [projectName, setProjectName] = useState("");
-  const [includeBOM, setIncludeBOM] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [confirmFiles, setConfirmFiles] = useState(false);
-  const [confirmTerms, setConfirmTerms] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<Tab>("active");
@@ -324,136 +306,6 @@ export default function HomePage() {
     viewAllPage * ITEMS_PER_PAGE,
   );
 
-  const canSubmit =
-    confirmFiles && confirmTerms && projectName.trim() && uploadedFiles.length > 0;
-
-  const handleFileAdded = useCallback((files: File[]) => {
-    if (files.length > 0) {
-      setUploadedFiles((prev) => {
-        // Deduplicate by name
-        const existingNames = new Set(prev.map((f) => f.file.name));
-        const newOnes = files
-          .filter((f) => !existingNames.has(f.name))
-          .map((f) => ({ file: f }));
-        return [...prev, ...newOnes];
-      });
-      setShowModal(true);
-    }
-  }, []);
-
-  const handleRemoveFile = useCallback((index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setShowModal(false);
-    setUploadedFiles([]);
-    setProjectName("");
-    setIncludeBOM(false);
-    setNotes("");
-    setConfirmFiles(false);
-    setConfirmTerms(false);
-  }, []);
-
-  const handleSubmit = async () => {
-    if (uploadedFiles.length === 0 || !canSubmit) return;
-
-    setIsSubmitting(true);
-
-    try {
-      // Step 1: Create project
-      const projectResponse = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: projectName.trim(),
-          notes: notes.trim() || null,
-          tonnage: includeBOM ? 0 : null,
-        }),
-      });
-
-      if (projectResponse.status === 401) {
-        router.push("/");
-        return;
-      }
-
-      if (!projectResponse.ok) {
-        const errorText = await projectResponse.text();
-        console.error("Create project failed:", errorText);
-        throw new Error("Failed to create project");
-      }
-
-      const { project } = await projectResponse.json();
-
-      // Step 2: If multiple files, zip them; otherwise upload directly
-      let fileToUpload: File;
-      if (uploadedFiles.length === 1) {
-        fileToUpload = uploadedFiles[0].file;
-      } else {
-        const zip = new JSZip();
-        for (const { file } of uploadedFiles) {
-          zip.file(file.name, file);
-        }
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-        fileToUpload = new File(
-          [zipBlob],
-          `${projectName.trim().replace(/[^a-z0-9]/gi, "_")}_files.zip`,
-          { type: "application/zip" },
-        );
-      }
-
-      // Step 3: Upload the file (single or zipped)
-      const formData = new FormData();
-      formData.append("file", fileToUpload);
-      formData.append("projectId", project.id);
-      formData.append("isAdminResponse", "false");
-
-      const tokenRes = await fetch("/api/blob/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!tokenRes.ok) {
-        const err = await tokenRes.json();
-        throw new Error(err.error || "Failed to upload file");
-      }
-
-      const { url: publicUrl } = await tokenRes.json();
-
-      // Step 4: Attach file to project
-      const updateResponse = await fetch(`/api/projects/${project.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userFileName: fileToUpload.name,
-          userFileUrl: publicUrl,
-          userFileSize: fileToUpload.size,
-          userFileType: fileToUpload.type || "application/zip",
-        }),
-      });
-
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        throw new Error(
-          errorData.error || "Failed to update project with file URL",
-        );
-      }
-
-      await fetchProjects();
-      handleCloseModal();
-      router.push(`/requests/${project.id}`);
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to create project. Please try again.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleOpenViewAll = (tab: Tab) => {
     setViewAllTab(tab);
     setViewAllPage(1);
@@ -522,6 +374,7 @@ export default function HomePage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        <ServiceStatusBar className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* Left Column - Requests List */}
           <Card className="animate-fade-in flex flex-col">
@@ -780,9 +633,21 @@ export default function HomePage() {
                 <p className="text-slate-500">Upload your structural drawing</p>
               </div>
 
-              <div className="flex-1 flex flex-col justify-center">
-                <Dropzone onFilesAdded={handleFileAdded} />
-              </div>
+              <Link
+                href="/requests/new"
+                className="flex-1 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-slate-200 p-8 text-center hover:border-amber-400 hover:bg-amber-50/40 transition-colors group"
+              >
+                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+                  <Upload className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-sm text-slate-500 max-w-[260px]">
+                  Add your drawings, project name and notes on the next page
+                </p>
+                <span className="inline-flex items-center gap-2 rounded-md bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-sm group-hover:bg-amber-600 transition-colors">
+                  <Plus className="w-4 h-4" />
+                  Create New Project
+                </span>
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -976,130 +841,6 @@ export default function HomePage() {
           </div>
         </Modal>
 
-        {/* Project Details Modal */}
-        <Modal
-          isOpen={showModal}
-          onClose={handleCloseModal}
-          title="Create New Project"
-          className="max-w-2xl"
-        >
-          <div className="p-8 space-y-6">
-            {/* File picker — shows selected files + allows adding more */}
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-slate-700">
-                Files to upload
-                {uploadedFiles.length > 1 && (
-                  <span className="ml-2 text-xs font-normal text-amber-600">
-                    ({uploadedFiles.length} files · will be zipped into one)
-                  </span>
-                )}
-              </p>
-              <Dropzone
-                onFilesAdded={handleFileAdded}
-                multiple
-                selectedFiles={uploadedFiles.map((f) => f.file)}
-                onRemoveFile={handleRemoveFile}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Input
-                label="Project Name"
-                placeholder="e.g., Tower Block A - Phase 1"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                required
-              />
-              <p className="text-xs text-slate-500">
-                Give your project a descriptive name for easy identification
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <Checkbox
-                checked={includeBOM}
-                onChange={(e) => setIncludeBOM(e.target.checked)}
-                label="Include Advance Bill of Material (ABM)"
-                description="Request a detailed advance bill of material with your project"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Textarea
-                label="Additional Notes (optional)"
-                placeholder="Any specific requirements or details about this project..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-              />
-              <p className="text-xs text-slate-500">
-                Help us understand your project better with any additional
-                details
-              </p>
-            </div>
-
-            <div className="border-t border-slate-200 pt-6 space-y-4">
-              <div className="space-y-3">
-                <Checkbox
-                  checked={confirmFiles}
-                  onChange={(e) => setConfirmFiles(e.target.checked)}
-                  label="I confirm that I have verified the files being uploaded, and I have the authority to use and share these files."
-                />
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative flex-shrink-0 mt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={confirmTerms}
-                      onChange={(e) => setConfirmTerms(e.target.checked)}
-                      className="peer sr-only"
-                    />
-                    <div className="w-5 h-5 border-2 border-slate-300 rounded transition-all duration-200 group-hover:border-amber-400 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500/20 peer-focus-visible:border-amber-500 peer-checked:bg-amber-500 peer-checked:border-amber-500" />
-                    <svg
-                      className="absolute top-0.5 left-0.5 w-4 h-4 text-white transition-all duration-200 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-sm text-charcoal">
-                    I confirm that I have read the{" "}
-                    <a
-                      href="/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-600 hover:text-amber-700 underline underline-offset-2 font-medium"
-                    >
-                      terms of use
-                    </a>
-                    .
-                  </span>
-                </label>
-              </div>
-
-              <Button
-                size="lg"
-                className="w-full mt-6"
-                onClick={handleSubmit}
-                isLoading={isSubmitting}
-                disabled={!canSubmit}
-              >
-                {isSubmitting
-                  ? uploadedFiles.length > 1
-                    ? "Zipping & Uploading..."
-                    : "Creating Project..."
-                  : "Create Project"}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        </Modal>
       </div>
     </div>
   );
