@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import {
   DEFAULT_SERVICE_STATUS,
+  isBreakOver,
   isServiceMode,
   type ServiceStatus,
 } from '@/lib/service-status';
@@ -40,9 +41,28 @@ export async function GET() {
       where: { id: STATUS_ID },
     });
 
-    return NextResponse.json({
-      status: row ? serialize(row) : DEFAULT_SERVICE_STATUS,
-    });
+    if (!row) {
+      return NextResponse.json({ status: DEFAULT_SERVICE_STATUS });
+    }
+
+    const status = serialize(row);
+
+    // Break has ended: persist the switch back to standard so admin sees it too
+    if (isBreakOver(status)) {
+      const updated = await prisma.serviceStatus.update({
+        where: { id: STATUS_ID },
+        data: {
+          mode: 'standard',
+          resumeDate: null,
+          waitDays: null,
+          customRate: null,
+          note: null,
+        },
+      });
+      return NextResponse.json({ status: serialize(updated) });
+    }
+
+    return NextResponse.json({ status });
   } catch (error) {
     console.error('Get service status error:', error);
     return NextResponse.json(
@@ -78,6 +98,12 @@ export async function PUT(request: NextRequest) {
       if (!parsedResumeDate || isNaN(parsedResumeDate.getTime())) {
         return NextResponse.json(
           { error: 'Resume date is required' },
+          { status: 400 }
+        );
+      }
+      if (parsedResumeDate.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { error: 'Resume date and time must be in the future' },
           { status: 400 }
         );
       }

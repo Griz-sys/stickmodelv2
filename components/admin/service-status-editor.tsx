@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ServiceStatusBar } from "@/components/ServiceStatusBar";
 import {
+  DEFAULT_RESUME_TIME,
   DEFAULT_SERVICE_STATUS,
   SERVICE_MODES,
+  isoToIst,
+  istToIso,
   type ServiceStatus,
 } from "@/lib/service-status";
 
@@ -18,6 +21,8 @@ export function ServiceStatusEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  // Kept separately so a time can be picked before the date
+  const [resumeTime, setResumeTime] = useState(DEFAULT_RESUME_TIME);
 
   useEffect(() => {
     fetch("/api/service-status")
@@ -26,6 +31,8 @@ export function ServiceStatusEditor() {
         if (data?.status) {
           setStatus(data.status);
           setSavedAt(data.status.updatedAt ?? null);
+          if (data.status.resumeDate)
+            setResumeTime(isoToIst(data.status.resumeDate).time);
         }
       })
       .catch((err) => console.error("Failed to fetch service status:", err))
@@ -60,6 +67,8 @@ export function ServiceStatusEditor() {
       setIsSaving(false);
     }
   };
+
+  const resume = isoToIst(status.resumeDate);
 
   const needsWaitDays =
     status.mode === "busy_standard" || status.mode === "busy_discount";
@@ -108,18 +117,37 @@ export function ServiceStatusEditor() {
 
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             {status.mode === "off" && (
-              <label className="block">
+              <div className="md:col-span-2">
                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Work resumes on
+                  Work resumes on (IST)
                 </span>
-                <Input
-                  type="date"
-                  value={status.resumeDate ? status.resumeDate.slice(0, 10) : ""}
-                  onChange={(e) =>
-                    update({ resumeDate: e.target.value || null })
-                  }
-                />
-              </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    value={resume.date}
+                    onChange={(e) =>
+                      update({
+                        resumeDate: istToIso(e.target.value, resumeTime),
+                      })
+                    }
+                  />
+                  <Input
+                    type="time"
+                    value={resumeTime}
+                    onChange={(e) => {
+                      setResumeTime(e.target.value);
+                      if (resume.date)
+                        update({
+                          resumeDate: istToIso(resume.date, e.target.value),
+                        });
+                    }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  Status switches back to standard 24 hr delivery automatically
+                  at this time.
+                </p>
+              </div>
             )}
             {needsWaitDays && (
               <label className="block">

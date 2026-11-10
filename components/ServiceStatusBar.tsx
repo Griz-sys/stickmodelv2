@@ -5,6 +5,7 @@ import { CalendarClock, Clock, Tag, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   describeServiceStatus,
+  getEffectiveStatus,
   type ServiceMode,
   type ServiceStatus,
 } from "@/lib/service-status";
@@ -35,6 +36,9 @@ const MODE_STYLES: Record<
   },
 };
 
+// setTimeout overflows past ~24.8 days
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
 // Presentational bar; pass `status` directly (e.g. admin preview) or let it fetch itself
 export function ServiceStatusBar({
   status: statusProp,
@@ -52,6 +56,18 @@ export function ServiceStatusBar({
       .then((data) => data?.status && setFetched(data.status))
       .catch((error) => console.error("Failed to fetch service status:", error));
   }, [statusProp]);
+
+  // Flip a "team off" status back to standard at the resume time, even if the page stays open
+  useEffect(() => {
+    if (!fetched || fetched.mode !== "off" || !fetched.resumeDate) return;
+    const delay = new Date(fetched.resumeDate).getTime() - Date.now();
+    if (delay > MAX_TIMEOUT_MS) return;
+    const timer = setTimeout(
+      () => setFetched(getEffectiveStatus(fetched)),
+      Math.max(delay, 0),
+    );
+    return () => clearTimeout(timer);
+  }, [fetched]);
 
   const status = statusProp ?? fetched;
   if (!status) return null;
