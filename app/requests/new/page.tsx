@@ -16,6 +16,7 @@ import {
   BASE_RATE,
   INCLUDED_ITEMS,
   MISC_BASE_RATE,
+  MISC_OPTION,
   MISC_OPTION_ID,
   PROJECT_OPTIONS,
   formatOptionRate,
@@ -306,20 +307,22 @@ export default function NewRequestPage() {
                   hasMisc
                     ? "border-violet-300 bg-violet-50"
                     : "border-slate-200",
+                  MISC_OPTION.unavailable && "bg-slate-50",
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
                   <Checkbox
                     checked={hasMisc}
+                    disabled={MISC_OPTION.unavailable}
                     onChange={(e) =>
                       toggleOption(MISC_OPTION_ID, e.target.checked)
                     }
                     label="Misc Steel"
                     description="Misc steel is priced separately from main steel, at its own base rate plus the selected add-ons"
                   />
-                  <span className="flex-shrink-0 text-sm font-medium text-slate-600">
+                  <OptionPrice unavailable={MISC_OPTION.unavailable}>
                     Base ${MISC_BASE_RATE.toFixed(2)} / tonne
-                  </span>
+                  </OptionPrice>
                 </div>
               </div>
               <div className="rounded-lg border border-slate-200 p-4 space-y-3">
@@ -333,13 +336,14 @@ export default function NewRequestPage() {
                   >
                     <Checkbox
                       checked={selectedOptions.includes(option.id)}
+                      disabled={option.unavailable}
                       onChange={(e) => toggleOption(option.id, e.target.checked)}
                       label={option.label}
                       description={option.description}
                     />
-                    <span className="flex-shrink-0 text-sm font-medium text-slate-600">
+                    <OptionPrice unavailable={option.unavailable}>
                       +{formatOptionRate(option)}
-                    </span>
+                    </OptionPrice>
                   </div>
                 ))}
               </div>
@@ -491,6 +495,33 @@ export default function NewRequestPage() {
         </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ==================== OPTION PRICE ====================
+function OptionPrice({
+  unavailable,
+  children,
+}: {
+  unavailable?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-shrink-0 flex-col items-end gap-1">
+      <span
+        className={cn(
+          "text-sm font-medium text-slate-600",
+          unavailable && "opacity-60",
+        )}
+      >
+        {children}
+      </span>
+      {unavailable && (
+        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          Coming soon
+        </span>
+      )}
     </div>
   );
 }

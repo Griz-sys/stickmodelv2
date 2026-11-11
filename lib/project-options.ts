@@ -20,6 +20,7 @@ export interface ProjectOption {
   description?: string;
   rate: number; // USD
   unit: "tonne" | "flat";
+  unavailable?: boolean; // shown greyed out as "Coming soon"; remove to enable
 }
 
 // Always part of every project — covered by the base rate
@@ -39,12 +40,14 @@ export const PROJECT_OPTIONS: ProjectOption[] = [
     description: "Connection material added to the bill of material",
     rate: 0.1,
     unit: "tonne",
+    unavailable: true,
   },
   {
     id: "labour_code",
     label: "Labour Code",
     rate: 0.1,
     unit: "tonne",
+    unavailable: true,
   },
   {
     id: "tekla_model",
@@ -68,6 +71,7 @@ export const MISC_OPTION: ProjectOption = {
   description: "Priced separately from main steel",
   rate: MISC_BASE_RATE,
   unit: "tonne",
+  unavailable: true,
 };
 
 export function getProjectOption(id: string): ProjectOption | undefined {
@@ -75,11 +79,11 @@ export function getProjectOption(id: string): ProjectOption | undefined {
   return PROJECT_OPTIONS.find((o) => o.id === id);
 }
 
-// Keep only known, unique option ids (in canonical order)
+// Keep only known, available, unique option ids (in canonical order)
 export function sanitizeProjectOptions(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return [...PROJECT_OPTIONS, MISC_OPTION]
-    .filter((o) => value.includes(o.id))
+    .filter((o) => !o.unavailable && value.includes(o.id))
     .map((o) => o.id);
 }
 
